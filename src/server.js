@@ -7,6 +7,8 @@ const commRoutes = require('./routes/communications');
 const actionsRoutes = require('./routes/actions');
 const auditRoutes = require('./routes/audit');
 const advancedRoutes = require('./routes/advanced');
+const homebayRoutes = require('./routes/homebay');
+const { validateHomeBayCredentials } = require('./homebay/config');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -56,11 +58,22 @@ app.use('/api/comms', commRoutes);
 app.use('/api/actions', actionsRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/advanced', advancedRoutes);
+app.use('/api/homebay', homebayRoutes);
 
 // Serve frontend
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+// Validate HomeBay credentials on startup (fail fast on stale config)
+try {
+  validateHomeBayCredentials();
+  console.log('[Khai] HomeBay credentials validated on startup');
+} catch (err) {
+  console.error('[Khai] HomeBay credential validation failed:', err.message);
+  console.error('[Khai] HomeBay features will be unavailable — fix credentials.json');
+  // Don't crash server — other features still work, but log prominently
+}
 
 const server = app.listen(PORT, '127.0.0.1', () => {
   console.log(`
