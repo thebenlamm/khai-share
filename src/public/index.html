@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khai - AI Website Testing Agent</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <img src="logo.svg" alt="Khai Logo" class="logo-img">
+        <h1>Khai</h1>
+      </div>
+      <p class="tagline">חי AI Lifecycle Agent • 18 = Life • Bringing Projects to Life</p>
+      <div style="display: flex; gap: 20px; justify-content: center; margin-top: 8px;">
+        <a href="guide.html" class="about-link">Full Guide & Capabilities →</a>
+        <a href="about.html" class="about-link">Legal & Limitations →</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- New Test Panel -->
+      <section class="panel" id="new-test-panel">
+        <h2>Start New Test</h2>
+        <div class="form-group">
+          <label for="site-select">Website</label>
+          <select id="site-select">
+            <option value="">Select a website...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="account-select">Account Type</label>
+          <select id="account-select" disabled>
+            <option value="">Select account type...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="depth-input">Crawl Depth</label>
+          <input type="number" id="depth-input" value="3" min="1" max="10">
+          <span class="hint">Higher = more pages, longer test time</span>
+        </div>
+        <button id="start-test-btn" class="btn primary" disabled>
+          <span class="icon">▶</span> Start Test
+        </button>
+      </section>
+
+      <!-- Active Test Panel -->
+      <section class="panel" id="active-test-panel" style="display: none;">
+        <h2>Active Test</h2>
+        <div class="test-info">
+          <div class="info-row">
+            <span class="label">Site:</span>
+            <span id="active-site"></span>
+          </div>
+          <div class="info-row">
+            <span class="label">Account:</span>
+            <span id="active-account"></span>
+          </div>
+          <div class="info-row">
+            <span class="label">Status:</span>
+            <span id="active-status" class="status"></span>
+          </div>
+        </div>
+        <div class="progress-stats">
+          <div class="stat">
+            <span class="number" id="pages-scanned">0</span>
+            <span class="label">Pages Scanned</span>
+          </div>
+          <div class="stat">
+            <span class="number" id="issues-found">0</span>
+            <span class="label">Issues Found</span>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <button id="stop-test-btn" class="btn danger">
+          <span class="icon">■</span> Stop Test
+        </button>
+      </section>
+
+      <!-- Results Panel -->
+      <section class="panel" id="results-panel" style="display: none;">
+        <h2>Test Results</h2>
+        <div class="summary-cards">
+          <div class="card total">
+            <span class="number" id="total-pages">0</span>
+            <span class="label">Total Pages</span>
+          </div>
+          <div class="card passed">
+            <span class="number" id="passed-pages">0</span>
+            <span class="label">Passed</span>
+          </div>
+          <div class="card failed">
+            <span class="number" id="failed-pages">0</span>
+            <span class="label">Failed</span>
+          </div>
+          <div class="card warnings">
+            <span class="number" id="warning-count">0</span>
+            <span class="label">Warnings</span>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" data-tab="issues">Issues</button>
+          <button class="tab" data-tab="pages">Pages</button>
+          <button class="tab" data-tab="screenshots">Screenshots</button>
+        </div>
+
+        <div id="issues-tab" class="tab-content active">
+          <div class="filter-bar">
+            <select id="severity-filter">
+              <option value="all">All Severities</option>
+              <option value="error">Errors Only</option>
+              <option value="warning">Warnings Only</option>
+            </select>
+            <select id="type-filter">
+              <option value="all">All Types</option>
+            </select>
+          </div>
+          <div id="issues-list" class="list"></div>
+        </div>
+
+        <div id="pages-tab" class="tab-content">
+          <div id="pages-list" class="list"></div>
+        </div>
+
+        <div id="screenshots-tab" class="tab-content">
+          <div id="screenshots-grid" class="grid"></div>
+        </div>
+
+        <button id="export-btn" class="btn secondary">
+          <span class="icon">📥</span> Export Report
+        </button>
+        <button id="new-test-btn" class="btn primary">
+          <span class="icon">+</span> New Test
+        </button>
+      </section>
+
+      <!-- Communications Panel -->
+      <section class="panel" id="comms-panel">
+        <h2>Communications Monitor</h2>
+        <div class="comms-status">
+          <div class="comms-toggle">
+            <button id="init-comms-btn" class="btn secondary">Start Monitoring</button>
+            <button id="stop-comms-btn" class="btn danger" style="display:none;">Stop</button>
+          </div>
+          <div class="comms-counts" style="display:none;">
+            <div class="comms-count">
+              <span class="icon">📧</span>
+              <span id="email-count">0</span>
+            </div>
+            <div class="comms-count">
+              <span class="icon">📱</span>
+              <span id="sms-count">0</span>
+            </div>
+            <div class="comms-count">
+              <span class="icon">📠</span>
+              <span id="fax-count">0</span>
+            </div>
+          </div>
+        </div>
+        <div id="comms-messages" class="list" style="max-height: 200px;"></div>
+      </section>
+
+      <!-- Test History Panel -->
+      <section class="panel" id="history-panel">
+        <h2>Test History</h2>
+        <div id="history-list" class="list"></div>
+      </section>
+    </main>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshot-modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <img id="modal-image" src="" alt="Screenshot">
+        <p id="modal-caption"></p>
+      </div>
+    </div>
+
+    <!-- Note Modal -->
+    <div id="note-modal" class="modal">
+      <div class="modal-content small">
+        <span class="close">&times;</span>
+        <h3>Add Note</h3>
+        <textarea id="note-text" placeholder="Enter your note..."></textarea>
+        <button id="save-note-btn" class="btn primary">Save Note</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

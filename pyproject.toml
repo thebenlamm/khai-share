@@ -1,0 +1,19 @@
+[project]
+name = "khai-mcp"
+version = "0.1.0"
+description = "MCP server for Khai browser automation and website testing"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=1.0.0",
+    "httpx",
+]
+
+[project.scripts]
+khai-mcp = "khai_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["khai_mcp*"]

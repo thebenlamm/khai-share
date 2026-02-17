@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5"/>
+      <stop offset="100%" style="stop-color:#818cf8"/>
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#60a5fa"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="55" fill="url(#bgGrad)"/>
+
+  <!-- Inner glow ring -->
+  <circle cx="60" cy="60" r="45" fill="none" stroke="url(#glowGrad)" stroke-width="2" opacity="0.5"/>
+
+  <!-- Hebrew letter Chai (חי) stylized -->
+  <g fill="#ffffff" transform="translate(60, 60)">
+    <!-- Chet (ח) -->
+    <path d="M-25,-20 L-25,20 L-18,20 L-18,-12 L-5,-12 L-5,20 L2,20 L2,-20 Z" />
+
+    <!-- Yod (י) -->
+    <path d="M12,-20 L12,5 L19,5 L19,-20 Z" />
+    <circle cx="15.5" cy="12" r="5" />
+  </g>
+
+  <!-- AI circuit nodes -->
+  <circle cx="25" cy="30" r="3" fill="#60a5fa"/>
+  <circle cx="95" cy="30" r="3" fill="#60a5fa"/>
+  <circle cx="25" cy="90" r="3" fill="#60a5fa"/>
+  <circle cx="95" cy="90" r="3" fill="#60a5fa"/>
+
+  <!-- Connection lines -->
+  <line x1="25" y1="30" x2="35" y2="40" stroke="#60a5fa" stroke-width="1" opacity="0.6"/>
+  <line x1="95" y1="30" x2="85" y2="40" stroke="#60a5fa" stroke-width="1" opacity="0.6"/>
+  <line x1="25" y1="90" x2="35" y2="80" stroke="#60a5fa" stroke-width="1" opacity="0.6"/>
+  <line x1="95" y1="90" x2="85" y2="80" stroke="#60a5fa" stroke-width="1" opacity="0.6"/>
+
+  <!-- "18" subtle -->
+  <text x="60" y="105" text-anchor="middle" fill="#ffffff" font-family="Arial" font-size="10" opacity="0.7">18</text>
+</svg>

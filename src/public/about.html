@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khai - Powers & Limitations</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .about-container { max-width: 800px; margin: 0 auto; }
+    .power-section { margin-bottom: 40px; }
+    .power-section h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+    .power-list { list-style: none; padding: 0; }
+    .power-list li { padding: 15px; background: var(--bg-light); border-radius: 8px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 15px; }
+    .power-list .icon { font-size: 24px; flex-shrink: 0; }
+    .power-list .details h3 { margin: 0 0 5px 0; font-size: 1.1rem; }
+    .power-list .details p { margin: 0; color: var(--text-muted); font-size: 0.9rem; }
+    .limitation { border-left: 3px solid var(--warning); }
+    .power { border-left: 3px solid var(--success); }
+    .security { border-left: 3px solid var(--primary); }
+    .back-btn { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container about-container">
+    <header>
+      <div class="logo">
+        <img src="logo.svg" alt="Khai Logo" class="logo-img">
+        <h1>Khai</h1>
+      </div>
+      <p class="tagline">חי AI Lifecycle Agent • 18 = Life</p>
+    </header>
+
+    <main>
+      <section class="power-section">
+        <h2>🔋 Powers (What Khai CAN Do)</h2>
+        <ul class="power-list">
+          <li class="power">
+            <span class="icon">🔐</span>
+            <div class="details">
+              <h3>Automated Login</h3>
+              <p>Log into websites using stored credentials at admin and patient levels. Navigate authenticated areas.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">🕷️</span>
+            <div class="details">
+              <h3>Deep Crawling</h3>
+              <p>Discover and visit every link on a website up to a configurable depth. Map the entire site structure.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">📸</span>
+            <div class="details">
+              <h3>Screenshot Capture</h3>
+              <p>Take full-page screenshots of every page visited for visual documentation and debugging.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">🔍</span>
+            <div class="details">
+              <h3>Issue Detection</h3>
+              <p>Identify HTTP errors, slow pages, broken images, JavaScript errors, accessibility issues, and security warnings.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">💳</span>
+            <div class="details">
+              <h3>Purchase Testing</h3>
+              <p>Fill payment forms with stored card details. <strong>Requires your confirmation</strong> before completing any purchase.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">📧</span>
+            <div class="details">
+              <h3>Communication Monitoring</h3>
+              <p>Monitor incoming emails, SMS, and faxes. Auto-extract verification codes for 2FA flows.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">📝</span>
+            <div class="details">
+              <h3>Notes & Reports</h3>
+              <p>Add notes to issues. Export comprehensive JSON reports for debugging and handoff.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="power-section">
+        <h2>⚠️ Limitations (What Khai CANNOT Do)</h2>
+        <ul class="power-list">
+          <li class="limitation">
+            <span class="icon">🚫</span>
+            <div class="details">
+              <h3>No Autonomous Purchases</h3>
+              <p>Khai will NEVER complete a purchase without your explicit confirmation. You always have final say.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">🔒</span>
+            <div class="details">
+              <h3>No Code Modification (Report Only)</h3>
+              <p>Khai detects issues but does not modify your website's source code. All fixes are manual.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">🌐</span>
+            <div class="details">
+              <h3>Local Only</h3>
+              <p>Runs on localhost only. Not exposed to the internet. Your credentials stay on your machine.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">⏱️</span>
+            <div class="details">
+              <h3>No Real-Time Alerts</h3>
+              <p>Must be actively running to monitor. Does not run as a background service or send push notifications.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">🤖</span>
+            <div class="details">
+              <h3>No CAPTCHA Solving</h3>
+              <p>Cannot bypass CAPTCHAs. Pages with CAPTCHA protection may require manual intervention.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">📱</span>
+            <div class="details">
+              <h3>Desktop Viewport Only</h3>
+              <p>Tests at 1920x1080 resolution. Does not automatically test mobile or tablet viewports.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="power-section">
+        <h2>🛡️ Security Measures</h2>
+        <ul class="power-list">
+          <li class="security">
+            <span class="icon">🔐</span>
+            <div class="details">
+              <h3>Credentials Never Exposed</h3>
+              <p>Stored in local config file. Never logged, never transmitted. Add credentials.json to .gitignore.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">✅</span>
+            <div class="details">
+              <h3>Purchase Confirmation Required</h3>
+              <p>All payment actions require explicit user approval through the UI before execution.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">🏠</span>
+            <div class="details">
+              <h3>Localhost Binding</h3>
+              <p>Server only accessible from your machine. Not exposed on network interfaces.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">📋</span>
+            <div class="details">
+              <h3>Audit Trail</h3>
+              <p>All actions logged with timestamps. Reports saved for review. Screenshots document state.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="power-section">
+        <h2>🚀 Future Expansion</h2>
+        <ul class="power-list">
+          <li class="power">
+            <span class="icon">🔮</span>
+            <div class="details">
+              <h3>When Claude Can't, Ask Khai</h3>
+              <p>If Claude Code encounters a task requiring credentials, payments, or live website interaction, it may suggest: "Should I summon Khai to handle this?"</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">🔌</span>
+            <div class="details">
+              <h3>Plugin Architecture</h3>
+              <p>Add custom test modules for specific workflows, form types, or integrations.</p>
+            </div>
+          </li>
+          <li class="power">
+            <span class="icon">🌍</span>
+            <div class="details">
+              <h3>Multi-Environment</h3>
+              <p>Configure staging, production, and development environments with separate credentials.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="power-section">
+        <h2>⚖️ Legal Constraints & Reminders</h2>
+        <ul class="power-list">
+          <li class="limitation">
+            <span class="icon">📜</span>
+            <div class="details">
+              <h3>Authorization Required</h3>
+              <p>Only test websites you OWN or have EXPLICIT WRITTEN PERMISSION to test. Unauthorized testing may violate the Computer Fraud and Abuse Act (CFAA) and similar laws.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">🏥</span>
+            <div class="details">
+              <h3>HIPAA Compliance</h3>
+              <p>For healthcare sites: Ensure testing doesn't expose PHI. Screenshots may contain patient data. Store securely and delete when no longer needed.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">💳</span>
+            <div class="details">
+              <h3>PCI-DSS Awareness</h3>
+              <p>Payment card data in config files must be protected. Use test cards when possible. Never commit credentials.json to version control.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">📊</span>
+            <div class="details">
+              <h3>Data Retention</h3>
+              <p>Screenshots and reports may contain sensitive data. Implement a retention policy. Delete old test data regularly.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">🌍</span>
+            <div class="details">
+              <h3>GDPR/CCPA</h3>
+              <p>Testing may process personal data. Ensure compliance with applicable privacy regulations for data you collect during tests.</p>
+            </div>
+          </li>
+          <li class="limitation">
+            <span class="icon">📝</span>
+            <div class="details">
+              <h3>Terms of Service</h3>
+              <p>Automated testing may violate some websites' ToS. Review terms before testing third-party services.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <section class="power-section">
+        <h2>⏰ Operational Reminders</h2>
+        <ul class="power-list">
+          <li class="security">
+            <span class="icon">🔄</span>
+            <div class="details">
+              <h3>Rotate Credentials Regularly</h3>
+              <p>Change passwords stored in config periodically. Use dedicated test accounts when possible.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">👁️</span>
+            <div class="details">
+              <h3>Review Before Purchase Confirmation</h3>
+              <p>Always verify the amount, product, and card before confirming any purchase. Test with minimal amounts first.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">🗑️</span>
+            <div class="details">
+              <h3>Clean Up Test Data</h3>
+              <p>After testing, clean up any test accounts, orders, or data created on the live site.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">📅</span>
+            <div class="details">
+              <h3>Schedule During Low Traffic</h3>
+              <p>Run comprehensive tests during off-peak hours to minimize impact on real users.</p>
+            </div>
+          </li>
+          <li class="security">
+            <span class="icon">📞</span>
+            <div class="details">
+              <h3>Have Rollback Plan</h3>
+              <p>Know how to quickly revert any changes if testing causes unexpected issues.</p>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <div class="panel" style="background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); margin-top: 30px;">
+        <h3 style="color: var(--danger); margin-bottom: 10px;">⚠️ DISCLAIMER</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">
+          Khai is a testing tool provided as-is. The user assumes all responsibility for:
+          <ul style="margin: 10px 0; padding-left: 20px;">
+            <li>Ensuring authorization to test target websites</li>
+            <li>Protecting sensitive credentials and data</li>
+            <li>Compliance with all applicable laws and regulations</li>
+            <li>Any purchases confirmed through the system</li>
+            <li>Secure storage and timely deletion of test artifacts</li>
+          </ul>
+          By using Khai, you acknowledge that you have the legal right to test the configured websites and accept full responsibility for all actions taken.
+        </p>
+      </div>
+
+      <a href="/" class="btn primary back-btn">← Back to Dashboard</a>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Khai - Complete Guide</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .guide-container { max-width: 900px; margin: 0 auto; }
+    .guide-section { margin-bottom: 48px; }
+    .guide-section h2 {
+      color: var(--primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+      font-size: 1.5rem;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .feature-card {
+      background: var(--bg-light);
+      border-radius: 10px;
+      padding: 20px;
+      border-left: 4px solid var(--primary);
+      transition: transform 0.15s;
+    }
+    .feature-card:hover { transform: translateY(-2px); }
+    .feature-card.green { border-left-color: var(--success); }
+    .feature-card.yellow { border-left-color: var(--warning); }
+    .feature-card.red { border-left-color: var(--danger); }
+    .feature-card.blue { border-left-color: #3b82f6; }
+    .feature-card .card-icon { font-size: 28px; margin-bottom: 8px; }
+    .feature-card h3 { margin: 0 0 6px 0; font-size: 1.05rem; }
+    .feature-card p { margin: 0; color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; }
+    .api-table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.9rem; }
+    .api-table th, .api-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+    .api-table th { background: var(--bg-light); font-weight: 600; }
+    .api-table code { background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+    .api-table .method { font-weight: 600; color: var(--primary); }
+    .audit-category {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px;
+      background: var(--bg-light);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+    .audit-category .num {
+      background: var(--primary);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .audit-category h4 { margin: 0 0 4px 0; }
+    .audit-category p { margin: 0; color: var(--text-muted); font-size: 0.88rem; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 6px;
+    }
+    .badge.no-khai { background: #dbeafe; color: #1e40af; }
+    .badge.khai { background: #fef3c7; color: #92400e; }
+    .example-box {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+    .example-box .comment { color: #6b7280; }
+    .example-box .cmd { color: #34d399; }
+    .example-box .url { color: #60a5fa; }
+    .toc { background: var(--bg-light); padding: 20px 28px; border-radius: 10px; margin-bottom: 40px; }
+    .toc h3 { margin: 0 0 12px 0; }
+    .toc ul { margin: 0; padding-left: 20px; }
+    .toc li { margin-bottom: 6px; }
+    .toc a { color: var(--primary); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    .back-nav { display: flex; gap: 16px; margin-top: 40px; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container guide-container">
+    <header>
+      <div class="logo">
+        <img src="logo.svg" alt="Khai Logo" class="logo-img">
+        <h1>Khai</h1>
+      </div>
+      <p class="tagline">Complete Guide & Capabilities Reference</p>
+    </header>
+
+    <main>
+      <!-- Table of Contents -->
+      <nav class="toc">
+        <h3>Contents</h3>
+        <ul>
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#crawl-test">Website Crawling & Testing</a></li>
+          <li><a href="#actions">Custom Actions</a></li>
+          <li><a href="#audit">Site Audit Engine</a></li>
+          <li><a href="#security-tests">Security Testing</a></li>
+          <li><a href="#visual-regression">Visual Regression</a> (NEW)</li>
+          <li><a href="#flow-testing">Flow Testing</a> (NEW)</li>
+          <li><a href="#api-fuzzing">API Fuzzing</a> (NEW)</li>
+          <li><a href="#form-fuzzing">Form Fuzzing</a> (NEW)</li>
+          <li><a href="#lighthouse">Lighthouse Performance</a> (NEW)</li>
+          <li><a href="#link-checker">Link Checker</a> (NEW)</li>
+          <li><a href="#scheduler">Audit Scheduler</a> (NEW)</li>
+          <li><a href="#comms">Communications Monitor</a></li>
+          <li><a href="#purchase">Purchase Testing</a></li>
+          <li><a href="#passwords">Password Rotation</a></li>
+          <li><a href="#api-ref">API Reference</a></li>
+          <li><a href="#quick-start">Quick Start Examples</a></li>
+          <li><a href="#profiles">Audit Profiles</a></li>
+        </ul>
+      </nav>
+
+      <!-- Overview -->
+      <section class="guide-section" id="overview">
+        <h2>Overview</h2>
+        <p>Khai is a local AI lifecycle agent for automated website testing, security auditing, credential management, and communication monitoring. It runs on your machine at <code>localhost:3001</code> and uses Puppeteer for browser automation.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card green">
+            <div class="card-icon">🕷️</div>
+            <h3>Crawl & Test</h3>
+            <p>Automated deep crawling with login support, issue detection, and full-page screenshots at any viewport.</p>
+          </div>
+          <div class="feature-card blue">
+            <div class="card-icon">🛡️</div>
+            <h3>Security Audit</h3>
+            <p>14-category security and functional audit: headers, SSL, CORS, auth bypass, sensitive paths, rate limits, and more.</p>
+          </div>
+          <div class="feature-card green">
+            <div class="card-icon">🎯</div>
+            <h3>Custom Actions</h3>
+            <p>Execute precise action sequences: navigate, click, fill forms, extract text, run JS, and take screenshots.</p>
+          </div>
+          <div class="feature-card blue">
+            <div class="card-icon">📸</div>
+            <h3>Visual Regression</h3>
+            <p>Pixel-level screenshot comparison with diff images. Detect unexpected visual changes between deployments.</p>
+          </div>
+          <div class="feature-card blue">
+            <div class="card-icon">🔄</div>
+            <h3>Flow Testing</h3>
+            <p>Multi-step user journey testing with assertions. Test login flows, checkout, registration, and custom workflows.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">💥</div>
+            <h3>API Fuzzing</h3>
+            <p>Fuzz API endpoints with XSS, SQL injection, NoSQL, type confusion, and boundary value payloads. 135+ tests per endpoint.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">📝</div>
+            <h3>Form Fuzzing</h3>
+            <p>Auto-discover forms on any page, fuzz every field with type-appropriate payloads, detect crashes and XSS reflection.</p>
+          </div>
+          <div class="feature-card green">
+            <div class="card-icon">⚡</div>
+            <h3>Lighthouse Metrics</h3>
+            <p>Core Web Vitals via Chrome DevTools Protocol: LCP, CLS, TTFB, FCP. Mobile + desktop viewport support.</p>
+          </div>
+          <div class="feature-card green">
+            <div class="card-icon">🔗</div>
+            <h3>Link Checker</h3>
+            <p>Crawl all pages, discover every link (a, img, script, link), check for broken URLs with concurrent HEAD/GET requests.</p>
+          </div>
+          <div class="feature-card blue">
+            <div class="card-icon">⏰</div>
+            <h3>Audit Scheduler</h3>
+            <p>Recurring audits on a timer. Regression detection, webhook notifications, persistent history with 50-run retention.</p>
+          </div>
+          <div class="feature-card yellow">
+            <div class="card-icon">📧</div>
+            <h3>Comms Monitor</h3>
+            <p>Watch for incoming emails, SMS, and faxes. Auto-extract verification codes for testing 2FA flows.</p>
+          </div>
+          <div class="feature-card green">
+            <div class="card-icon">💳</div>
+            <h3>Purchase Testing</h3>
+            <p>Fill payment forms with test cards. Always requires your explicit confirmation before completing.</p>
+          </div>
+          <div class="feature-card green">
+            <div class="card-icon">🔑</div>
+            <h3>Password Rotation</h3>
+            <p>Automate credential rotation with audit trail and new-password validation.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Crawl & Test -->
+      <section class="guide-section" id="crawl-test">
+        <h2>Website Crawling & Testing</h2>
+        <p>The core test engine logs into a site with stored credentials and crawls every discoverable link up to a configurable depth. For each page it checks:</p>
+        <ul>
+          <li><strong>HTTP Status</strong> — flags 4xx and 5xx errors</li>
+          <li><strong>Load Time</strong> — warns on pages over 5 seconds</li>
+          <li><strong>Broken Images</strong> — scrolls page to trigger lazy-loaded images, checks natural dimensions</li>
+          <li><strong>JavaScript Errors</strong> — captures console errors and uncaught exceptions</li>
+          <li><strong>Failed Requests</strong> — logs network failures</li>
+          <li><strong>Accessibility</strong> — missing alt text, empty buttons/links, unlabeled inputs, heading hierarchy</li>
+          <li><strong>Form Security</strong> — CSRF token presence on POST forms</li>
+          <li><strong>Screenshots</strong> — full-page capture at configured viewport</li>
+        </ul>
+        <p><strong>Viewports:</strong> desktop (1920x1080), tablet (768x1024), mobile (375x812)</p>
+      </section>
+
+      <!-- Custom Actions -->
+      <section class="guide-section" id="actions">
+        <h2>Custom Actions</h2>
+        <p>Execute precise browser actions for targeted testing. Actions run in sequence with a persistent browser session.</p>
+        <table class="api-table">
+          <thead>
+            <tr><th>Action</th><th>Parameters</th><th>Description</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>navigate</code></td><td>target (URL or selector)</td><td>Navigate to URL or click an element</td></tr>
+            <tr><td><code>wait</code></td><td>selector, timeout</td><td>Wait for element to appear in DOM</td></tr>
+            <tr><td><code>click</code></td><td>selector</td><td>Click an element</td></tr>
+            <tr><td><code>fill</code></td><td>selector, value</td><td>Type text into a form field</td></tr>
+            <tr><td><code>screenshot</code></td><td>name</td><td>Take a named screenshot</td></tr>
+            <tr><td><code>fillForm</code></td><td>form (object of field:value)</td><td>Fill multiple form fields at once</td></tr>
+            <tr><td><code>extractText</code></td><td>selector</td><td>Get text content of an element</td></tr>
+            <tr><td><code>executeJs</code></td><td>code</td><td>Run arbitrary JavaScript in page context</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Site Audit Engine -->
+      <section class="guide-section" id="audit">
+        <h2>Site Audit Engine <span class="badge no-khai">NEW</span></h2>
+        <p>A comprehensive 14-category audit that tests functional correctness, security posture, SEO, and performance. Runs with or without Khai — unauthenticated tests use direct HTTP requests (no browser needed), while authenticated tests leverage Khai's login capabilities.</p>
+
+        <div class="audit-category">
+          <span class="num">1</span>
+          <div>
+            <h4>Public Pages <span class="badge no-khai">No Khai</span></h4>
+            <p>Verify every public page returns expected status codes and contains expected content. Flag missing pages or unexpected errors.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">2</span>
+          <div>
+            <h4>Redirects <span class="badge no-khai">No Khai</span></h4>
+            <p>Follow redirect chains for old URLs and verify they land at the correct destination with proper status codes (301/302).</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">3</span>
+          <div>
+            <h4>Security Headers <span class="badge no-khai">No Khai</span></h4>
+            <p>Check for required headers (X-Frame-Options, X-Content-Type-Options, HSTS) and recommended ones (CSP, Referrer-Policy, Permissions-Policy). Evaluates CSP quality and flags unsafe-inline/unsafe-eval.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">4</span>
+          <div>
+            <h4>Cookie Security <span class="badge no-khai">No Khai</span></h4>
+            <p>Inspect Set-Cookie headers for Secure, HttpOnly, and SameSite flags. Warns on session cookies missing protections.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">5</span>
+          <div>
+            <h4>CORS Policy <span class="badge no-khai">No Khai</span></h4>
+            <p>Send requests with a malicious Origin header. Detect wildcard CORS, origin reflection, or dangerous credentials + wildcard combinations.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">6</span>
+          <div>
+            <h4>Auth Bypass <span class="badge no-khai">No Khai</span></h4>
+            <p>Attempt to access protected pages and API routes without authentication. Verify proper redirects to login or 401/403 responses.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">7</span>
+          <div>
+            <h4>Sensitive Paths <span class="badge no-khai">No Khai</span></h4>
+            <p>Probe for exposed config files (.env, .git, package.json, phpinfo, etc.). Flags any that return 200 with sensitive content.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">8</span>
+          <div>
+            <h4>API Endpoints <span class="badge no-khai">No Khai</span></h4>
+            <p>Health check known APIs. Test that error responses don't leak stack traces or database information. Verify unknown routes return clean 404s.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">9</span>
+          <div>
+            <h4>Rate Limiting <span class="badge no-khai">No Khai</span></h4>
+            <p>Send 20 rapid-fire requests to detect rate limiting (429 responses). Also tests login endpoint for brute-force protection.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">10</span>
+          <div>
+            <h4>SSL/TLS <span class="badge no-khai">No Khai</span></h4>
+            <p>Verify HTTPS, check HTTP-to-HTTPS redirect, inspect certificate validity and expiration, and confirm issuer details.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">11</span>
+          <div>
+            <h4>SEO <span class="badge no-khai">No Khai</span></h4>
+            <p>Check title tags, meta descriptions, Open Graph tags, canonical links, and H1 presence on key pages.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">12</span>
+          <div>
+            <h4>Performance <span class="badge no-khai">No Khai</span></h4>
+            <p>Measure response times, body sizes, compression, and cache headers for public pages.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">13</span>
+          <div>
+            <h4>Authenticated Pages <span class="badge khai">Needs Khai</span></h4>
+            <p>Log in as admin and patient roles, crawl authenticated areas, verify expected pages load correctly, and capture screenshots.</p>
+          </div>
+        </div>
+        <div class="audit-category">
+          <span class="num">14</span>
+          <div>
+            <h4>Authorization <span class="badge khai">Needs Khai</span></h4>
+            <p>Log in as one role (e.g. patient) and attempt to access another role's pages (e.g. admin). Verify access is denied.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Security Testing Detail -->
+      <section class="guide-section" id="security-tests">
+        <h2>Security Testing Details</h2>
+        <p>The audit engine runs these security checks automatically. Here's what each category looks for:</p>
+
+        <div class="feature-grid">
+          <div class="feature-card red">
+            <div class="card-icon">🔓</div>
+            <h3>Auth Bypass Checks</h3>
+            <p>Direct URL access to /admin, /dashboard, protected API routes. Verifies redirect-to-login or 401/403. Checks tRPC procedures require auth.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">📋</div>
+            <h3>Info Leak Detection</h3>
+            <p>Scans error responses for stack traces, database names (Prisma/Postgres), and internal paths. Checks X-Powered-By and Server version headers.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">🌐</div>
+            <h3>CORS Misconfiguration</h3>
+            <p>Tests with evil origin to detect reflection attacks. Flags wildcard + credentials combos. Checks both root and API endpoints.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">🍪</div>
+            <h3>Cookie Hardening</h3>
+            <p>Session cookies: Secure flag on HTTPS, HttpOnly to prevent XSS theft, SameSite to prevent CSRF. Checks all cookies, not just session.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">🔒</div>
+            <h3>SSL/TLS Posture</h3>
+            <p>Certificate expiry warnings (30-day threshold), HTTP→HTTPS enforcement, HSTS quality (includeSubDomains, max-age ≥ 1 year).</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">🚦</div>
+            <h3>Rate Limit Testing</h3>
+            <p>20 rapid requests to API endpoints, 10 bad login attempts to auth endpoint. Looks for 429 status or request failures indicating throttling.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">📁</div>
+            <h3>Sensitive File Exposure</h3>
+            <p>Probes 20+ paths: .env, .git, package.json, phpinfo, wp-admin, server-status, .htaccess, tsconfig, DS_Store, and more.</p>
+          </div>
+          <div class="feature-card red">
+            <div class="card-icon">🛡️</div>
+            <h3>CSP Evaluation</h3>
+            <p>Checks for default-src, warns on unsafe-inline without nonce, flags unsafe-eval. Reports missing CSP as recommendation.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Visual Regression -->
+      <section class="guide-section" id="visual-regression">
+        <h2>Visual Regression Testing <span class="badge no-khai">NEW</span></h2>
+        <p>Compare screenshots pixel-by-pixel to catch unexpected visual changes between deployments. Uses <code>pixelmatch</code> for accurate diff detection with configurable tolerance.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card blue">
+            <h3>How It Works</h3>
+            <p><strong>1.</strong> Set a baseline from a known-good test run.<br>
+            <strong>2.</strong> After changes, take new screenshots.<br>
+            <strong>3.</strong> Compare baseline vs current — get a diff image with changed pixels highlighted in red.</p>
+          </div>
+          <div class="feature-card green">
+            <h3>Capabilities</h3>
+            <p>Handles different-sized images (pads smaller to match). Reports: matched, changed, missing, and added pages. Sorts diffs by severity (largest change first). Threshold from 0 (strict) to 1 (loose).</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <div class="example-box">
+          <span class="comment"># Set baseline from a Khai test run</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/visual/set-baseline</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"testId": "abc123"}'<br><br>
+          <span class="comment"># Compare current screenshots against baseline</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/visual/compare</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"threshold": 0.1}'
+        </div>
+      </section>
+
+      <!-- Flow Testing -->
+      <section class="guide-section" id="flow-testing">
+        <h2>Flow Testing <span class="badge no-khai">NEW</span></h2>
+        <p>Define multi-step user journeys as JSON configs and run them with assertions at each step. Perfect for testing login flows, checkout processes, form submissions, and navigation paths.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card blue">
+            <h3>Action Types</h3>
+            <p><code>navigate</code>, <code>click</code>, <code>fill</code>, <code>select</code>, <code>wait</code>, <code>screenshot</code>, <code>assertText</code>, <code>assertUrl</code>, <code>assertVisible</code>, <code>assertNotVisible</code></p>
+          </div>
+          <div class="feature-card green">
+            <h3>Configurable</h3>
+            <p>Flows defined in <code>config/flows/{site}.json</code>. Run one flow or all flows. Login support for authenticated journeys. Full step-by-step results with screenshots.</p>
+          </div>
+        </div>
+
+        <h3>Flow Config Example</h3>
+        <div class="example-box">
+          {<br>
+          &nbsp;&nbsp;<span class="cmd">"site"</span>: "yoursite.com",<br>
+          &nbsp;&nbsp;<span class="cmd">"flows"</span>: [{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">"name"</span>: "eligibility-form",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="cmd">"steps"</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ "action": "navigate", "url": "/eligibility" },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ "action": "assertText", "selector": "h1", "expected": "eligibility" },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ "action": "fill", "selector": "#name", "value": "Test User" },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ "action": "click", "selector": "button[type=submit]" },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ "action": "screenshot", "name": "after-submit" }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;]<br>
+          &nbsp;&nbsp;}]<br>
+          }
+        </div>
+
+        <h3>API</h3>
+        <div class="example-box">
+          <span class="comment"># Run all flows for a site</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/flows/run</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com"}'<br><br>
+          <span class="comment"># Run a specific flow</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/flows/run</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com", "flowName": "eligibility-form"}'
+        </div>
+      </section>
+
+      <!-- API Fuzzing -->
+      <section class="guide-section" id="api-fuzzing">
+        <h2>API Fuzzing <span class="badge no-khai">NEW</span></h2>
+        <p>Fuzz API endpoints with 135+ payload variants per endpoint. Generates XSS, SQL injection, NoSQL injection, type confusion, boundary values, special characters, missing fields, and prototype pollution payloads.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card red">
+            <h3>Payload Categories</h3>
+            <p><strong>20</strong> XSS payloads, <strong>10</strong> SQL injection, <strong>5</strong> NoSQL injection, <strong>7</strong> special chars, <strong>10</strong> type confusion per field, <strong>8</strong> boundary values for numbers, plus missing fields and prototype pollution.</p>
+          </div>
+          <div class="feature-card red">
+            <h3>Detection</h3>
+            <p>Detects: server crashes (500), stack trace leaks, SQL error messages, XSS reflection in HTML responses, NoSQL operator injection acceptance. Severity: critical or high.</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <div class="example-box">
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/fuzz/api</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"baseUrl": "https://yoursite.com",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"endpoints": [{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"path": "/api/eligibility",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "POST",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"body": {"email": "test@test.com", "state": "FL", "age": 25}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}]<br>
+          &nbsp;&nbsp;}'
+        </div>
+      </section>
+
+      <!-- Form Fuzzing -->
+      <section class="guide-section" id="form-fuzzing">
+        <h2>Form Fuzzing <span class="badge khai">Needs Browser</span></h2>
+        <p>Automatically discovers every form on a page, identifies field types (email, number, tel, password, text, textarea, select), and submits type-appropriate adversarial inputs. Reloads the page between each attempt for clean state.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card red">
+            <h3>What It Tests</h3>
+            <p>Empty values, oversized inputs (5000+ chars), XSS payloads, SQL injection, special characters, null bytes, emoji, template injection. Field-type-aware: email fields get email-specific malformed inputs, numbers get NaN/Infinity, etc.</p>
+          </div>
+          <div class="feature-card red">
+            <h3>Outcomes</h3>
+            <p><strong>crash</strong> — page went blank or showed error boundary/500.<br>
+            <strong>xss_reflected</strong> — payload found unescaped in DOM.<br>
+            <strong>rejected</strong> — validation caught the bad input.<br>
+            <strong>accepted</strong> — input went through without validation.</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <div class="example-box">
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/fuzz/forms</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"baseUrl": "https://yoursite.com",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"pages": ["/eligibility", "/register", "/login"]<br>
+          &nbsp;&nbsp;}'
+        </div>
+      </section>
+
+      <!-- Lighthouse -->
+      <section class="guide-section" id="lighthouse">
+        <h2>Lighthouse Performance <span class="badge no-khai">NEW</span></h2>
+        <p>Measures Core Web Vitals using Chrome DevTools Protocol — no external dependencies needed. Scores each metric as good/needs-improvement/poor using Google's thresholds.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card green">
+            <h3>Metrics Measured</h3>
+            <p><strong>LCP</strong> (Largest Contentful Paint): good &lt;2.5s, poor &gt;4s<br>
+            <strong>CLS</strong> (Cumulative Layout Shift): good &lt;0.1, poor &gt;0.25<br>
+            <strong>TTFB</strong> (Time to First Byte): good &lt;800ms, poor &gt;1800ms<br>
+            <strong>FCP</strong> (First Contentful Paint): good &lt;1.8s, poor &gt;3s<br>
+            <strong>Load Time</strong>: good &lt;3s, poor &gt;5s</p>
+          </div>
+          <div class="feature-card green">
+            <h3>Features</h3>
+            <p>Mobile and desktop viewport presets. Audit single page or batch. Per-page detailed metrics plus overall summary. Resource timing breakdown (scripts, stylesheets, images, fonts, API calls).</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <div class="example-box">
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/lighthouse</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"viewport": "mobile",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"pages": [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{"url": "https://yoursite.com", "name": "Home"},<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{"url": "https://yoursite.com/blog", "name": "Blog"},<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{"url": "https://yoursite.com/login", "name": "Login"}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;]<br>
+          &nbsp;&nbsp;}'
+        </div>
+      </section>
+
+      <!-- Link Checker -->
+      <section class="guide-section" id="link-checker">
+        <h2>Link Checker <span class="badge no-khai">NEW</span></h2>
+        <p>Crawls your site with Puppeteer to discover all links (anchors, images, scripts, stylesheets), then validates each unique URL with HEAD/GET requests. Concurrent checking with configurable parallelism.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card green">
+            <h3>What It Finds</h3>
+            <p><strong>Broken links</strong> — 404s, 500s, DNS failures, timeouts, SSL errors, connection refused.<br>
+            <strong>Slow links</strong> — responses over 3 seconds.<br>
+            <strong>Redirect chains</strong> — tracks full redirect path for each URL.</p>
+          </div>
+          <div class="feature-card green">
+            <h3>Report</h3>
+            <p>Separates internal vs external links. Broken links sorted by impact (found on most pages first). Shows which page each broken link was discovered on. Configurable: max pages to crawl, concurrency, timeout.</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <div class="example-box">
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/links/check</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"baseUrl": "https://yoursite.com", "maxPages": 30, "concurrency": 10}'
+        </div>
+      </section>
+
+      <!-- Scheduler -->
+      <section class="guide-section" id="scheduler">
+        <h2>Audit Scheduler <span class="badge no-khai">NEW</span></h2>
+        <p>Run audits on a recurring schedule. Automatically detects regressions by comparing each run with the previous one. Sends webhook and email notifications when things go wrong.</p>
+
+        <div class="feature-grid">
+          <div class="feature-card blue">
+            <h3>Regression Detection</h3>
+            <p>Compares each run to the last: more failures, fewer passes, more warnings, or pass-rate drops &gt;5% are flagged as regressions. Notification subjects prefixed with <code>[REGRESSION]</code> when detected.</p>
+          </div>
+          <div class="feature-card blue">
+            <h3>Persistence</h3>
+            <p>Schedules and history saved to <code>config/schedules.json</code>. Survives restarts. Retains last 50 runs per schedule. Start/stop individual schedules or all at once.</p>
+          </div>
+        </div>
+
+        <h3>Example</h3>
+        <div class="example-box">
+          <span class="comment"># Create a schedule (every 6 hours)</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/scheduler</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"site": "yoursite.com",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"interval": 21600000,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"useKhai": true,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"webhookUrl": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"<br>
+          &nbsp;&nbsp;}'<br><br>
+          <span class="comment"># Start a schedule</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/advanced/scheduler/{id}/start</span><br><br>
+          <span class="comment"># View run history</span><br>
+          <span class="cmd">curl</span> <span class="url">http://localhost:3001/api/advanced/scheduler/{id}/history?limit=5</span>
+        </div>
+      </section>
+
+      <!-- Communications -->
+      <section class="guide-section" id="comms">
+        <h2>Communications Monitor</h2>
+        <p>Monitor incoming email, SMS, and fax messages during testing. Useful for:</p>
+        <ul>
+          <li>Capturing verification codes for 2FA login flows</li>
+          <li>Verifying email notifications are sent correctly</li>
+          <li>Checking SMS delivery for appointment reminders</li>
+          <li>Monitoring fax transmissions</li>
+        </ul>
+        <p>Configure API endpoints in <code>config/credentials.json</code> under the <code>communications</code> section. The monitor polls at configurable intervals and auto-extracts numeric codes from messages.</p>
+      </section>
+
+      <!-- Purchase Testing -->
+      <section class="guide-section" id="purchase">
+        <h2>Purchase Testing</h2>
+        <p>When Khai encounters a checkout page during crawling, it:</p>
+        <ol>
+          <li>Detects payment form fields automatically</li>
+          <li>Fills card details from stored test cards</li>
+          <li><strong>Pauses and asks for your explicit confirmation</strong></li>
+          <li>Only completes the purchase if you approve</li>
+        </ol>
+        <p>Configure test cards in <code>config/credentials.json</code> under the <code>payment</code> section. Always use test/sandbox card numbers (e.g. 4111111111111111) during testing.</p>
+      </section>
+
+      <!-- Password Rotation -->
+      <section class="guide-section" id="passwords">
+        <h2>Password Rotation</h2>
+        <p>Automate password changes with full audit trail. Khai navigates to the change-password page, fills old and new passwords, and verifies the update. Supports custom selectors for any site's password change form.</p>
+      </section>
+
+      <!-- API Reference -->
+      <section class="guide-section" id="api-ref">
+        <h2>API Reference</h2>
+
+        <h3>Testing</h3>
+        <table class="api-table">
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="method">GET</td><td><code>/api/sites</code></td><td>List configured sites & accounts</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/test/start</code></td><td>Start crawl test <code>{site, account, maxDepth, viewport}</code></td></tr>
+            <tr><td class="method">GET</td><td><code>/api/test/:id/status</code></td><td>Check test progress</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/test/:id/results</code></td><td>Get full test results</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/test/:id/stop</code></td><td>Stop running test</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/tests</code></td><td>List all tests</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Actions</h3>
+        <table class="api-table">
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="method">POST</td><td><code>/api/actions/execute</code></td><td>Run action sequence <code>{site, account, actions[]}</code></td></tr>
+            <tr><td class="method">GET</td><td><code>/api/actions/:id/status</code></td><td>Check action status</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/actions/:id/results</code></td><td>Get action results & screenshots</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Audit <span class="badge no-khai">NEW</span></h3>
+        <table class="api-table">
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="method">GET</td><td><code>/api/audit/profiles</code></td><td>List available audit profiles</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/audit/start</code></td><td>Start audit <code>{site, baseUrl, useKhai, categories}</code></td></tr>
+            <tr><td class="method">GET</td><td><code>/api/audit/:id/status</code></td><td>Check audit progress</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/audit/:id/results</code></td><td>Get full audit report</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/audit</code></td><td>List all audits</td></tr>
+            <tr><td class="method">DELETE</td><td><code>/api/audit/:id</code></td><td>Delete audit report</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Advanced Testing <span class="badge no-khai">NEW</span></h3>
+        <table class="api-table">
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="method">POST</td><td><code>/api/advanced/visual/compare</code></td><td>Compare screenshots <code>{baselineDir, currentDir, threshold}</code></td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/visual/set-baseline</code></td><td>Set baseline from test <code>{testId}</code> or <code>{sourceDir}</code></td></tr>
+            <tr><td class="method">GET</td><td><code>/api/advanced/flows/configs</code></td><td>List available flow configs</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/flows/run</code></td><td>Run flow tests <code>{site, flowName?}</code></td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/fuzz/api</code></td><td>Fuzz API endpoints <code>{baseUrl, endpoints[]}</code></td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/fuzz/forms</code></td><td>Fuzz forms on pages <code>{baseUrl, pages[]}</code></td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/lighthouse</code></td><td>Run Lighthouse audit <code>{pages[], viewport?}</code></td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/links/check</code></td><td>Check broken links <code>{baseUrl, maxPages?}</code></td></tr>
+            <tr><td class="method">GET</td><td><code>/api/advanced/scheduler</code></td><td>List all schedules</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/scheduler</code></td><td>Create schedule <code>{site, interval, webhookUrl?}</code></td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/scheduler/:id/start</code></td><td>Start a schedule</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/advanced/scheduler/:id/stop</code></td><td>Stop a schedule</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/advanced/scheduler/:id/history</code></td><td>Get run history</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/advanced/jobs</code></td><td>List all async jobs</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/advanced/jobs/:id</code></td><td>Check job status</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/advanced/jobs/:id/results</code></td><td>Get job results</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Communications</h3>
+        <table class="api-table">
+          <thead><tr><th>Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td class="method">POST</td><td><code>/api/comms/init</code></td><td>Start monitoring</td></tr>
+            <tr><td class="method">POST</td><td><code>/api/comms/stop</code></td><td>Stop monitoring</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/comms/messages</code></td><td>Retrieve captured messages</td></tr>
+            <tr><td class="method">GET</td><td><code>/api/comms/unread</code></td><td>Get unread counts by type</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Quick Start -->
+      <section class="guide-section" id="quick-start">
+        <h2>Quick Start Examples</h2>
+
+        <h3>Run a full audit (no Khai needed)</h3>
+        <div class="example-box">
+          <span class="comment"># Start an audit of yoursite.com using its profile</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/audit/start</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com"}'<br><br>
+          <span class="comment"># Check audit status</span><br>
+          <span class="cmd">curl</span> <span class="url">http://localhost:3001/api/audit/{auditId}/status</span><br><br>
+          <span class="comment"># Get full results</span><br>
+          <span class="cmd">curl</span> <span class="url">http://localhost:3001/api/audit/{auditId}/results</span>
+        </div>
+
+        <h3>Run audit with Khai (authenticated tests)</h3>
+        <div class="example-box">
+          <span class="comment"># Include authenticated + authorization tests</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/audit/start</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com", "useKhai": true}'
+        </div>
+
+        <h3>Run only security tests</h3>
+        <div class="example-box">
+          <span class="comment"># Run specific categories only</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/audit/start</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com", "categories": ["securityHeaders", "cookieSecurity", "cors", "authBypass", "sensitivePaths", "ssl", "rateLimiting"]}'
+        </div>
+
+        <h3>Audit a new site (no profile)</h3>
+        <div class="example-box">
+          <span class="comment"># Provide baseUrl directly — runs with default checks</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/audit/start</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"baseUrl": "https://example.com"}'
+        </div>
+
+        <h3>Quick crawl test</h3>
+        <div class="example-box">
+          <span class="comment"># Crawl as admin with depth 2</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/test/start</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com", "account": "admin", "maxDepth": 2}'
+        </div>
+
+        <h3>Take a screenshot of a specific page</h3>
+        <div class="example-box">
+          <span class="comment"># Navigate to admin page and capture screenshot</span><br>
+          <span class="cmd">curl</span> -X POST <span class="url">http://localhost:3001/api/actions/execute</span> \<br>
+          &nbsp;&nbsp;-H "Content-Type: application/json" \<br>
+          &nbsp;&nbsp;-d '{"site": "yoursite.com", "account": "admin", "actions": [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{"type": "navigate", "target": "https://yoursite.com/admin"},<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{"type": "wait", "selector": "body", "timeout": 10000},<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{"type": "screenshot", "name": "admin-dashboard"}<br>
+          &nbsp;&nbsp;]}'
+        </div>
+      </section>
+
+      <!-- Audit Profiles -->
+      <section class="guide-section" id="profiles">
+        <h2>Audit Profiles</h2>
+        <p>Profiles live in <code>config/audit-profiles/</code> as JSON files. Each profile defines site-specific test data so audits are repeatable and thorough.</p>
+
+        <h3>Currently configured profiles</h3>
+        <div class="feature-grid">
+          <div class="feature-card green">
+            <div class="card-icon">💊</div>
+            <h3>yoursite.com</h3>
+            <p>11 public pages, 8 protected pages, 3 protected APIs, 3 API endpoints, 5 SEO pages, admin + patient auth tests, 3 authorization cross-checks.</p>
+          </div>
+          <div class="feature-card green">
+            <div class="card-icon">🩺</div>
+            <h3>yoursite.com</h3>
+            <p>5 public pages, 2 protected pages, 1 API endpoint, 3 SEO pages, admin + patient auth tests, 1 authorization check.</p>
+          </div>
+          <div class="feature-card blue">
+            <div class="card-icon">📋</div>
+            <h3>_template.json</h3>
+            <p>Copy this to create a profile for any new site. All fields documented with examples.</p>
+          </div>
+        </div>
+
+        <h3>Profile structure</h3>
+        <div class="example-box">
+          {<br>
+          &nbsp;&nbsp;<span class="cmd">"siteName"</span>: "example.com",<br>
+          &nbsp;&nbsp;<span class="cmd">"baseUrl"</span>: "https://example.com",<br>
+          &nbsp;&nbsp;<span class="cmd">"publicPages"</span>: [{ "path": "/", "expectedStatus": 200, "expectedContent": ["Welcome"] }],<br>
+          &nbsp;&nbsp;<span class="cmd">"redirects"</span>: [{ "from": "/old", "to": "/new" }],<br>
+          &nbsp;&nbsp;<span class="cmd">"protectedPages"</span>: [{ "path": "/admin", "redirectsTo": "/login" }],<br>
+          &nbsp;&nbsp;<span class="cmd">"protectedAPIs"</span>: [{ "path": "/api/user", "expectedStatus": 401 }],<br>
+          &nbsp;&nbsp;<span class="cmd">"apiEndpoints"</span>: [{ "path": "/api/health", "expectedStatus": 200 }],<br>
+          &nbsp;&nbsp;<span class="cmd">"sensitivePaths"</span>: ["/.env", "/.git/config"],<br>
+          &nbsp;&nbsp;<span class="cmd">"securityHeaders"</span>: { "required": [...], "recommended": [...] },<br>
+          &nbsp;&nbsp;<span class="cmd">"authenticatedTests"</span>: { "admin": { "account": "admin", "pages": ["/admin"] } },<br>
+          &nbsp;&nbsp;<span class="cmd">"authorizationTests"</span>: [{ "loginAs": "patient", "accessPath": "/admin", "expectDenied": true }]<br>
+          }
+        </div>
+        <p style="margin-top: 12px; color: var(--text-muted); font-size: 0.9rem;">To add a new site: copy <code>_template.json</code>, rename to <code>yoursite.com.json</code>, and customize the paths and expected values.</p>
+      </section>
+
+      <div class="back-nav">
+        <a href="/" class="btn primary">← Back to Dashboard</a>
+        <a href="about.html" class="btn secondary">Legal & Limitations →</a>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

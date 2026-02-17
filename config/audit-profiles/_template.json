@@ -1,0 +1,61 @@
+{
+  "siteName": "example.com",
+  "baseUrl": "https://example.com",
+  "loginPath": "/login",
+
+  "publicPages": [
+    { "path": "/", "expectedStatus": 200, "expectedContent": ["Welcome"], "notContains": ["error"] }
+  ],
+
+  "redirects": [
+    { "from": "/old-path", "to": "/new-path", "expectedStatus": 301 }
+  ],
+
+  "protectedPages": [
+    { "path": "/admin", "redirectsTo": "/login" },
+    { "path": "/dashboard", "redirectsTo": "/login" }
+  ],
+
+  "protectedAPIs": [
+    { "path": "/api/user/profile", "expectedStatus": 401 }
+  ],
+
+  "apiEndpoints": [
+    { "path": "/api/health", "expectedStatus": 200, "expectedContent": ["ok"] }
+  ],
+
+  "sensitivePaths": [
+    "/.env", "/.git/config", "/package.json", "/wp-admin"
+  ],
+
+  "securityHeaders": {
+    "required": ["x-frame-options", "x-content-type-options", "strict-transport-security"],
+    "recommended": ["content-security-policy", "referrer-policy", "permissions-policy"]
+  },
+
+  "seoPages": [
+    { "path": "/" }
+  ],
+
+  "performancePages": [
+    { "path": "/", "maxLoadTime": 3000 }
+  ],
+
+  "rateLimitTestPath": "/api/health",
+
+  "authenticatedTests": {
+    "admin": {
+      "account": "admin",
+      "pages": ["/admin"]
+    }
+  },
+
+  "authorizationTests": [
+    {
+      "description": "Patient cannot access admin",
+      "loginAs": "patient",
+      "accessPath": "/admin",
+      "expectDenied": true
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "site": "example.com",
+  "baseUrl": "https://example.com",
+  "flows": [
+    {
+      "name": "Patient Login",
+      "account": "patient",
+      "steps": [
+        { "type": "navigate", "url": "/login", "label": "Go to login page" },
+        { "type": "assert", "check": "urlContains", "value": "/login", "label": "Verify on login page" },
+        { "type": "fill", "selector": "input[name='email']", "value": "YOUR_EMAIL", "label": "Enter email" },
+        { "type": "fill", "selector": "input[name='password']", "value": "YOUR_PASSWORD", "label": "Enter password" },
+        { "type": "submit", "selector": "button[type='submit']", "label": "Submit login form" },
+        { "type": "wait", "duration": 3000, "label": "Wait for dashboard to load" },
+        { "type": "assert", "check": "urlContains", "value": "/dashboard", "label": "Verify redirected to dashboard" },
+        { "type": "assert", "check": "textContains", "value": "Dashboard", "label": "Dashboard heading visible" },
+        { "type": "assert", "check": "elementExists", "value": "nav, [role='navigation']", "label": "Navigation is present" },
+        { "type": "screenshot", "name": "patient-dashboard-loaded", "label": "Capture patient dashboard" }
+      ]
+    },
+    {
+      "name": "Admin Panel Check",
+      "account": "admin",
+      "steps": [
+        { "type": "navigate", "url": "/login", "label": "Go to login page" },
+        { "type": "wait", "duration": 2000, "label": "Wait for page hydration" },
+        { "type": "screenshot", "name": "login-page", "label": "Capture login page" },
+        { "type": "navigate", "url": "/admin", "label": "Navigate to admin area" },
+        { "type": "wait", "duration": 3000, "label": "Wait for admin to load" },
+        { "type": "assert", "check": "urlContains", "value": "/admin", "label": "Verify on admin page" },
+        { "type": "screenshot", "name": "admin-panel-loaded", "label": "Capture admin panel" }
+      ]
+    },
+    {
+      "name": "Public Page Journey",
+      "account": null,
+      "steps": [
+        { "type": "navigate", "url": "/", "label": "Visit homepage" },
+        { "type": "wait", "duration": 2000, "label": "Wait for homepage to load" },
+        { "type": "screenshot", "name": "homepage-loaded", "label": "Capture homepage" },
+        { "type": "click", "selector": "a[href='/about'], a[href*='about']", "label": "Click about link" },
+        { "type": "wait", "duration": 2000, "label": "Wait for about page" },
+        { "type": "assert", "check": "urlContains", "value": "/about", "label": "Verify on about page" },
+        { "type": "screenshot", "name": "about-page-loaded", "label": "Capture about page" }
+      ]
+    }
+  ]
+}
