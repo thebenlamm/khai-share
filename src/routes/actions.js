@@ -84,50 +84,55 @@ router.post('/execute', async (req, res) => {
           console.log(`[Khai] Executing action: ${action.type}`);
           let result;
 
-          switch (action.type) {
-            case 'create-note':
-              result = await khai.createPatientNote(action.patientId, action.content || {});
-              break;
+          try {
+            switch (action.type) {
+              case 'create-note':
+                result = await khai.createPatientNote(action.patientId, action.content || {});
+                break;
 
-            case 'send-fax':
-              result = await khai.sendFax(action.faxNumber, action.content);
-              break;
+              case 'send-fax':
+                result = await khai.sendFax(action.faxNumber, action.content);
+                break;
 
-            case 'send-sms':
-              result = await khai.sendSMS(action.phoneNumber, action.message);
-              break;
+              case 'send-sms':
+                result = await khai.sendSMS(action.phoneNumber, action.message);
+                break;
 
-            case 'navigate':
-              const navTarget = action.url || action.path;
-              await khai.navigateTo(navTarget);
-              result = { success: true, message: `Navigated to ${navTarget}` };
-              break;
+              case 'navigate':
+                const navTarget = action.url || action.path;
+                await khai.navigateTo(navTarget);
+                result = { success: true, message: `Navigated to ${navTarget}` };
+                break;
 
-            case 'wait':
-              const waitMs = action.duration || action.ms || 3000;
-              await new Promise(resolve => setTimeout(resolve, waitMs));
-              result = { success: true, message: `Waited ${waitMs}ms` };
-              break;
+              case 'wait':
+                const waitMs = action.duration || action.ms || 3000;
+                await new Promise(resolve => setTimeout(resolve, waitMs));
+                result = { success: true, message: `Waited ${waitMs}ms` };
+                break;
 
-            case 'screenshot':
-              const screenshotPath = await khai.screenshot(action.name || 'action');
-              result = { success: true, path: screenshotPath };
-              break;
+              case 'screenshot':
+                const screenshotPath = await khai.screenshot(action.name || 'action');
+                result = { success: true, path: screenshotPath };
+                break;
 
-            case 'evaluate':
-              // WARNING: Executes arbitrary JS in the browser context.
-              // The browser is authenticated to target sites — this can access
-              // session cookies, tokens, and perform actions as the logged-in user.
-              // Only use with trusted scripts.
-              result = await khai.evaluate(action.script, action.waitAfter || 3000);
-              break;
+              case 'evaluate':
+                // WARNING: Executes arbitrary JS in the browser context.
+                // The browser is authenticated to target sites — this can access
+                // session cookies, tokens, and perform actions as the logged-in user.
+                // Only use with trusted scripts.
+                result = await khai.evaluate(action.script, action.waitAfter || 3000);
+                break;
 
-            case 'twilio-a2p':
-              result = await khai.registerTwilioA2P(action.brandInfo || {});
-              break;
+              case 'twilio-a2p':
+                result = await khai.registerTwilioA2P(action.brandInfo || {});
+                break;
 
-            default:
-              result = { success: false, message: `Unknown action type: ${action.type}` };
+              default:
+                result = { success: false, message: `Unknown action type: ${action.type}` };
+            }
+          } catch (actionError) {
+            console.error(`[Khai] Action '${action.type}' failed:`, actionError.message);
+            result = { success: false, error: actionError.message };
           }
 
           session.results.push({
@@ -143,7 +148,7 @@ router.post('/execute', async (req, res) => {
       } catch (error) {
         console.error('[Khai] Action error:', error);
         session.status = 'error';
-        session.error = 'Action execution failed';
+        session.error = error.message || 'Action execution failed';
         try { await khai.close(); } catch (_) {}
       }
     })();

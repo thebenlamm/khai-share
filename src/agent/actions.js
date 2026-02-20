@@ -258,7 +258,20 @@ class KhaiActions {
       ? target
       : this.config.baseUrl + target;
     console.log(`[Khai Action] Navigating to ${url}`);
-    await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+    try {
+      // Use 'load' instead of 'networkidle2' — WordPress sites have persistent
+      // background requests (heartbeat API, analytics) that prevent networkidle2
+      // from ever resolving, causing guaranteed 30s timeouts.
+      await this.page.goto(url, { waitUntil: 'load', timeout: 30000 });
+    } catch (error) {
+      // If 'load' times out, the page may still be usable (slow assets).
+      // Log it but don't abort — the caller can still screenshot/interact.
+      if (error.name === 'TimeoutError') {
+        console.warn(`[Khai Action] Navigation to ${url} timed out, continuing anyway`);
+      } else {
+        throw error;
+      }
+    }
     await new Promise(resolve => setTimeout(resolve, 2000));
     console.log(`[Khai Action] Navigation complete, URL: ${this.page.url()}`);
     return true;
