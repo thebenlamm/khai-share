@@ -215,6 +215,7 @@ function renderResults() {
   document.getElementById('passed-pages').textContent = currentResults.summary.passed;
   document.getElementById('failed-pages').textContent = currentResults.summary.failed;
   document.getElementById('warning-count').textContent = currentResults.summary.warnings;
+  document.getElementById('warnings-only-count').textContent = currentResults.summary.warnings_only || 0;
 
   // Populate type filter
   const types = [...new Set(currentResults.issues.map(i => i.type))];

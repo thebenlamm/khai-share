@@ -1147,7 +1147,7 @@ class SiteAuditor {
                   await new Promise(r => setTimeout(r, 2000));
                   actionWaited += 2000;
                   const sRes = await this._khaiRequest(`/api/actions/status/${actionResult.sessionId}`);
-                  actionStatus = sRes.status;
+                  actionStatus = sRes.data?.status || sRes.status;
                 }
 
                 if (actionStatus === 'completed') {
@@ -1202,12 +1202,13 @@ class SiteAuditor {
             await new Promise(r => setTimeout(r, 2000));
             waited += 2000;
             const sRes = await this._khaiRequest(`/api/actions/status/${actionResult.sessionId}`);
-            actionStatus = sRes.status;
+            actionStatus = sRes.data?.status || sRes.status;
           }
 
           if (actionStatus === 'completed') {
             const results = await this._khaiRequest(`/api/actions/status/${actionResult.sessionId}`);
-            const bodyText = results.results?.find(r => r.type === 'extractText')?.data || '';
+            const actionResults = results.data?.results || results.results || [];
+            const bodyText = actionResults.find(r => r.type === 'extractText')?.data || '';
 
             // Check if access was denied
             if (test.expectDenied) {
@@ -1215,7 +1216,7 @@ class SiteAuditor {
                                 bodyText.toLowerCase().includes('forbidden') ||
                                 bodyText.toLowerCase().includes('access denied') ||
                                 bodyText.toLowerCase().includes('not authorized') ||
-                                results.results?.some(r => r.url?.includes('/login'));
+                                actionResults.some(r => r.url?.includes('/login'));
 
               if (wasDenied) {
                 this._addResult('authorization', test.description || `${test.loginAs} blocked from ${test.accessPath}`, 'pass');

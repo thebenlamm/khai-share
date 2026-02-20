@@ -10,10 +10,22 @@ class PurchaseTester {
   async detectCheckoutPage() {
     try {
       const isCheckout = await this.page.evaluate(() => {
-        const url = window.location.href.toLowerCase();
+        const urlPath = new URL(window.location.href).pathname.toLowerCase();
 
-        // Check URL indicators — high confidence
-        if (url.includes('checkout') || url.includes('payment') || url.includes('cart')) {
+        // Payment form selectors used for both URL and text detection paths
+        const paymentSelectors = [
+          'input[name*="card"]', 'input[autocomplete*="cc-"]',
+          'iframe[src*="stripe"]', 'iframe[src*="braintree"]',
+          '[data-stripe]', '.StripeElement', '#card-element',
+          'input[name*="cvv"]', 'input[name*="expir"]'
+        ];
+        const hasPaymentForm = paymentSelectors.some(sel => document.querySelector(sel) !== null);
+
+        // URL indicators — checkout/payment are high confidence, cart requires form elements
+        if (/\b(checkout|payment)\b/.test(urlPath)) {
+          return true;
+        }
+        if (/\bcart\b/.test(urlPath) && hasPaymentForm) {
           return true;
         }
 
@@ -29,14 +41,7 @@ class PurchaseTester {
         if (!hasTextIndicator) return false;
 
         // Must also have actual payment form elements
-        const paymentSelectors = [
-          'input[name*="card"]', 'input[autocomplete*="cc-"]',
-          'iframe[src*="stripe"]', 'iframe[src*="braintree"]',
-          '[data-stripe]', '.StripeElement', '#card-element',
-          'input[name*="cvv"]', 'input[name*="expir"]'
-        ];
-
-        return paymentSelectors.some(sel => document.querySelector(sel) !== null);
+        return hasPaymentForm;
       });
 
       return isCheckout;

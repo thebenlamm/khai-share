@@ -4,6 +4,19 @@ const path = require('path');
 const fs = require('fs');
 const PurchaseTester = require('./purchaseTester');
 
+// Issue types that are errors (fail the page). Everything else is a warning.
+const ERROR_SEVERITY_TYPES = new Set([
+  'http-error', 'js-error', 'request-failed', 'login-failed',
+  'login-error', 'broken-image', 'navigation-error'
+]);
+
+// Issue types that are explicitly warnings (do NOT fail the page).
+// New/unknown types default to ERROR for safety.
+const WARNING_SEVERITY_TYPES = new Set([
+  'console-error', 'resource-404', 'slow-page', 'form-missing-csrf'
+  // a11y-* types handled via prefix check below
+]);
+
 class WebsiteCrawler {
   constructor(config) {
     this.config = config;
@@ -225,8 +238,8 @@ class WebsiteCrawler {
 
     const url = startUrl || this.config.baseUrl;
 
-    const urlWithoutHash = url.split('#')[0];
-    if (this.visited.has(urlWithoutHash) || currentDepth > maxDepth) {
+    const normalizedUrl = url.split('#')[0].replace(/\/+$/, '') || url.split('#')[0];
+    if (this.visited.has(normalizedUrl) || currentDepth > maxDepth) {
       return;
     }
 
@@ -234,7 +247,7 @@ class WebsiteCrawler {
       return;
     }
 
-    this.visited.add(urlWithoutHash);
+    this.visited.add(normalizedUrl);
     console.log(`Crawling: ${url} (depth: ${currentDepth})`);
 
     const pageResult = {
@@ -300,29 +313,42 @@ class WebsiteCrawler {
       });
 
       pageResult.links = links;
+
+      // Merge event-handler issues (js-error, request-failed, console-error, resource-404)
+      // that were captured by page.on() listeners into pageResult.issues
+      const pageUrl = this.page.url();
+      for (const issue of this.results.issues) {
+        if (issue.url === pageUrl || issue.url === url) {
+          const alreadyTracked = pageResult.issues.some(
+            i => i.type === issue.type && i.message === issue.message
+          );
+          if (!alreadyTracked) {
+            pageResult.issues.push({ type: issue.type, message: issue.message });
+          }
+        }
+      }
+
       this.results.pages.push(pageResult);
       this.results.summary.total++;
 
       // Three-tier classification: pass / warnings-only / fail
-      const errorSeverityTypes = new Set([
-        'http-error', 'js-error', 'request-failed', 'login-failed',
-        'login-error', 'broken-image', 'navigation-error'
-      ]);
-      const hasErrors = pageResult.issues.some(i => errorSeverityTypes.has(i.type));
+      // Unknown issue types default to error (safer than defaulting to warning)
+      const isWarningType = (type) =>
+        WARNING_SEVERITY_TYPES.has(type) || type.startsWith('a11y-');
+      const hasErrors = pageResult.issues.some(i => !isWarningType(i.type));
 
       if (pageResult.issues.length === 0) {
         this.results.summary.passed++;
       } else if (!hasErrors) {
-        // Only warnings (console-error, resource-404, slow-page, a11y-*, form-missing-csrf)
         this.results.summary.passed++;
         this.results.summary.warnings_only++;
       } else {
         this.results.summary.failed++;
       }
 
-      // Crawl child pages (deduplicated, filtered to internal only)
+      // Crawl child pages (deduplicated, normalized, filtered to internal only)
       const uniqueLinks = [...new Set(
-        links.map(l => l.split('#')[0])
+        links.map(l => l.split('#')[0].replace(/\/+$/, '') || l.split('#')[0])
              .filter(l => !this.visited.has(l) && this.isInternalUrl(l))
       )];
       for (const link of uniqueLinks) {
