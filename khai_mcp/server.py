@@ -23,6 +23,7 @@ Available tools:
 - khai_test_status: Check if a running test is done yet
 - khai_test_results: Get full results from a completed test
 - khai_execute_actions: Run a sequence of browser actions (navigate, screenshot, etc.)
+- khai_action_status: Check if a running action session is done yet
 - khai_run_audit: Start a security/configuration audit on a site
 - khai_audit_results: Get audit status and results
 - khai_check_links: Check a site for broken links
@@ -144,13 +145,29 @@ def khai_execute_actions(
             - {"type": "send-sms", "phoneNumber": "+15551234567", "message": "..."}
 
     Returns:
-        sessionId for polling with GET /api/actions/status/{sessionId}
+        sessionId for polling with khai_action_status
     """
     return _unwrap(client.post("/api/actions/execute", {
         "site": site,
         "account": account,
         "actions": actions,
     }))
+
+
+@mcp.tool(annotations={"readOnlyHint": True})
+def khai_action_status(session_id: str) -> dict:
+    """Check the status of a running action session.
+
+    Args:
+        session_id: The sessionId returned from khai_execute_actions
+
+    Returns:
+        Status (initializing/logging-in/executing/completed/login-failed/error), results of each action, any errors.
+    """
+    try:
+        return _unwrap(client.get(f"/api/actions/status/{session_id}"))
+    except Exception:
+        return {"error": f"Session '{session_id}' not found. It may have expired (sessions are kept for 1 hour)."}
 
 
 @mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True})
