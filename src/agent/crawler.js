@@ -20,7 +20,7 @@ class WebsiteCrawler {
       pages: [],
       issues: [],
       purchases: [],
-      summary: { total: 0, passed: 0, failed: 0, warnings: 0 }
+      summary: { total: 0, passed: 0, failed: 0, warnings: 0, warnings_only: 0 }
     };
     this.screenshotDir = path.join(__dirname, '../../screenshots', this.results.id);
   }
@@ -225,7 +225,8 @@ class WebsiteCrawler {
 
     const url = startUrl || this.config.baseUrl;
 
-    if (this.visited.has(url) || currentDepth > maxDepth) {
+    const urlWithoutHash = url.split('#')[0];
+    if (this.visited.has(urlWithoutHash) || currentDepth > maxDepth) {
       return;
     }
 
@@ -233,7 +234,7 @@ class WebsiteCrawler {
       return;
     }
 
-    this.visited.add(url);
+    this.visited.add(urlWithoutHash);
     console.log(`Crawling: ${url} (depth: ${currentDepth})`);
 
     const pageResult = {
@@ -302,14 +303,29 @@ class WebsiteCrawler {
       this.results.pages.push(pageResult);
       this.results.summary.total++;
 
+      // Three-tier classification: pass / warnings-only / fail
+      const errorSeverityTypes = new Set([
+        'http-error', 'js-error', 'request-failed', 'login-failed',
+        'login-error', 'broken-image', 'navigation-error'
+      ]);
+      const hasErrors = pageResult.issues.some(i => errorSeverityTypes.has(i.type));
+
       if (pageResult.issues.length === 0) {
         this.results.summary.passed++;
+      } else if (!hasErrors) {
+        // Only warnings (console-error, resource-404, slow-page, a11y-*, form-missing-csrf)
+        this.results.summary.passed++;
+        this.results.summary.warnings_only++;
       } else {
         this.results.summary.failed++;
       }
 
-      // Crawl child pages
-      for (const link of links) {
+      // Crawl child pages (deduplicated, filtered to internal only)
+      const uniqueLinks = [...new Set(
+        links.map(l => l.split('#')[0])
+             .filter(l => !this.visited.has(l) && this.isInternalUrl(l))
+      )];
+      for (const link of uniqueLinks) {
         await this.crawl(link, maxDepth, currentDepth + 1);
       }
 

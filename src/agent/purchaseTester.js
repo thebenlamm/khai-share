@@ -11,21 +11,32 @@ class PurchaseTester {
     try {
       const isCheckout = await this.page.evaluate(() => {
         const url = window.location.href.toLowerCase();
-        const bodyText = document.body.innerText.toLowerCase();
 
-        // Check URL indicators
+        // Check URL indicators — high confidence
         if (url.includes('checkout') || url.includes('payment') || url.includes('cart')) {
           return true;
         }
 
-        // Check page content indicators
+        // For text indicators: require BOTH text match AND actual payment form elements
+        const bodyText = document.body.innerText.toLowerCase();
         const checkoutIndicators = [
           'credit card', 'card number', 'payment method',
-          'billing', 'checkout', 'complete purchase',
+          'billing address', 'checkout', 'complete purchase',
           'place order', 'pay now', 'submit payment'
         ];
 
-        return checkoutIndicators.some(indicator => bodyText.includes(indicator));
+        const hasTextIndicator = checkoutIndicators.some(indicator => bodyText.includes(indicator));
+        if (!hasTextIndicator) return false;
+
+        // Must also have actual payment form elements
+        const paymentSelectors = [
+          'input[name*="card"]', 'input[autocomplete*="cc-"]',
+          'iframe[src*="stripe"]', 'iframe[src*="braintree"]',
+          '[data-stripe]', '.StripeElement', '#card-element',
+          'input[name*="cvv"]', 'input[name*="expir"]'
+        ];
+
+        return paymentSelectors.some(sel => document.querySelector(sel) !== null);
       });
 
       return isCheckout;

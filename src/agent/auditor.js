@@ -1146,7 +1146,7 @@ class SiteAuditor {
                 while (actionStatus !== 'completed' && actionStatus !== 'error' && actionWaited < 30000) {
                   await new Promise(r => setTimeout(r, 2000));
                   actionWaited += 2000;
-                  const sRes = await this._khaiRequest(`/api/actions/${actionResult.sessionId}/status`);
+                  const sRes = await this._khaiRequest(`/api/actions/status/${actionResult.sessionId}`);
                   actionStatus = sRes.status;
                 }
 
@@ -1201,12 +1201,12 @@ class SiteAuditor {
           while (actionStatus !== 'completed' && actionStatus !== 'error' && waited < 30000) {
             await new Promise(r => setTimeout(r, 2000));
             waited += 2000;
-            const sRes = await this._khaiRequest(`/api/actions/${actionResult.sessionId}/status`);
+            const sRes = await this._khaiRequest(`/api/actions/status/${actionResult.sessionId}`);
             actionStatus = sRes.status;
           }
 
           if (actionStatus === 'completed') {
-            const results = await this._khaiRequest(`/api/actions/${actionResult.sessionId}/results`);
+            const results = await this._khaiRequest(`/api/actions/status/${actionResult.sessionId}`);
             const bodyText = results.results?.find(r => r.type === 'extractText')?.data || '';
 
             // Check if access was denied
