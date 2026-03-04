@@ -47,22 +47,27 @@ async function analyzeSuiteHistory(suiteId, options = {}) {
     crlfDelay: Infinity
   });
 
-  for await (const line of rl) {
-    if (!line.trim()) continue;
+  try {
+    for await (const line of rl) {
+      if (!line.trim()) continue;
 
-    try {
-      const entry = JSON.parse(line);
-      if (entry.suiteId !== suiteId) continue;
+      try {
+        const entry = JSON.parse(line);
+        if (entry.suiteId !== suiteId) continue;
 
-      const timestamp = new Date(entry.timestamp).getTime();
-      if (timestamp < cutoff) continue;
+        const timestamp = new Date(entry.timestamp).getTime();
+        if (timestamp < cutoff) continue;
 
-      runs.push(entry);
-      if (runs.length >= limit) break;
-    } catch (err) {
-      console.error(`[Suites] Invalid JSON line in history.jsonl:`, err.message);
-      // Continue processing next line
+        runs.push(entry);
+        if (runs.length >= limit) break;
+      } catch (err) {
+        console.error(`[Suites] Invalid JSON line in history.jsonl:`, err.message);
+        // Continue processing next line
+      }
     }
+  } finally {
+    rl.close();
+    fileStream.destroy();
   }
 
   // Compute trends if we have enough data
@@ -251,6 +256,10 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
   try {
     const { suiteId, runId } = req.params;
 
+    // Validate IDs to prevent path traversal
+    safeId(suiteId);
+    safeId(runId);
+
     console.log(`[Suites] Starting replay: ${suiteId}/${runId}`);
 
     // Create new job for replay
@@ -269,13 +278,19 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
     (async () => {
       try {
         const results = await SuiteRunner.replayRun(suiteId, runId);
-        activeJobs.get(newRunId).status = 'completed';
-        activeJobs.get(newRunId).results = results;
-        console.log(`[Suites] Replay completed: ${newRunId}`);
+        const job = activeJobs.get(newRunId);
+        if (job) {  // Guard against eviction
+          job.status = 'completed';
+          job.results = results;
+          console.log(`[Suites] Replay completed: ${newRunId}`);
+        }
       } catch (err) {
         console.error(`[Suites] Replay failed:`, err);
-        activeJobs.get(newRunId).status = 'error';
-        activeJobs.get(newRunId).error = err.message;
+        const job = activeJobs.get(newRunId);
+        if (job) {  // Guard against eviction
+          job.status = 'error';
+          job.error = err.message;
+        }
       }
     })();
 
@@ -287,7 +302,7 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
     }));
   } catch (err) {
     console.error('[Suites] Error starting replay:', err);
-    res.status(500).json(fail(err.message));
+    res.status(500).json(fail('Failed to start replay'));
   }
 });
 
@@ -348,13 +363,21 @@ router.get('/:suiteId/runs', (req, res) => {
 router.get('/:suiteId/history', async (req, res) => {
   try {
     const { suiteId } = req.params;
-    const { days = 30, limit = 100 } = req.query;
+
+    // Validate suiteId to prevent path traversal
+    safeId(suiteId);
+
+    // Validate and clamp query parameters
+    const rawDays = parseInt(req.query.days) || 30;
+    const rawLimit = parseInt(req.query.limit) || 100;
+    const days = Math.min(Math.max(rawDays, 1), 365);  // 1-365 days
+    const limit = Math.min(Math.max(rawLimit, 1), 1000);  // 1-1000 runs
 
     console.log(`[Suites] Analyzing history for: ${suiteId} (${days} days, limit ${limit})`);
 
     const history = await analyzeSuiteHistory(suiteId, {
-      days: parseInt(days),
-      limit: parseInt(limit)
+      days,
+      limit
     });
 
     res.json(ok(history));

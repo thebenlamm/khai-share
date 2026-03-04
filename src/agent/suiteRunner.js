@@ -49,13 +49,25 @@ class SuiteRunner {
    * @returns {Promise<Object>} New run results with new runId
    */
   static async replayRun(suiteId, runId) {
+    // Validate IDs to prevent path traversal
+    const { safeId, safePath } = require('../utils/safePath');
+    safeId(suiteId);
+    safeId(runId);
+
     // Load historical summary to get original suite config
-    const summaryPath = path.join(SUITES_REPORTS_DIR, suiteId, runId, 'summary.json');
+    const summaryPath = safePath(SUITES_REPORTS_DIR, suiteId, runId, 'summary.json');
     if (!fs.existsSync(summaryPath)) {
-      throw new Error(`Historical run not found: ${suiteId}/${runId}`);
+      throw new Error('Historical run not found');
     }
 
-    const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+    // Check file size before reading (prevent OOM)
+    const stats = await fs.promises.stat(summaryPath);
+    const MAX_SUMMARY_SIZE = 10 * 1024 * 1024; // 10MB limit
+    if (stats.size > MAX_SUMMARY_SIZE) {
+      throw new Error(`Summary file too large (${Math.round(stats.size / 1024 / 1024)}MB, max 10MB)`);
+    }
+
+    const summary = JSON.parse(await fs.promises.readFile(summaryPath, 'utf8'));
 
     // Check if summary has suite config (added in Task 1)
     if (!summary.suite || !summary.originalTests) {
@@ -122,7 +134,7 @@ class SuiteRunner {
       // Generate error results
       const duration = this.endTime ? this.endTime - this.startTime : 0;
       const results = this._generateResults(duration, error);
-      this._saveResults(results);
+      await this._saveResults(results);
       return results;
     }
   }
@@ -180,7 +192,7 @@ class SuiteRunner {
     this.endTime = Date.now();
     const duration = this.endTime - this.startTime;
     const results = this._generateResults(duration, null);
-    this._saveResults(results);
+    await this._saveResults(results);
 
     return results;
   }
@@ -303,12 +315,12 @@ class SuiteRunner {
    * - Append to reports/suites/history.jsonl
    * @private
    */
-  _saveResults(results) {
+  async _saveResults(results) {
     const suiteId = this.suite.suite.id;
     const runDir = path.join(SUITES_REPORTS_DIR, suiteId, this.runId);
 
     // Create directory structure
-    fs.mkdirSync(runDir, { recursive: true });
+    await fs.promises.mkdir(runDir, { recursive: true });
 
     // Write summary.json with full suite config for replay support
     const summaryPath = path.join(runDir, 'summary.json');
@@ -317,7 +329,18 @@ class SuiteRunner {
       suite: this.suite.suite,  // Full suite metadata from manifest
       originalTests: this.suite.tests  // Original test definitions (before execution)
     };
-    fs.writeFileSync(summaryPath, JSON.stringify(summaryWithConfig, null, 2));
+
+    try {
+      await fs.promises.writeFile(summaryPath, JSON.stringify(summaryWithConfig, null, 2));
+    } catch (err) {
+      if (err.message && err.message.includes('circular')) {
+        console.error('[SuiteRunner] Circular reference detected, saving without suite config');
+        // Fallback: save results without the problematic config
+        await fs.promises.writeFile(summaryPath, JSON.stringify(results, null, 2));
+      } else {
+        throw err;
+      }
+    }
 
     // Append to history.jsonl
     const historyPath = path.join(SUITES_REPORTS_DIR, 'history.jsonl');
@@ -331,7 +354,7 @@ class SuiteRunner {
       timestamp: results.startTime,
       tags: this.tags
     };
-    fs.appendFileSync(historyPath, JSON.stringify(historyEntry) + '\n');
+    await fs.promises.appendFile(historyPath, JSON.stringify(historyEntry) + '\n');
 
     console.log(`[SuiteRunner] Results saved to ${summaryPath}`);
     console.log(`[SuiteRunner] History updated at ${historyPath}`);
