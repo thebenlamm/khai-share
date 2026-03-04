@@ -157,13 +157,21 @@ Plans:
 
 ### Phase 9: Saved test suites with replay
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Users can save multi-test configurations as named suites and replay them on demand with aggregated reporting
+**Requirements**: SUITE-01, SUITE-02, SUITE-03, SUITE-04, SUITE-05, SUITE-06, SUITE-07, SUITE-08, SUITE-09
 **Depends on:** Phase 8
-**Plans:** 0 plans
+**Success Criteria** (what must be TRUE):
+  1. Suite manifests saved to config/suites/ with JSON schema validation
+  2. Suite execution orchestrates multiple test types (auth, performance, visual, dry-run, animation) sequentially
+  3. Tag filtering enables subset execution (@smoke runs critical-path tests only)
+  4. Suite timeout prevents indefinite hangs (300s default, configurable per suite)
+  5. Suite execution history tracked in reports/suites/history.jsonl for trend analysis
+  6. API endpoints exist for suite execution (POST /api/suites/:suiteId/run) and result retrieval (GET /api/suites/:suiteId/runs/:runId/results)
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 9 to break down)
+- [ ] 09-01-PLAN.md — SuiteRunner class with test orchestration and result aggregation
+- [ ] 09-02-PLAN.md — Suite API routes and example suite manifests
 
 ### Phase 10: Built-in accessibility audit with axe-core
 
