@@ -62,7 +62,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": ["auth", "performance", "visual", "dry-run", "animation"],
+            "enum": ["auth", "performance", "visual", "dry-run", "animation", "accessibility"],
             "description": "Test type"
           },
           "role": {
