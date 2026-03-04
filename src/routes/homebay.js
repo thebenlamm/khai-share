@@ -10,7 +10,8 @@ const {
   resetPasswordHomeBay,
 } = require('../homebay/auth');
 const { getHomeBayConfig, checkHomeBayHealth } = require('../homebay/config');
-const { auditHomeBayRole } = require('../homebay/performance');
+const { auditHomeBayRole: auditHomeBayPerformance } = require('../homebay/performance');
+const { auditHomeBayRole: auditHomeBayAccessibility } = require('../homebay/accessibility');
 const { captureHomeBayRole, compareAgainstBaseline } = require('../homebay/visual');
 const { testHomeBayAnimations } = require('../homebay/animationTest');
 const { ok, fail, errorHandler } = require('../utils/response');
@@ -208,12 +209,41 @@ router.post('/perf/:role', async (req, res) => {
 
   try {
     console.log(`[API] Starting performance audit for role: ${role}`);
-    const result = await auditHomeBayRole(role);
+    const result = await auditHomeBayPerformance(role);
     console.log(`[API] Performance audit complete. ${result.pages.length} page(s) audited.`);
     res.json(ok(result));
   } catch (err) {
     console.error(`[API] Performance audit failed for ${role}:`, err);
     errorHandler(res, err, 'homebay/perf');
+  }
+});
+
+/**
+ * POST /api/homebay/a11y/:role
+ * Run accessibility audit for the specified role's critical pages.
+ * Authenticates as the role, audits configured pages with axe-core, returns violations by severity.
+ *
+ * Body: {} (no parameters needed - uses config/homebay-a11y.json)
+ * Returns: { role, results: [{ id, name, path, violations, violationsBySeverity, incomplete, passes, summary }] }
+ */
+router.post('/a11y/:role', async (req, res) => {
+  const { role } = req.params;
+
+  if (!ALLOWED_ROLES.includes(role)) {
+    return res.status(400).json(fail(`Invalid role. Must be one of: ${ALLOWED_ROLES.join(', ')}`));
+  }
+
+  try {
+    console.log(`[HomeBay] Starting accessibility audit for role: ${role}`);
+
+    const results = await auditHomeBayAccessibility(role);
+
+    console.log(`[HomeBay] Accessibility audit complete for ${role}: ${results.results.length} pages audited`);
+
+    return res.json(ok(results));
+  } catch (error) {
+    console.error(`[HomeBay] Accessibility audit failed for ${role}:`, error.message);
+    return res.status(500).json(fail(`Accessibility audit failed: ${error.message}`));
   }
 });
 
