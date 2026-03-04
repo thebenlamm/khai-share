@@ -114,6 +114,16 @@
 - [ ] **SUITE-08**: API endpoint GET /api/suites/:suiteId/runs/:runId/results retrieves aggregated results
 - [ ] **SUITE-09**: Suite results stored in reports/suites/{suiteId}/{runId}/ with summary.json and per-test outputs
 
+### Accessibility Auditing (Phase 10)
+
+- [ ] **A11Y-01**: axe-core integration with authenticated HomeBay pages (CSP bypass, script injection)
+- [ ] **A11Y-02**: Per-role critical page configuration in config/homebay-a11y.json
+- [ ] **A11Y-03**: Violation reporting by severity (critical, serious, moderate, minor) with element-level remediation guidance
+- [ ] **A11Y-04**: Incomplete results included in reports for manual review (needs-human-review flag)
+- [ ] **A11Y-05**: API endpoint POST /api/homebay/a11y/:role exists for on-demand accessibility audits
+- [ ] **A11Y-06**: Third-party widgets excluded via builder.exclude() (Stripe iframes, chat widgets)
+- [ ] **A11Y-07**: WCAG 2.0/2.1/2.2 compliance testing with configurable tag filtering (wcag2a, wcag2aa)
+
 ## v2 Requirements
 
 ### Extended Coverage
@@ -206,12 +216,19 @@
 | SUITE-07 | Phase 9 | Pending |
 | SUITE-08 | Phase 9 | Pending |
 | SUITE-09 | Phase 9 | Pending |
+| A11Y-01 | Phase 10 | Pending |
+| A11Y-02 | Phase 10 | Pending |
+| A11Y-03 | Phase 10 | Pending |
+| A11Y-04 | Phase 10 | Pending |
+| A11Y-05 | Phase 10 | Pending |
+| A11Y-06 | Phase 10 | Pending |
+| A11Y-07 | Phase 10 | Pending |
 
 **Coverage:**
-- v1 requirements: 62 total
-- Mapped to phases: 62
+- v1 requirements: 69 total
+- Mapped to phases: 69
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-16*
-*Last updated: 2026-03-04 after Phase 9 planning (saved test suites with replay)*
+*Last updated: 2026-03-04 after Phase 10 planning (built-in accessibility audit with axe-core)*

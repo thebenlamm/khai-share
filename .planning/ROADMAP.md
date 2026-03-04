@@ -106,8 +106,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4
 **Plans:** 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Extend LighthouseAgent with INP measurement via Event Timing API
-- [ ] 05-02-PLAN.md — HomeBay performance integration and API routes
+- [x] 05-01-PLAN.md — Extend LighthouseAgent with INP measurement via Event Timing API
+- [x] 05-02-PLAN.md — HomeBay performance integration and API routes
 
 ### Phase 6: Visual diff against reference pages
 
@@ -117,8 +117,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 06-01-PLAN.md — Visual capture module and critical page configuration
-- [ ] 06-02-PLAN.md — API routes and baseline management endpoints
+- [x] 06-01-PLAN.md — Visual capture module and critical page configuration
+- [x] 06-02-PLAN.md — API routes and baseline management endpoints
 
 ### Phase 7: Dry-run form submission testing
 
@@ -175,10 +175,18 @@ Plans:
 
 ### Phase 10: Built-in accessibility audit with axe-core
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Khai measures WCAG 2.0/2.1/2.2 compliance on authenticated HomeBay pages per role using axe-core
+**Requirements**: A11Y-01, A11Y-02, A11Y-03, A11Y-04, A11Y-05, A11Y-06, A11Y-07
 **Depends on:** Phase 9
-**Plans:** 0 plans
+**Success Criteria** (what must be TRUE):
+  1. axe-core runs on authenticated HomeBay pages with CSP bypass enabled
+  2. Each role has defined critical pages in config/homebay-a11y.json with third-party widget exclusions
+  3. Violations reported by severity (critical, serious, moderate, minor) with element selectors and remediation guidance
+  4. Incomplete results included in reports for manual review
+  5. API endpoint POST /api/homebay/a11y/:role exists for on-demand accessibility audits
+  6. WCAG 2.0/2.1/2.2 rules applied via configurable tag filtering (wcag2a, wcag2aa)
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 10 to break down)
+- [ ] 10-01-PLAN.md — AccessibilityAgent with axe-core integration and WCAG rule application
+- [ ] 10-02-PLAN.md — HomeBay accessibility integration and API routes
