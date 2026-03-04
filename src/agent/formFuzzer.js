@@ -4,6 +4,48 @@ const path = require('path');
 const fs = require('fs');
 
 /**
+ * Standalone form discovery function for reuse across agents.
+ * Discovers all forms on a page and extracts field metadata.
+ *
+ * @param {import('puppeteer').Page} page - Puppeteer page instance
+ * @returns {Promise<Array<{index, action, method, fields}>>}
+ */
+async function discoverForms(page) {
+  return await page.evaluate(() => {
+    const forms = [];
+    document.querySelectorAll('form').forEach((form, fi) => {
+      const fields = [];
+      form.querySelectorAll('input, select, textarea').forEach((el) => {
+        if (el.type === 'hidden' || el.type === 'submit') return;
+        const tag = el.tagName.toLowerCase();
+        fields.push({
+          tag,
+          type: el.type || (tag === 'textarea' ? 'textarea' : 'text'),
+          name: el.name || el.id || `field_${fields.length}`,
+          id: el.id || '',
+          required: el.required || false,
+          pattern: el.pattern || '',
+          maxLength: el.maxLength > 0 ? el.maxLength : null,
+          minLength: el.minLength > 0 ? el.minLength : null,
+          selector: el.id
+            ? `#${el.id}`
+            : el.name
+            ? `form:nth-of-type(${fi + 1}) [name="${el.name}"]`
+            : `form:nth-of-type(${fi + 1}) ${tag}:nth-of-type(${fields.length + 1})`,
+        });
+      });
+      forms.push({
+        index: fi,
+        action: form.action || '',
+        method: (form.method || 'GET').toUpperCase(),
+        fields,
+      });
+    });
+    return forms;
+  });
+}
+
+/**
  * FormFuzzer - Discovers and fuzz-tests forms on web pages using Puppeteer.
  * Identifies input fields, generates adversarial payloads per type, submits
  * each variant and checks for crashes, missing validation, XSS reflection,
@@ -89,28 +131,8 @@ class FormFuzzer {
   // Form discovery
   // ===========================
 
-  async _discoverForms() {
-    return await this.page.evaluate(() => {
-      const forms = [];
-      document.querySelectorAll('form').forEach((form, fi) => {
-        const fields = [];
-        form.querySelectorAll('input, select, textarea').forEach((el) => {
-          if (el.type === 'hidden' || el.type === 'submit') return;
-          const tag = el.tagName.toLowerCase();
-          fields.push({
-            tag, type: el.type || (tag === 'textarea' ? 'textarea' : 'text'),
-            name: el.name || el.id || `field_${fields.length}`,
-            required: el.required, pattern: el.pattern || null,
-            maxLength: el.maxLength > 0 ? el.maxLength : null,
-            selector: el.id ? `#${el.id}`
-              : el.name ? `form:nth-of-type(${fi + 1}) [name="${el.name}"]`
-              : `form:nth-of-type(${fi + 1}) ${tag}:nth-of-type(${fields.length + 1})`,
-          });
-        });
-        forms.push({ index: fi, action: form.action || '', method: (form.method || 'GET').toUpperCase(), fields });
-      });
-      return forms;
-    });
+  async discoverForms(page) {
+    return await discoverForms(page || this.page);
   }
 
   // ===========================
@@ -122,7 +144,7 @@ class FormFuzzer {
     await this.page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
     await new Promise((r) => setTimeout(r, 1500));
 
-    const forms = await this._discoverForms();
+    const forms = await this.discoverForms(this.page);
     console.log(`[FormFuzzer] Found ${forms.length} form(s)`);
     const pageResult = { url, forms: [] };
 
@@ -240,4 +262,4 @@ class FormFuzzer {
   }
 }
 
-module.exports = FormFuzzer;
+module.exports = { FormFuzzer, discoverForms };
