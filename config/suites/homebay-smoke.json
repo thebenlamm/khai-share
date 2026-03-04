@@ -1,0 +1,33 @@
+{
+  "suite": {
+    "id": "homebay-smoke",
+    "name": "HomeBay Smoke Tests",
+    "version": "1.0.0",
+    "tags": ["smoke", "critical-path", "fast"],
+    "environment": "staging",
+    "timeout": 300000,
+    "created": "2026-03-04T14:00:00Z",
+    "updated": "2026-03-04T14:00:00Z"
+  },
+  "tests": [
+    {
+      "type": "auth",
+      "role": "buyer",
+      "config": { "flow": "login" },
+      "tags": ["critical", "smoke"],
+      "critical": true
+    },
+    {
+      "type": "performance",
+      "role": "buyer",
+      "config": { "pages": "critical-only" },
+      "tags": ["smoke"]
+    },
+    {
+      "type": "visual",
+      "role": "buyer",
+      "config": { "compare": false },
+      "tags": ["smoke"]
+    }
+  ]
+}
