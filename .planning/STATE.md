@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 08-animation-and-transition-screenshot-testing/08-02-PLAN.md
-last_updated: "2026-03-04T14:58:32.717Z"
-last_activity: 2026-03-04 -- Plan 08-02 completed (Animation testing API integration with per-role configuration)
+status: in_progress
+stopped_at: Completed 09-saved-test-suites-with-replay/09-01-PLAN.md
+last_updated: "2026-03-04T15:03:43Z"
+last_activity: 2026-03-04 -- Plan 09-01 completed (Suite orchestration with schema validation and test runner)
 progress:
   total_phases: 10
   completed_phases: 5
   total_plans: 14
-  completed_plans: 10
-  percent: 71
+  completed_plans: 11
+  percent: 79
 ---
 
 # Project State
@@ -25,19 +25,19 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-Phase: 8 of 10 (Animation and Transition Screenshot Testing)
-Plan: 2 of 2 in current phase
-Status: Plan 08-02 complete - Phase 08 complete
-Last activity: 2026-03-04 -- Plan 08-02 completed (Animation testing API integration with per-role configuration)
+Phase: 9 of 10 (Saved Test Suites with Replay)
+Plan: 1 of 2 in current phase
+Status: Plan 09-01 complete
+Last activity: 2026-03-04 -- Plan 09-01 completed (Suite orchestration with schema validation and test runner)
 
-Progress: [███████░░░] 71% (10 of 14 total plans complete)
+Progress: [████████░░] 79% (11 of 14 total plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 1.7 min
-- Total execution time: 0.28 hours
+- Total plans completed: 11
+- Average duration: 1.8 min
+- Total execution time: 0.32 hours
 
 **By Phase:**
 
@@ -48,10 +48,11 @@ Progress: [███████░░░] 71% (10 of 14 total plans complete)
 | 06-visual-diff-against-reference-pages | 2/2 | 3 min | 1.5 min |
 | 07-dry-run-form-submission-testing | 2/2 | 4 min | 2.0 min |
 | 08-animation-and-transition-screenshot-testing | 2/2 | 3 min | 1.5 min |
+| 09-saved-test-suites-with-replay | 1/2 | 3 min | 3.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 1 min, 1 min, 3 min, 2 min, 1 min
-- Average: 1.6 min
+- Last 5 plans: 1 min, 3 min, 2 min, 1 min, 3 min
+- Average: 2.0 min
 - Trend: stable
 
 *Updated after each plan completion*
@@ -63,6 +64,7 @@ Progress: [███████░░░] 71% (10 of 14 total plans complete)
 | Phase 07 P02 | 3 | 2 tasks | 3 files |
 | Phase 08-animation-and-transition-screenshot-testing P08-01 | 2 | 2 tasks | 2 files |
 | Phase 08-animation-and-transition-screenshot-testing P08-02 | 1 | 2 tasks | 3 files |
+| Phase 09-saved-test-suites-with-replay P09-01 | 3 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -95,6 +97,11 @@ Recent decisions affecting current work:
 - [Phase 08-01]: Use Web Animations API over CSS-only detection for unified animation/transition interface
 - [Phase 08-01]: Shadow DOM support via document.getAnimations({ subtree: true }) for Web Components compatibility
 - [Phase 08-02]: Inline login pattern to avoid nested pool acquisition (matches Phase 05 decision)
+- [Phase 09-01]: Use ajv (not JSON.parse alone) for schema validation to enforce required fields, enums, and constraints
+- [Phase 09-01]: Suite timeout enforced via Promise.race to prevent indefinite hangs
+- [Phase 09-01]: Tag filtering at test level (suite.tags informational; test.tags used for filtering)
+- [Phase 09-01]: Fail-fast on critical test failures when test.critical === true
+- [Phase 09-01]: History stored in JSONL format (newline-delimited JSON) for append-only durability
 
 ### Pending Todos
 
@@ -117,6 +124,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T14:53:36.331Z
-Stopped at: Completed 08-animation-and-transition-screenshot-testing/08-02-PLAN.md
+Last session: 2026-03-04T15:03:43Z
+Stopped at: Completed 09-saved-test-suites-with-replay/09-01-PLAN.md
 Resume file: None

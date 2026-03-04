@@ -104,12 +104,12 @@
 
 ### Test Suite Management (Phase 9)
 
-- [ ] **SUITE-01**: Suite manifest saved to config/suites/ with JSON schema validation
-- [ ] **SUITE-02**: Suite definition supports multiple test types (auth, performance, visual, dry-run, animation) with per-test configuration
-- [ ] **SUITE-03**: Suite execution returns aggregated results with pass/fail/skip counts and per-test status
-- [ ] **SUITE-04**: Tag filtering enables subset execution (@smoke, @critical, @regression)
-- [ ] **SUITE-05**: Suite execution history tracked in newline-delimited JSON (history.jsonl) for trend analysis
-- [ ] **SUITE-06**: Suite-level timeout enforced to prevent indefinite hangs
+- [x] **SUITE-01**: Suite manifest saved to config/suites/ with JSON schema validation
+- [x] **SUITE-02**: Suite definition supports multiple test types (auth, performance, visual, dry-run, animation) with per-test configuration
+- [x] **SUITE-03**: Suite execution returns aggregated results with pass/fail/skip counts and per-test status
+- [x] **SUITE-04**: Tag filtering enables subset execution (@smoke, @critical, @regression)
+- [x] **SUITE-05**: Suite execution history tracked in newline-delimited JSON (history.jsonl) for trend analysis
+- [x] **SUITE-06**: Suite-level timeout enforced to prevent indefinite hangs
 - [ ] **SUITE-07**: API endpoint POST /api/suites/:suiteId/run executes suite and returns runId
 - [ ] **SUITE-08**: API endpoint GET /api/suites/:suiteId/runs/:runId/results retrieves aggregated results
 - [ ] **SUITE-09**: Suite results stored in reports/suites/{suiteId}/{runId}/ with summary.json and per-test outputs
@@ -207,12 +207,12 @@
 | ANIM-04 | Phase 8 | Complete |
 | ANIM-05 | Phase 8 | Complete |
 | ANIM-06 | Phase 8 | Complete |
-| SUITE-01 | Phase 9 | Pending |
-| SUITE-02 | Phase 9 | Pending |
-| SUITE-03 | Phase 9 | Pending |
-| SUITE-04 | Phase 9 | Pending |
-| SUITE-05 | Phase 9 | Pending |
-| SUITE-06 | Phase 9 | Pending |
+| SUITE-01 | Phase 9 | Complete |
+| SUITE-02 | Phase 9 | Complete |
+| SUITE-03 | Phase 9 | Complete |
+| SUITE-04 | Phase 9 | Complete |
+| SUITE-05 | Phase 9 | Complete |
+| SUITE-06 | Phase 9 | Complete |
 | SUITE-07 | Phase 9 | Pending |
 | SUITE-08 | Phase 9 | Pending |
 | SUITE-09 | Phase 9 | Pending |
