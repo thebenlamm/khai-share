@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://khai.local/schemas/suite.json",
+  "title": "Khai Test Suite",
+  "description": "Schema for Khai test suite manifest files",
+  "type": "object",
+  "required": ["suite", "tests"],
+  "properties": {
+    "suite": {
+      "type": "object",
+      "required": ["id", "name", "version"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique suite identifier (kebab-case)"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable suite name"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version"
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "uniqueItems": true,
+          "description": "Suite-level tags"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["staging", "production", "local"],
+          "description": "Target environment"
+        },
+        "timeout": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3600000,
+          "default": 300000,
+          "description": "Suite timeout in milliseconds"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["auth", "performance", "visual", "dry-run", "animation"],
+            "description": "Test type"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "agent", "seller", "buyer"],
+            "description": "HomeBay role for auth/performance/visual tests"
+          },
+          "config": {
+            "type": "object",
+            "description": "Test-specific configuration"
+          },
+          "tags": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true,
+            "description": "Test-level tags for filtering"
+          },
+          "critical": {
+            "type": "boolean",
+            "default": false,
+            "description": "Fail entire suite if this test fails"
+          }
+        }
+      }
+    }
+  }
+}
