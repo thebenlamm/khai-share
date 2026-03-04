@@ -1,0 +1,274 @@
+'use strict';
+
+/**
+ * SuiteRunner - Orchestrates multiple test types from validated JSON suite manifests
+ *
+ * Supports:
+ * - Schema validation via ajv
+ * - Tag filtering for selective test execution
+ * - Suite-level timeout enforcement
+ * - Result aggregation with pass/fail/skip counts
+ * - History logging to history.jsonl
+ */
+
+const Ajv = require('ajv');
+const addFormats = require('ajv-formats');
+const fs = require('fs');
+const path = require('path');
+
+// Test modules
+const { loginHomeBay, registerHomeBay } = require('../homebay/auth');
+const { auditHomeBayRole } = require('../homebay/performance');
+const { captureHomeBayRole, compareAgainstBaseline } = require('../homebay/visual');
+const { testHomeBayAnimations } = require('../homebay/animationTest');
+
+const SUITES_REPORTS_DIR = path.join(__dirname, '../../reports/suites');
+const SCHEMA_PATH = path.join(__dirname, '../../config/suites/suite.schema.json');
+
+class SuiteRunner {
+  constructor(suite, options = {}) {
+    // Validate suite against schema (SUITE-01 requirement)
+    this._validateSchema(suite);
+
+    this.suite = suite;           // Parsed suite manifest JSON
+    this.runId = options.runId;   // ISO timestamp from API route
+    this.tags = options.tags || []; // Tag filter array
+    this.dryRun = options.dryRun || false;
+    this.results = [];            // Per-test results array
+    this.startTime = null;
+    this.endTime = null;
+  }
+
+  /**
+   * Validate suite manifest against JSON schema using ajv.
+   * Throws descriptive error if validation fails.
+   * @private
+   */
+  _validateSchema(suite) {
+    // Load and compile schema
+    const schema = JSON.parse(fs.readFileSync(SCHEMA_PATH, 'utf8'));
+    const ajv = new Ajv();
+    addFormats(ajv);
+    const validate = ajv.compile(schema);
+
+    // Validate
+    const valid = validate(suite);
+    if (!valid) {
+      const errors = validate.errors.map(e => `${e.instancePath} ${e.message}`).join('; ');
+      throw new Error(`Suite validation failed: ${errors}`);
+    }
+  }
+
+  /**
+   * Execute the test suite with timeout enforcement.
+   * Returns aggregated results object.
+   */
+  async execute() {
+    const timeout = this.suite.suite.timeout || 300000;
+
+    try {
+      // Wrap execution in Promise.race with suite timeout
+      const result = await Promise.race([
+        this._runTests(),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Suite timeout after ${timeout}ms`)), timeout)
+        )
+      ]);
+
+      return result;
+    } catch (error) {
+      // Generate error results
+      const duration = this.endTime ? this.endTime - this.startTime : 0;
+      const results = this._generateResults(duration, error);
+      this._saveResults(results);
+      return results;
+    }
+  }
+
+  /**
+   * Run all tests in the suite with tag filtering and fail-fast on critical failures.
+   * @private
+   */
+  async _runTests() {
+    this.startTime = Date.now();
+
+    for (const test of this.suite.tests) {
+      // Tag filtering: skip test if tags provided and test doesn't match
+      if (this.tags.length > 0) {
+        const testTags = test.tags || [];
+        const matchesTag = this.tags.some(t => testTags.includes(t));
+
+        if (!matchesTag) {
+          this.results.push({
+            ...test,
+            status: 'skipped',
+            reason: 'Tag filter mismatch',
+            duration: 0
+          });
+          continue;
+        }
+      }
+
+      // Execute test
+      const testStart = Date.now();
+      let testResult;
+
+      try {
+        testResult = await this._executeTest(test);
+        testResult.duration = Date.now() - testStart;
+        testResult.status = testResult.success ? 'passed' : 'failed';
+      } catch (error) {
+        testResult = {
+          ...test,
+          status: 'failed',
+          duration: Date.now() - testStart,
+          error: error.message,
+          stack: error.stack
+        };
+      }
+
+      this.results.push(testResult);
+
+      // Fail-fast on critical test failures
+      if (test.critical && testResult.status === 'failed') {
+        throw new Error(`Critical test failed: ${test.type} (${testResult.error})`);
+      }
+    }
+
+    this.endTime = Date.now();
+    const duration = this.endTime - this.startTime;
+    const results = this._generateResults(duration, null);
+    this._saveResults(results);
+
+    return results;
+  }
+
+  /**
+   * Execute a single test by dispatching to the appropriate module based on test.type.
+   * @private
+   */
+  async _executeTest(test) {
+    const { type, role, config = {} } = test;
+
+    switch (type) {
+      case 'auth':
+        // Auth test - login or register based on config.flow
+        if (config.flow === 'register') {
+          const result = await registerHomeBay(
+            config.email || `test-${Date.now()}@example.com`,
+            config.password || 'Test1234!',
+            config.dateOfBirth
+          );
+          return { ...test, success: result.success, data: result };
+        } else {
+          // Default to login
+          const result = await loginHomeBay(role);
+          return { ...test, success: result.success, data: result };
+        }
+
+      case 'performance':
+        // Performance audit - run Lighthouse audit on role's critical pages
+        const perfResult = await auditHomeBayRole(role);
+        return { ...test, success: true, data: perfResult };
+
+      case 'visual':
+        // Visual test - capture screenshots and optionally compare against baseline
+        if (config.compare) {
+          const compareResult = await compareAgainstBaseline(role);
+          return {
+            ...test,
+            success: compareResult.matched === compareResult.totalCompared,
+            data: compareResult
+          };
+        } else {
+          const captureResult = await captureHomeBayRole(role);
+          return { ...test, success: true, data: captureResult };
+        }
+
+      case 'animation':
+        // Animation test - test animations on role's pages
+        const animResult = await testHomeBayAnimations(role, config);
+        return { ...test, success: true, data: animResult };
+
+      case 'dry-run':
+        // Dry-run test - simulate form submission without actually submitting
+        // Note: dry-run module doesn't exist yet, will be added in Phase 2
+        throw new Error('dry-run test type not yet implemented');
+
+      default:
+        throw new Error(`Unknown test type: ${type}`);
+    }
+  }
+
+  /**
+   * Aggregate per-test results into suite summary.
+   * @private
+   */
+  _generateResults(duration, error) {
+    const total = this.results.length;
+    const passed = this.results.filter(r => r.status === 'passed').length;
+    const failed = this.results.filter(r => r.status === 'failed').length;
+    const skipped = this.results.filter(r => r.status === 'skipped').length;
+
+    const status = error ? 'error' : (failed > 0 ? 'failed' : 'passed');
+
+    return {
+      suiteId: this.suite.suite.id,
+      suiteName: this.suite.suite.name,
+      suiteVersion: this.suite.suite.version,
+      runId: this.runId,
+      status,
+      startTime: new Date(this.startTime).toISOString(),
+      endTime: this.endTime ? new Date(this.endTime).toISOString() : new Date().toISOString(),
+      duration,
+      summary: {
+        total,
+        passed,
+        failed,
+        skipped,
+        passRate: total > 0 ? Math.round((passed / total) * 100) : 0
+      },
+      tests: this.results,
+      error: error ? error.message : null,
+      tags: this.tags,
+      dryRun: this.dryRun
+    };
+  }
+
+  /**
+   * Save results to disk:
+   * - Write to reports/suites/{suiteId}/{runId}/summary.json
+   * - Append to reports/suites/history.jsonl
+   * @private
+   */
+  _saveResults(results) {
+    const suiteId = this.suite.suite.id;
+    const runDir = path.join(SUITES_REPORTS_DIR, suiteId, this.runId);
+
+    // Create directory structure
+    fs.mkdirSync(runDir, { recursive: true });
+
+    // Write summary.json
+    const summaryPath = path.join(runDir, 'summary.json');
+    fs.writeFileSync(summaryPath, JSON.stringify(results, null, 2));
+
+    // Append to history.jsonl
+    const historyPath = path.join(SUITES_REPORTS_DIR, 'history.jsonl');
+    const historyEntry = {
+      runId: this.runId,
+      suiteId,
+      suiteName: results.suiteName,
+      status: results.status,
+      duration: results.duration,
+      passRate: results.summary.passRate,
+      timestamp: results.startTime,
+      tags: this.tags
+    };
+    fs.appendFileSync(historyPath, JSON.stringify(historyEntry) + '\n');
+
+    console.log(`[SuiteRunner] Results saved to ${summaryPath}`);
+    console.log(`[SuiteRunner] History updated at ${historyPath}`);
+  }
+}
+
+module.exports = { SuiteRunner };
