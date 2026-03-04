@@ -1,0 +1,70 @@
+{
+  "roles": {
+    "buyer": {
+      "criticalPages": [
+        {
+          "path": "/auctions",
+          "name": "Browse Auctions",
+          "expectInteraction": false
+        },
+        {
+          "path": "/dashboard",
+          "name": "Buyer Dashboard",
+          "expectInteraction": false
+        }
+      ],
+      "thresholds": {
+        "lcp": 2500,
+        "cls": 0.1,
+        "inp": 200
+      }
+    },
+    "agent": {
+      "criticalPages": [
+        {
+          "path": "/agent/dashboard",
+          "name": "Agent Dashboard",
+          "expectInteraction": false
+        },
+        {
+          "path": "/agent/listings",
+          "name": "Agent Listings",
+          "expectInteraction": false
+        }
+      ],
+      "thresholds": {
+        "lcp": 2500,
+        "cls": 0.1,
+        "inp": 200
+      }
+    },
+    "seller": {
+      "criticalPages": [
+        {
+          "path": "/seller/dashboard",
+          "name": "Seller Dashboard",
+          "expectInteraction": false
+        }
+      ],
+      "thresholds": {
+        "lcp": 2500,
+        "cls": 0.1,
+        "inp": 200
+      }
+    },
+    "admin": {
+      "criticalPages": [
+        {
+          "path": "/admin/dashboard",
+          "name": "Admin Dashboard",
+          "expectInteraction": false
+        }
+      ],
+      "thresholds": {
+        "lcp": 2500,
+        "cls": 0.1,
+        "inp": 200
+      }
+    }
+  }
+}

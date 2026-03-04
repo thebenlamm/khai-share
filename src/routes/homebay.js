@@ -10,6 +10,7 @@ const {
   resetPasswordHomeBay,
 } = require('../homebay/auth');
 const { getHomeBayConfig, checkHomeBayHealth } = require('../homebay/config');
+const { auditHomeBayRole } = require('../homebay/performance');
 const { ok, fail, errorHandler } = require('../utils/response');
 
 const ALLOWED_ROLES = ['admin', 'agent', 'seller', 'buyer'];
@@ -184,6 +185,33 @@ router.get('/config', (req, res) => {
       accountsConfigured: null,
       warning: err.message,
     }));
+  }
+});
+
+/**
+ * POST /api/homebay/perf/:role
+ * Run performance audit for the specified role's critical pages.
+ *
+ * Body: {} (no parameters needed)
+ * Returns: { role, pages: [{ name, path, url, metrics, scores }] }
+ */
+router.post('/perf/:role', async (req, res) => {
+  const { role } = req.params;
+
+  if (!ALLOWED_ROLES.includes(role)) {
+    return res.status(400).json(
+      fail(`Invalid role. Must be one of: ${ALLOWED_ROLES.join(', ')}`)
+    );
+  }
+
+  try {
+    console.log(`[API] Starting performance audit for role: ${role}`);
+    const result = await auditHomeBayRole(role);
+    console.log(`[API] Performance audit complete. ${result.pages.length} page(s) audited.`);
+    res.json(ok(result));
+  } catch (err) {
+    console.error(`[API] Performance audit failed for ${role}:`, err);
+    errorHandler(res, err, 'homebay/perf');
   }
 });
 
