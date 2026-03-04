@@ -60,7 +60,7 @@ class LighthouseAgent {
 
     // Inject PerformanceObserver for LCP and CLS before navigation
     await page.evaluateOnNewDocument(() => {
-      window.__perf = { lcp: 0, cls: 0, fcpTime: 0 };
+      window.__perf = { lcp: 0, cls: 0, fcpTime: 0, inp: 0, worstInteraction: null };
 
       const lcpObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries();
@@ -87,6 +87,25 @@ class LighthouseAgent {
         }
       });
       paintObserver.observe({ type: 'paint', buffered: true });
+
+      const inpObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          // Filter to real interactions (Event Timing API requirement)
+          if (!entry.interactionId) continue;
+
+          if (entry.duration > window.__perf.inp) {
+            window.__perf.inp = entry.duration;
+            window.__perf.worstInteraction = {
+              name: entry.name,              // e.g., 'pointerdown', 'click', 'keydown'
+              duration: entry.duration,       // Total latency (Core Web Vital)
+              inputDelay: entry.processingStart - entry.startTime,
+              processingTime: entry.processingEnd - entry.processingStart,
+              presentationDelay: entry.duration - (entry.processingEnd - entry.startTime),
+            };
+          }
+        }
+      });
+      inpObserver.observe({ type: 'event', buffered: true, durationThreshold: 40 });
     });
 
     let metrics = {
@@ -94,6 +113,7 @@ class LighthouseAgent {
       fcp: 0,
       lcp: 0,
       cls: 0,
+      inp: 0,
       domInteractive: 0,
       domComplete: 0,
       loadTime: 0,
@@ -151,6 +171,7 @@ class LighthouseAgent {
         fcp: Math.round(perfData.fcpTime || 0),
         lcp: Math.round(perfData.lcp || 0),
         cls: parseFloat((perfData.cls || 0).toFixed(4)),
+        inp: Math.round(perfData.inp || 0),
         domInteractive: Math.round(timing.domInteractive),
         domComplete: Math.round(timing.domComplete),
         loadTime: timing.loadTime > 0 ? Math.round(timing.loadTime) : wallTime,
