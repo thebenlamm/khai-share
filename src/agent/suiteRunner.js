@@ -42,6 +42,46 @@ class SuiteRunner {
   }
 
   /**
+   * Static method to replay a historical run
+   * Loads suite config from historical summary.json and re-executes with new runId
+   * @param {string} suiteId - Suite identifier
+   * @param {string} runId - Historical run identifier
+   * @returns {Promise<Object>} New run results with new runId
+   */
+  static async replayRun(suiteId, runId) {
+    // Load historical summary to get original suite config
+    const summaryPath = path.join(SUITES_REPORTS_DIR, suiteId, runId, 'summary.json');
+    if (!fs.existsSync(summaryPath)) {
+      throw new Error(`Historical run not found: ${suiteId}/${runId}`);
+    }
+
+    const summary = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+
+    // Check if summary has suite config (added in Task 1)
+    if (!summary.suite || !summary.originalTests) {
+      throw new Error(`Historical run ${runId} is missing suite config (was it saved before Phase 12?)`);
+    }
+
+    // Reconstruct suite manifest from summary
+    const suite = {
+      suite: summary.suite,
+      tests: summary.originalTests
+    };
+
+    // Execute with new runId
+    const newRunId = new Date().toISOString().replace(/[:.]/g, '-');
+    const runner = new SuiteRunner(suite, {
+      runId: newRunId,
+      tags: summary.tags || [],  // Preserve original tag filter
+      dryRun: summary.dryRun || false
+    });
+
+    console.log(`[SuiteRunner] Replaying ${suiteId}/${runId} as ${newRunId}`);
+
+    return await runner.execute();
+  }
+
+  /**
    * Validate suite manifest against JSON schema using ajv.
    * Throws descriptive error if validation fails.
    * @private
