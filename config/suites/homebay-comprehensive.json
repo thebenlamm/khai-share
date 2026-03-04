@@ -1,0 +1,63 @@
+{
+  "suite": {
+    "id": "homebay-comprehensive",
+    "name": "HomeBay Comprehensive Test Suite",
+    "version": "1.0.0",
+    "tags": ["comprehensive", "all-features"],
+    "environment": "staging",
+    "timeout": 600000,
+    "created": "2026-03-04T17:00:00Z",
+    "updated": "2026-03-04T17:00:00Z"
+  },
+  "tests": [
+    {
+      "type": "auth",
+      "role": "buyer",
+      "config": { "flow": "login" },
+      "tags": ["auth", "smoke"],
+      "critical": true
+    },
+    {
+      "type": "performance",
+      "role": "buyer",
+      "config": { "pages": "critical-only" },
+      "tags": ["performance", "core-web-vitals"]
+    },
+    {
+      "type": "visual",
+      "role": "buyer",
+      "config": { "compare": false },
+      "tags": ["visual", "baseline"]
+    },
+    {
+      "type": "animation",
+      "role": "buyer",
+      "config": {
+        "captureProgress": true,
+        "progressPoints": [0, 50, 100]
+      },
+      "tags": ["animation", "skeleton"]
+    },
+    {
+      "type": "accessibility",
+      "role": "buyer",
+      "config": {
+        "tags": ["wcag2a", "wcag2aa"]
+      },
+      "tags": ["a11y", "compliance", "wcag"]
+    },
+    {
+      "type": "dry-run",
+      "role": null,
+      "config": {
+        "formUrl": "/register",
+        "formData": {
+          "email": "invalid",
+          "password": "short"
+        },
+        "expectedErrors": ["valid email", "at least 8 characters"]
+      },
+      "tags": ["validation", "forms"]
+    }
+  ]
+}
