@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 *.egg-info/
 .claude/
+.planning/
+.env*
+venv/

@@ -33,7 +33,7 @@ class CommunicationMonitor {
       const url = `${this.platformConfig.apiEndpoint}?since=${this.lastChecked.toISOString()}`;
       const response = await fetch(url, {
         headers: {
-          'x-khai-api-key': this.platformConfig.apiKey || 'khai-local-dev-key'
+          'x-khai-api-key': this.platformConfig.apiKey || ''
         }
       });
 
@@ -121,7 +121,7 @@ class CommunicationMonitor {
     try {
       const response = await fetch(this.emailConfig.apiEndpoint, {
         headers: {
-          'x-khai-api-key': this.emailConfig.apiKey || 'khai-local-dev-key',
+          'x-khai-api-key': this.emailConfig.apiKey || '',
           'Authorization': `Bearer ${this.emailConfig.apiKey}`
         }
       });
@@ -168,7 +168,7 @@ class CommunicationMonitor {
     try {
       const response = await fetch(this.smsConfig.apiEndpoint, {
         headers: {
-          'x-khai-api-key': this.smsConfig.apiKey || 'khai-local-dev-key',
+          'x-khai-api-key': this.smsConfig.apiKey || '',
           'Authorization': `Bearer ${this.smsConfig.apiKey}`
         }
       });
@@ -214,7 +214,7 @@ class CommunicationMonitor {
     try {
       const response = await fetch(this.faxConfig.apiEndpoint, {
         headers: {
-          'x-khai-api-key': this.faxConfig.apiKey || 'khai-local-dev-key',
+          'x-khai-api-key': this.faxConfig.apiKey || '',
           'Authorization': `Bearer ${this.faxConfig.apiKey}`
         }
       });
