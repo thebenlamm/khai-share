@@ -39,8 +39,46 @@ class AccessibilityAgent {
    * @returns {Promise<Object>} Audit results with violations, incomplete, passes, inapplicable
    */
   async auditPage(page, url, name) {
-    // Implementation in Task 2
-    throw new Error('auditPage not yet implemented');
+    try {
+      // CRITICAL: Bypass CSP to allow axe-core script injection
+      // Required for sites with strict Content Security Policy headers (like HomeBay)
+      await page.setBypassCSP(true);
+
+      // Navigate to the URL and wait for network idle
+      await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+
+      // Build axe-core audit with configured WCAG tags
+      const { AxePuppeteer } = require('@axe-core/puppeteer');
+      let builder = new AxePuppeteer(page).withTags(this.tags);
+
+      // Apply exclusions for third-party widgets (Stripe iframes, chat widgets, etc.)
+      if (this.excludeSelectors.length > 0) {
+        builder = builder.exclude(this.excludeSelectors);
+      }
+
+      // Run the accessibility audit
+      const results = await builder.analyze();
+
+      // Process and structure the results
+      const processedResult = {
+        url,
+        name,
+        violations: results.violations,
+        violationsBySeverity: this._groupBySeverity(results.violations),
+        incomplete: results.incomplete,
+        passes: results.passes.length,
+        inapplicable: results.inapplicable.length,
+        timestamp: new Date().toISOString()
+      };
+
+      // Store result for later retrieval
+      this.results.push(processedResult);
+
+      return processedResult;
+    } catch (err) {
+      console.error('[AccessibilityAgent] Error auditing page:', err.message);
+      throw err;
+    }
   }
 
   /**
