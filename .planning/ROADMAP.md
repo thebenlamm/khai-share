@@ -191,3 +191,39 @@ Plans:
 Plans:
 - [ ] 10-01-PLAN.md — AccessibilityAgent with axe-core integration and WCAG rule application
 - [ ] 10-02-PLAN.md — HomeBay accessibility integration and API routes
+
+### Phase 11: Complete SuiteRunner Integration
+
+**Goal:** Wire Phase 7 (dry-run) and Phase 10 (accessibility) modules into Phase 9 SuiteRunner test orchestration
+**Requirements**: SUITE-02 (completion)
+**Depends on:** Phase 10
+**Gap Closure:** Closes integration gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. SuiteRunner imports and calls auditHomeBayRole from accessibility module for 'accessibility' test type
+  2. SuiteRunner imports and calls DryRunTester for 'dry-run' test type (removes "not yet implemented" error)
+  3. Suite schema documentation includes accessibility and dry-run test types
+  4. E2E flow "Accessibility audit via suite execution" works end-to-end
+  5. E2E flow "Dry-run form testing via suite execution" works end-to-end
+**Plans:** 2 plans
+
+Plans:
+- [ ] 11-01-PLAN.md — Add accessibility and dry-run handlers to SuiteRunner
+- [ ] 11-02-PLAN.md — Update suite schema and create smoke test suite with all 6 test types
+
+### Phase 12: Suite History and Replay
+
+**Goal:** Enable replay of historical suite runs and trend analysis from history.jsonl
+**Requirements**: SUITE-08, SUITE-09 (completion)
+**Depends on:** Phase 11
+**Gap Closure:** Closes suite history consumption gaps from v1.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. replayRun(runId) method loads historical run config and re-executes all tests
+  2. API endpoint GET /api/suites/:suiteId/runs/:runId/replay triggers replay and returns new runId
+  3. API endpoint GET /api/suites/:suiteId/history reads history.jsonl and returns trend data
+  4. Trend data includes: pass rate over time, flaky test detection, duration trends, last N runs summary
+  5. Replay preserves original test configuration but generates new runId and timestamp
+**Plans:** 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Implement suite replay functionality
+- [ ] 12-02-PLAN.md — Add history trend analysis endpoint

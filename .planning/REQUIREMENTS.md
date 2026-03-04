@@ -105,7 +105,7 @@
 ### Test Suite Management (Phase 9)
 
 - [x] **SUITE-01**: Suite manifest saved to config/suites/ with JSON schema validation
-- [x] **SUITE-02**: Suite definition supports multiple test types (auth, performance, visual, dry-run, animation) with per-test configuration
+- [ ] **SUITE-02**: Suite definition supports multiple test types (auth, performance, visual, dry-run, animation, accessibility) with per-test configuration
 - [x] **SUITE-03**: Suite execution returns aggregated results with pass/fail/skip counts and per-test status
 - [x] **SUITE-04**: Tag filtering enables subset execution (@smoke, @critical, @regression)
 - [x] **SUITE-05**: Suite execution history tracked in newline-delimited JSON (history.jsonl) for trend analysis
@@ -208,14 +208,14 @@
 | ANIM-05 | Phase 8 | Complete |
 | ANIM-06 | Phase 8 | Complete |
 | SUITE-01 | Phase 9 | Complete |
-| SUITE-02 | Phase 9 | Complete |
+| SUITE-02 | Phase 11 | Pending |
 | SUITE-03 | Phase 9 | Complete |
 | SUITE-04 | Phase 9 | Complete |
 | SUITE-05 | Phase 9 | Complete |
 | SUITE-06 | Phase 9 | Complete |
 | SUITE-07 | Phase 9 | Pending |
-| SUITE-08 | Phase 9 | Pending |
-| SUITE-09 | Phase 9 | Pending |
+| SUITE-08 | Phase 12 | Pending |
+| SUITE-09 | Phase 12 | Pending |
 | A11Y-01 | Phase 10 | Complete |
 | A11Y-02 | Phase 10 | Complete |
 | A11Y-03 | Phase 10 | Complete |
