@@ -1,229 +1,72 @@
-# Roadmap: Khai -- HomeBay QA Testing
+# Roadmap: Khai — Browser-Based QA Testing
 
-## Overview
+## Milestones
 
-Extend Khai's browser automation into a comprehensive HomeBay QA testing suite. Start with infrastructure (browser pooling, credentials, Next.js-aware navigation), then build all role-specific workflows and Stripe payment testing, then tackle the hardest problem (multi-browser concurrent bidding with WebSocket verification), and finally wire everything into a single-command orchestrated test suite with HTML reporting.
+- ✅ **v1.0 MVP** — Phases 1, 5-12 (shipped 2026-03-04)
+- 📋 **v1.1 HomeBay Complete** — Phases 2-4 (planned)
 
 ## Phases
 
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+<details>
+<summary>✅ v1.0 MVP (Phases 1, 5-12) — SHIPPED 2026-03-04</summary>
 
-Decimal phases appear between their surrounding integers in numeric order.
+- [x] Phase 1: Foundation & Auth (2/2 plans) — completed 2026-02-16
+- [x] Phase 5: Lighthouse Performance Audit Integration (2/2 plans) — completed 2026-02-25
+- [x] Phase 6: Visual Diff Against Reference Pages (2/2 plans) — completed 2026-02-26
+- [x] Phase 7: Dry-run Form Submission Testing (2/2 plans) — completed 2026-02-27
+- [x] Phase 8: Animation and Transition Screenshot Testing (2/2 plans) — completed 2026-02-28
+- [x] Phase 9: Saved Test Suites with Replay (2/2 plans) — completed 2026-03-03
+- [x] Phase 10: Built-in Accessibility Audit with axe-core (2/2 plans) — completed 2026-03-04
+- [x] Phase 11: Complete SuiteRunner Integration (2/2 plans) — completed 2026-03-04
+- [x] Phase 12: Suite History and Replay (2/2 plans) — completed 2026-03-04
 
-- [ ] **Phase 1: Foundation & Auth** - Browser pool, credentials, login flows, Next.js/React navigation patterns
-- [ ] **Phase 2: Role Workflows & Payments** - All 4 role flows plus Stripe test mode transactions
-- [ ] **Phase 3: Real-Time Bidding** - Multi-browser concurrent bidding with WebSocket event verification
-- [ ] **Phase 4: Orchestration & Reporting** - One-command suite, cross-role workflow, HTML reports
+**Full details:** `.planning/milestones/v1.0-ROADMAP.md`
+
+</details>
+
+### 📋 v1.1 HomeBay Complete (Planned)
+
+- [ ] Phase 2: Role Workflows & Payments (0 plans)
+- [ ] Phase 3: Real-Time Bidding (0 plans)
+- [ ] Phase 4: Orchestration & Reporting (0 plans)
+
+---
 
 ## Phase Details
-
-### Phase 1: Foundation & Auth
-**Goal**: Khai can log into HomeBay staging as any role and navigate pages reliably
-**Depends on**: Nothing (first phase)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
-**Success Criteria** (what must be TRUE):
-  1. Browser pool enforces max 3 concurrent Puppeteer instances and cleans up all browsers on failure or timeout
-  2. Khai logs into HomeBay staging as admin, agent, seller, and buyer using stored credentials
-  3. Khai registers a new buyer account through the signup flow and resets a password via email link
-  4. Page navigation works with Next.js client-side routing (no stale page errors) and form filling triggers React state updates
-  5. Health check confirms staging is reachable before any test run begins
-**Plans**: 2 plans
-
-Plans:
-- [ ] 01-01-PLAN.md — Browser pool infrastructure and HomeBay credential management
-- [ ] 01-02-PLAN.md — Auth flows (login, register, password reset) and API route wiring
 
 ### Phase 2: Role Workflows & Payments
 **Goal**: Every HomeBay user role completes their critical workflow, including Stripe test payments
 **Depends on**: Phase 1
-**Requirements**: AGNT-01, AGNT-02, AGNT-03, AGNT-04, BUYR-01, BUYR-02, BUYR-03, BUYR-04, SELL-01, SELL-02, SELL-03, ADMN-01, ADMN-02, PAY-01, PAY-02, PAY-03, PAY-04, PAY-05
-**Success Criteria** (what must be TRUE):
-  1. Agent creates an auction listing with photos, invites bidders, and monitors status from dashboard
-  2. Buyer browses listings, completes deposit via Stripe test card (4242424242424242), places a bid, and views bid history
-  3. Seller views their property listing, monitors auction progress, and views settlement details
-  4. Admin accesses dashboard, views system status, active auctions, and user activity
-  5. Stripe Elements iframes are filled correctly (cross-origin frame.type), deposits succeed and fail gracefully, escrow holds are verified, and refunds complete
+**Requirements**: AGNT-01-04, BUYR-01-04, SELL-01-03, ADMN-01-02, PAY-01-05
 **Plans**: TBD
-
-Plans:
-- [ ] 02-01: Agent and admin workflow flows
-- [ ] 02-02: Buyer and seller workflow flows with Stripe integration
 
 ### Phase 3: Real-Time Bidding
-**Goal**: Multiple browser instances simulate concurrent buyers bidding in real-time with WebSocket verification
+**Goal**: Multi-browser concurrent bidding with WebSocket verification
 **Depends on**: Phase 2
-**Requirements**: BID-01, BID-02, BID-03, BID-04, BID-05
-**Success Criteria** (what must be TRUE):
-  1. BidSimulator spawns 2-3 Puppeteer instances as different authenticated buyers on the same auction
-  2. Buyer A places a bid and Buyer B's page reflects the updated price via WebSocket within 5 seconds
-  3. Buyer B counter-bids and Buyer A receives the WebSocket update showing the new high bid
-  4. A bid placed in the final seconds triggers the anti-sniping auction extension
-  5. WebSocket events (bid updates, timer changes) are captured and verified via page.evaluate or CDP
+**Requirements**: BID-01-05
 **Plans**: TBD
-
-Plans:
-- [ ] 03-01: BidSimulator and WebSocket event verification
 
 ### Phase 4: Orchestration & Reporting
-**Goal**: One command runs all HomeBay tests across all roles and produces a consolidated HTML report
+**Goal**: One-command suite execution with consolidated HTML reports
 **Depends on**: Phase 3
-**Requirements**: ORCH-01, ORCH-02, ORCH-03, ORCH-04, ORCH-05
-**Success Criteria** (what must be TRUE):
-  1. A single API endpoint or MCP tool runs all role flows and returns consolidated pass/fail results
-  2. Cross-role workflow executes end-to-end: agent creates auction, buyers bid, seller monitors
-  3. HTML report shows results per role, per flow, with screenshots at each step, timing, and error details
+**Requirements**: ORCH-01-03
 **Plans**: TBD
 
-Plans:
-- [ ] 04-01: TestOrchestrator, cross-role workflow, and HTML reporting
+---
 
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation & Auth | 0/2 | Not started | - |
-| 2. Role Workflows & Payments | 0/2 | Not started | - |
-| 3. Real-Time Bidding | 0/1 | Not started | - |
-| 4. Orchestration & Reporting | 0/1 | Not started | - |
-
-### Phase 5: Lighthouse performance audit integration
-
-**Goal:** Khai measures Core Web Vitals (TTFB, FCP, LCP, CLS, INP) on authenticated HomeBay pages per role
-**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05
-**Depends on:** Phase 1 (requires BrowserPool and auth flows)
-**Success Criteria** (what must be TRUE):
-  1. LighthouseAgent measures INP (Interaction to Next Paint) alongside existing Core Web Vitals
-  2. Performance audits work on authenticated HomeBay pages after role login
-  3. Each role has defined critical pages in config/homebay-perf.json
-  4. Results include 2026 threshold-based scoring (good/needs-improvement/poor)
-  5. API endpoint POST /api/homebay/perf/:role exists for on-demand audits
-  6. Performance audits integrate with BrowserPool (respecting max-3 concurrency)
-**Plans:** 2 plans
-
-Plans:
-- [x] 05-01-PLAN.md — Extend LighthouseAgent with INP measurement via Event Timing API
-- [x] 05-02-PLAN.md — HomeBay performance integration and API routes
-
-### Phase 6: Visual diff against reference pages
-
-**Goal:** Khai captures baseline screenshots of authenticated HomeBay pages per role and detects visual regressions via pixel-level comparison
-**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05
-**Depends on:** Phase 5
-**Plans:** 2/2 plans complete
-
-Plans:
-- [x] 06-01-PLAN.md — Visual capture module and critical page configuration
-- [x] 06-02-PLAN.md — API routes and baseline management endpoints
-
-### Phase 7: Dry-run form submission testing
-
-**Goal:** Khai validates form behavior on authenticated HomeBay pages without creating test data or triggering side effects
-**Requirements**: DRYRUN-01, DRYRUN-02, DRYRUN-03, DRYRUN-04, DRYRUN-05
-**Depends on:** Phase 6
-**Success Criteria** (what must be TRUE):
-  1. DryRunTester blocks form POST/PUT/DELETE requests during test execution
-  2. HTML5 validation state (checkValidity, ValidityState) is captured for all form inputs
-  3. React error elements ([role="alert"], .error) are detected and included in results
-  4. Dry-run tests authenticate as a role before testing authenticated forms
-  5. API endpoint POST /api/homebay/dryrun/:form accepts test configuration and returns validation results
-**Plans:** 2 plans
-
-Plans:
-- [x] 07-01-PLAN.md — DryRunTester class with request interception and validation state inspection
-- [x] 07-02-PLAN.md — HomeBay dry-run integration and API routes
-
-### Phase 8: Animation and transition screenshot testing
-
-**Goal:** Khai detects and captures HomeBay animations (skeleton transitions, countdown timers, bid updates) at specific states for visual regression testing
-**Requirements**: ANIM-01, ANIM-02, ANIM-03, ANIM-04, ANIM-05, ANIM-06
-**Depends on:** Phase 7
-**Success Criteria** (what must be TRUE):
-  1. Agent can detect running animations via Web Animations API and wait for completion
-  2. Agent can capture screenshots at specific animation progress points (0%, 50%, 100%)
-  3. HomeBay skeleton transitions captured in 3 states (visible, fading, hydrated) during login
-  4. API endpoint POST /api/homebay/animation/:role exists for on-demand animation capture
-  5. Animation captures stored in screenshots/animations/ with role/timestamp structure
-  6. No new npm dependencies added (uses browser-native Web Animations API)
-**Plans:** 2 plans
-
-Plans:
-- [x] 08-01-PLAN.md — Animation detection and capture module using Web Animations API
-- [x] 08-02-PLAN.md — HomeBay animation testing integration and API routes
-
-### Phase 9: Saved test suites with replay ✓
-
-**Goal:** Users can save multi-test configurations as named suites and replay them on demand with aggregated reporting
-**Requirements**: SUITE-01, SUITE-02, SUITE-03, SUITE-04, SUITE-05, SUITE-06, SUITE-07, SUITE-08, SUITE-09
-**Depends on:** Phase 8
-**Success Criteria** (what must be TRUE):
-  1. Suite manifests saved to config/suites/ with JSON schema validation
-  2. Suite execution orchestrates multiple test types (auth, performance, visual, dry-run, animation) sequentially
-  3. Tag filtering enables subset execution (@smoke runs critical-path tests only)
-  4. Suite timeout prevents indefinite hangs (300s default, configurable per suite)
-  5. Suite execution history tracked in reports/suites/history.jsonl for trend analysis
-  6. API endpoints exist for suite execution (POST /api/suites/:suiteId/run) and result retrieval (GET /api/suites/:suiteId/runs/:runId/results)
-**Plans:** 2/2 plans complete
-**Completed:** 2026-03-04
-
-Plans:
-- [x] 09-01-PLAN.md — SuiteRunner class with test orchestration and result aggregation
-- [x] 09-02-PLAN.md — Suite API routes and example suite manifests
-
-### Phase 10: Built-in accessibility audit with axe-core
-
-**Goal:** Khai measures WCAG 2.0/2.1/2.2 compliance on authenticated HomeBay pages per role using axe-core
-**Requirements**: A11Y-01, A11Y-02, A11Y-03, A11Y-04, A11Y-05, A11Y-06, A11Y-07
-**Depends on:** Phase 9
-**Success Criteria** (what must be TRUE):
-  1. axe-core runs on authenticated HomeBay pages with CSP bypass enabled
-  2. Each role has defined critical pages in config/homebay-a11y.json with third-party widget exclusions
-  3. Violations reported by severity (critical, serious, moderate, minor) with element selectors and remediation guidance
-  4. Incomplete results included in reports for manual review
-  5. API endpoint POST /api/homebay/a11y/:role exists for on-demand accessibility audits
-  6. WCAG 2.0/2.1/2.2 rules applied via configurable tag filtering (wcag2a, wcag2aa)
-**Plans:** 2/2 plans complete
-
-Plans:
-- [x] 10-01-PLAN.md — AccessibilityAgent with axe-core integration and WCAG rule application
-- [x] 10-02-PLAN.md — HomeBay accessibility integration and API routes
-
-### Phase 11: Complete SuiteRunner Integration
-
-**Goal:** Wire Phase 7 (dry-run) and Phase 10 (accessibility) modules into Phase 9 SuiteRunner test orchestration
-**Requirements**: SUITE-02 (completion)
-**Depends on:** Phase 10
-**Gap Closure:** Closes integration gaps from v1.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. SuiteRunner imports and calls auditHomeBayRole from accessibility module for 'accessibility' test type
-  2. SuiteRunner imports and calls DryRunTester for 'dry-run' test type (removes "not yet implemented" error)
-  3. Suite schema documentation includes accessibility and dry-run test types
-  4. E2E flow "Accessibility audit via suite execution" works end-to-end
-  5. E2E flow "Dry-run form testing via suite execution" works end-to-end
-**Plans:** 2/2 plans complete
-
-Plans:
-- [x] 11-01-PLAN.md — Add accessibility and dry-run handlers to SuiteRunner
-- [x] 11-02-PLAN.md — Update suite schema and create comprehensive test suite with all 6 test types
-
-### Phase 12: Suite History and Replay
-
-**Goal:** Enable replay of historical suite runs and trend analysis from history.jsonl
-**Requirements**: SUITE-08, SUITE-09 (completion)
-**Depends on:** Phase 11
-**Gap Closure:** Closes suite history consumption gaps from v1.0 milestone audit
-**Success Criteria** (what must be TRUE):
-  1. replayRun(runId) method loads historical run config and re-executes all tests
-  2. API endpoint POST /api/suites/:suiteId/runs/:runId/replay triggers replay and returns new runId
-  3. API endpoint GET /api/suites/:suiteId/history reads history.jsonl and returns trend data
-  4. Trend data includes: pass rate over time, flaky test detection, duration trends, last N runs summary
-  5. Replay preserves original test configuration but generates new runId and timestamp
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 12-01-PLAN.md — Preserve suite config in summary.json and add SuiteRunner.replayRun() static method
-- [ ] 12-02-PLAN.md — Add replay and history trend analysis API endpoints with streaming JSONL
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 1. Foundation & Auth | v1.0 | 2/2 | Complete | 2026-02-16 |
+| 5. Lighthouse Performance | v1.0 | 2/2 | Complete | 2026-02-25 |
+| 6. Visual Diff | v1.0 | 2/2 | Complete | 2026-02-26 |
+| 7. Dry-run Form Testing | v1.0 | 2/2 | Complete | 2026-02-27 |
+| 8. Animation Screenshot | v1.0 | 2/2 | Complete | 2026-02-28 |
+| 9. Saved Test Suites | v1.0 | 2/2 | Complete | 2026-03-03 |
+| 10. Accessibility Audit | v1.0 | 2/2 | Complete | 2026-03-04 |
+| 11. SuiteRunner Integration | v1.0 | 2/2 | Complete | 2026-03-04 |
+| 12. Suite History & Replay | v1.0 | 2/2 | Complete | 2026-03-04 |
+| 2. Role Workflows | v1.1 | 0 | Not started | — |
+| 3. Real-Time Bidding | v1.1 | 0 | Not started | — |
+| 4. Orchestration | v1.1 | 0 | Not started | — |
