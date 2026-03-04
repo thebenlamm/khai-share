@@ -259,7 +259,7 @@ class SuiteRunner {
 
   /**
    * Save results to disk:
-   * - Write to reports/suites/{suiteId}/{runId}/summary.json
+   * - Write to reports/suites/{suiteId}/{runId}/summary.json (includes suite config for replay)
    * - Append to reports/suites/history.jsonl
    * @private
    */
@@ -270,9 +270,14 @@ class SuiteRunner {
     // Create directory structure
     fs.mkdirSync(runDir, { recursive: true });
 
-    // Write summary.json
+    // Write summary.json with full suite config for replay support
     const summaryPath = path.join(runDir, 'summary.json');
-    fs.writeFileSync(summaryPath, JSON.stringify(results, null, 2));
+    const summaryWithConfig = {
+      ...results,
+      suite: this.suite.suite,  // Full suite metadata from manifest
+      originalTests: this.suite.tests  // Original test definitions (before execution)
+    };
+    fs.writeFileSync(summaryPath, JSON.stringify(summaryWithConfig, null, 2));
 
     // Append to history.jsonl
     const historyPath = path.join(SUITES_REPORTS_DIR, 'history.jsonl');
