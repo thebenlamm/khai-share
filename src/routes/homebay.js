@@ -11,6 +11,7 @@ const {
 } = require('../homebay/auth');
 const { getHomeBayConfig, checkHomeBayHealth } = require('../homebay/config');
 const { auditHomeBayRole } = require('../homebay/performance');
+const { captureHomeBayRole, compareAgainstBaseline } = require('../homebay/visual');
 const { ok, fail, errorHandler } = require('../utils/response');
 
 const ALLOWED_ROLES = ['admin', 'agent', 'seller', 'buyer'];
@@ -212,6 +213,140 @@ router.post('/perf/:role', async (req, res) => {
   } catch (err) {
     console.error(`[API] Performance audit failed for ${role}:`, err);
     errorHandler(res, err, 'homebay/perf');
+  }
+});
+
+/**
+ * POST /api/homebay/visual/:role
+ * Capture screenshots of critical pages for specified role after authentication.
+ * Returns: { role, screenshots: [{ name, path, screenshotPath }] }
+ */
+router.post('/visual/:role', async (req, res) => {
+  const { role } = req.params;
+  const validRoles = ['admin', 'agent', 'seller', 'buyer'];
+
+  if (!validRoles.includes(role)) {
+    return res.status(400).json(fail(`Invalid role: ${role}. Must be one of: ${validRoles.join(', ')}`));
+  }
+
+  try {
+    console.log(`[HomeBay Visual] Starting screenshot capture for role: ${role}`);
+    const result = await captureHomeBayRole(role);
+    console.log(`[HomeBay Visual] Capture complete: ${result.screenshots.length} screenshot(s)`);
+    res.json(ok(result));
+  } catch (err) {
+    console.error(`[HomeBay Visual] Capture failed for ${role}:`, err);
+    res.status(500).json(fail(err.message));
+  }
+});
+
+/**
+ * POST /api/homebay/visual/:role/compare
+ * Compare current screenshots against baseline for specified role.
+ * Returns: { status, role, totalCompared, matched, changed, missing, added, diffs, timestamp }
+ */
+router.post('/visual/:role/compare', async (req, res) => {
+  const { role } = req.params;
+  const validRoles = ['admin', 'agent', 'seller', 'buyer'];
+
+  if (!validRoles.includes(role)) {
+    return res.status(400).json(fail(`Invalid role: ${role}. Must be one of: ${validRoles.join(', ')}`));
+  }
+
+  try {
+    console.log(`[HomeBay Visual] Starting comparison for role: ${role}`);
+    const result = await compareAgainstBaseline(role);
+
+    if (result.status === 'no-baseline') {
+      console.log(`[HomeBay Visual] No baseline found for ${role}`);
+      return res.status(404).json(fail(result.message));
+    }
+
+    console.log(`[HomeBay Visual] Comparison complete: ${result.changed} changed, ${result.matched} matched`);
+    res.json(ok(result));
+  } catch (err) {
+    console.error(`[HomeBay Visual] Comparison failed for ${role}:`, err);
+    res.status(500).json(fail(err.message));
+  }
+});
+
+/**
+ * POST /api/homebay/visual/:role/set-baseline
+ * Copy current screenshots to baseline directory for specified role.
+ * Returns: { message, files }
+ */
+router.post('/visual/:role/set-baseline', async (req, res) => {
+  const { role } = req.params;
+  const validRoles = ['admin', 'agent', 'seller', 'buyer'];
+
+  if (!validRoles.includes(role)) {
+    return res.status(400).json(fail(`Invalid role: ${role}. Must be one of: ${validRoles.join(', ')}`));
+  }
+
+  const fs = require('fs');
+  const path = require('path');
+  const SCREENSHOTS_DIR = path.join(__dirname, '../../screenshots');
+  const currentDir = path.join(SCREENSHOTS_DIR, 'homebay-current', role);
+  const baselineDir = path.join(SCREENSHOTS_DIR, 'homebay-baselines', role);
+
+  try {
+    if (!fs.existsSync(currentDir)) {
+      return res.status(400).json(fail(`No current screenshots found for role ${role}. Run capture first.`));
+    }
+
+    // Create baseline directory
+    fs.mkdirSync(baselineDir, { recursive: true });
+
+    // Copy all PNG files from current to baseline
+    const files = fs.readdirSync(currentDir).filter(f => f.endsWith('.png'));
+
+    if (files.length === 0) {
+      return res.status(400).json(fail(`No PNG files found in current directory for role ${role}.`));
+    }
+
+    for (const file of files) {
+      fs.copyFileSync(
+        path.join(currentDir, file),
+        path.join(baselineDir, file)
+      );
+    }
+
+    console.log(`[HomeBay Visual] Baseline set for ${role}: ${files.length} file(s)`);
+    res.json(ok({ message: `Baseline set for role ${role}`, files: files.length }));
+  } catch (err) {
+    console.error(`[HomeBay Visual] Set baseline failed for ${role}:`, err);
+    res.status(500).json(fail(err.message));
+  }
+});
+
+/**
+ * GET /api/homebay/visual/:role/baseline
+ * List baseline screenshots for specified role.
+ * Returns: { exists, files, count }
+ */
+router.get('/visual/:role/baseline', (req, res) => {
+  const { role } = req.params;
+  const validRoles = ['admin', 'agent', 'seller', 'buyer'];
+
+  if (!validRoles.includes(role)) {
+    return res.status(400).json(fail(`Invalid role: ${role}. Must be one of: ${validRoles.join(', ')}`));
+  }
+
+  const fs = require('fs');
+  const path = require('path');
+  const SCREENSHOTS_DIR = path.join(__dirname, '../../screenshots');
+  const baselineDir = path.join(SCREENSHOTS_DIR, 'homebay-baselines', role);
+
+  try {
+    if (!fs.existsSync(baselineDir)) {
+      return res.json(ok({ exists: false, files: [], count: 0 }));
+    }
+
+    const files = fs.readdirSync(baselineDir).filter(f => f.endsWith('.png'));
+    res.json(ok({ exists: true, files, count: files.length }));
+  } catch (err) {
+    console.error(`[HomeBay Visual] List baseline failed for ${role}:`, err);
+    res.status(500).json(fail(err.message));
   }
 });
 
