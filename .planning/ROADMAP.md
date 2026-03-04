@@ -155,7 +155,7 @@ Plans:
 - [x] 08-01-PLAN.md — Animation detection and capture module using Web Animations API
 - [x] 08-02-PLAN.md — HomeBay animation testing integration and API routes
 
-### Phase 9: Saved test suites with replay
+### Phase 9: Saved test suites with replay ✓
 
 **Goal:** Users can save multi-test configurations as named suites and replay them on demand with aggregated reporting
 **Requirements**: SUITE-01, SUITE-02, SUITE-03, SUITE-04, SUITE-05, SUITE-06, SUITE-07, SUITE-08, SUITE-09
@@ -167,7 +167,8 @@ Plans:
   4. Suite timeout prevents indefinite hangs (300s default, configurable per suite)
   5. Suite execution history tracked in reports/suites/history.jsonl for trend analysis
   6. API endpoints exist for suite execution (POST /api/suites/:suiteId/run) and result retrieval (GET /api/suites/:suiteId/runs/:runId/results)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
+**Completed:** 2026-03-04
 
 Plans:
 - [x] 09-01-PLAN.md — SuiteRunner class with test orchestration and result aggregation

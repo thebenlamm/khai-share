@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
+    "@axe-core/puppeteer": "^4.11.1",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
     "cors": "^2.8.5",
