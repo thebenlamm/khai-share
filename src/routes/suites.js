@@ -147,7 +147,7 @@ router.get('/', (req, res) => {
     res.json(ok({ suites }));
   } catch (err) {
     console.error('[Suites] Error listing suites:', err);
-    res.status(500).json(fail(err.message));
+    res.status(500).json(fail('Failed to list suites'));
   }
 });
 
@@ -194,20 +194,26 @@ router.post('/:suiteId/run', async (req, res) => {
 
       try {
         const results = await runner.execute();
-        activeJobs.get(runId).status = 'completed';
-        activeJobs.get(runId).results = results;
-        console.log(`[Suites] Suite execution completed: ${suiteId}, status: ${results.status}`);
+        const job = activeJobs.get(runId);
+        if (job) {  // Guard against eviction
+          job.status = 'completed';
+          job.results = results;
+          console.log(`[Suites] Suite execution completed: ${suiteId}, status: ${results.status}`);
+        }
       } catch (err) {
         console.error(`[Suites] Suite execution failed: ${suiteId}`, err);
-        activeJobs.get(runId).status = 'error';
-        activeJobs.get(runId).error = err.message;
+        const job = activeJobs.get(runId);
+        if (job) {  // Guard against eviction
+          job.status = 'error';
+          job.error = err.message;
+        }
       }
     })();
 
     res.json(ok({ runId, suiteId, message: 'Suite execution started' }));
   } catch (err) {
     console.error('[Suites] Error starting suite:', err);
-    res.status(500).json(fail(err.message));
+    res.status(500).json(fail('Failed to start suite'));
   }
 });
 
@@ -228,7 +234,7 @@ router.get('/:suiteId/runs/:runId/results', (req, res) => {
       } else if (job.status === 'running') {
         return res.json(ok({ status: 'running', message: 'Suite still executing' }));
       } else {
-        return res.status(500).json(fail(job.error || 'Suite execution failed'));
+        return res.status(500).json(fail('Suite execution failed'));
       }
     }
 
@@ -244,7 +250,7 @@ router.get('/:suiteId/runs/:runId/results', (req, res) => {
     res.json(ok(results));
   } catch (err) {
     console.error('[Suites] Error retrieving results:', err);
-    res.status(500).json(fail(err.message));
+    res.status(500).json(fail('Failed to retrieve results'));
   }
 });
 
@@ -277,7 +283,7 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
     // Async replay execution (IIFE pattern from existing routes)
     (async () => {
       try {
-        const results = await SuiteRunner.replayRun(suiteId, runId);
+        const results = await SuiteRunner.replayRun(suiteId, runId, newRunId);
         const job = activeJobs.get(newRunId);
         if (job) {  // Guard against eviction
           job.status = 'completed';
@@ -351,7 +357,7 @@ router.get('/:suiteId/runs', (req, res) => {
     res.json(ok({ runs }));
   } catch (err) {
     console.error('[Suites] Error listing runs:', err);
-    res.status(500).json(fail(err.message));
+    res.status(500).json(fail('Failed to list runs'));
   }
 });
 
@@ -383,7 +389,7 @@ router.get('/:suiteId/history', async (req, res) => {
     res.json(ok(history));
   } catch (err) {
     console.error('[Suites] Error analyzing history:', err);
-    res.status(500).json(fail(err.message));
+    res.status(500).json(fail('Failed to analyze history'));
   }
 });
 
