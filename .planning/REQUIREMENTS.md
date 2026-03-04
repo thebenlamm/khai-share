@@ -87,9 +87,9 @@
 
 ### Dry-Run Form Testing (Phase 7)
 
-- [ ] **DRYRUN-01**: Request interception blocks form POST/PUT/DELETE during dry-run tests
-- [ ] **DRYRUN-02**: HTML5 validation state (checkValidity, ValidityState) captured for all form inputs
-- [ ] **DRYRUN-03**: React validation errors ([role="alert"], .error) detected and reported
+- [x] **DRYRUN-01**: Request interception blocks form POST/PUT/DELETE during dry-run tests
+- [x] **DRYRUN-02**: HTML5 validation state (checkValidity, ValidityState) captured for all form inputs
+- [x] **DRYRUN-03**: React validation errors ([role="alert"], .error) detected and reported
 - [ ] **DRYRUN-04**: Dry-run tests work on authenticated pages (login before test)
 - [ ] **DRYRUN-05**: API endpoint POST /api/homebay/dryrun/:form for on-demand validation testing
 
@@ -196,9 +196,9 @@
 | VIS-03 | Phase 6 | Complete |
 | VIS-04 | Phase 6 | Complete |
 | VIS-05 | Phase 6 | Complete |
-| DRYRUN-01 | Phase 7 | Pending |
-| DRYRUN-02 | Phase 7 | Pending |
-| DRYRUN-03 | Phase 7 | Pending |
+| DRYRUN-01 | Phase 7 | Complete |
+| DRYRUN-02 | Phase 7 | Complete |
+| DRYRUN-03 | Phase 7 | Complete |
 | DRYRUN-04 | Phase 7 | Pending |
 | DRYRUN-05 | Phase 7 | Pending |
 | ANIM-01 | Phase 8 | Pending |
