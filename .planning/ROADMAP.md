@@ -204,7 +204,7 @@ Plans:
   3. Suite schema documentation includes accessibility and dry-run test types
   4. E2E flow "Accessibility audit via suite execution" works end-to-end
   5. E2E flow "Dry-run form testing via suite execution" works end-to-end
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 11-01-PLAN.md — Add accessibility and dry-run handlers to SuiteRunner
