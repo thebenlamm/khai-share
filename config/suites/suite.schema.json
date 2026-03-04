@@ -66,9 +66,9 @@
             "description": "Test type"
           },
           "role": {
-            "type": "string",
-            "enum": ["admin", "agent", "seller", "buyer"],
-            "description": "HomeBay role for auth/performance/visual tests"
+            "type": ["string", "null"],
+            "enum": ["admin", "agent", "seller", "buyer", null],
+            "description": "HomeBay role for auth/performance/visual tests (null for unauthenticated tests)"
           },
           "config": {
             "type": "object",
