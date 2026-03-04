@@ -1,0 +1,66 @@
+{
+  "roles": {
+    "buyer": {
+      "criticalPages": [
+        {
+          "id": "auctions-list",
+          "path": "/auctions",
+          "name": "Browse Auctions",
+          "waitForSelector": ".auction-card",
+          "maskSelectors": [".timestamp", ".user-avatar", ".countdown-timer", ".last-login"]
+        },
+        {
+          "id": "buyer-dashboard",
+          "path": "/dashboard",
+          "name": "Buyer Dashboard",
+          "waitForSelector": ".dashboard-content",
+          "maskSelectors": [".timestamp", ".last-login", ".notification-badge"]
+        }
+      ],
+      "diffThreshold": 0.1
+    },
+    "agent": {
+      "criticalPages": [
+        {
+          "id": "agent-dashboard",
+          "path": "/agent/dashboard",
+          "name": "Agent Dashboard",
+          "waitForSelector": ".dashboard-stats",
+          "maskSelectors": [".timestamp", ".live-bidder-count", ".last-updated"]
+        },
+        {
+          "id": "agent-listings",
+          "path": "/agent/listings",
+          "name": "Agent Listings",
+          "waitForSelector": ".listings-grid",
+          "maskSelectors": [".timestamp", ".live-status"]
+        }
+      ],
+      "diffThreshold": 0.1
+    },
+    "seller": {
+      "criticalPages": [
+        {
+          "id": "seller-dashboard",
+          "path": "/seller/dashboard",
+          "name": "Seller Dashboard",
+          "waitForSelector": ".dashboard-content",
+          "maskSelectors": [".timestamp", ".auction-countdown"]
+        }
+      ],
+      "diffThreshold": 0.1
+    },
+    "admin": {
+      "criticalPages": [
+        {
+          "id": "admin-dashboard",
+          "path": "/admin/dashboard",
+          "name": "Admin Dashboard",
+          "waitForSelector": ".admin-panel",
+          "maskSelectors": [".timestamp", ".live-user-count", ".system-status-indicator"]
+        }
+      ],
+      "diffThreshold": 0.1
+    }
+  }
+}
