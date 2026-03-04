@@ -189,8 +189,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 10-01-PLAN.md — AccessibilityAgent with axe-core integration and WCAG rule application
-- [ ] 10-02-PLAN.md — HomeBay accessibility integration and API routes
+- [x] 10-01-PLAN.md — AccessibilityAgent with axe-core integration and WCAG rule application
+- [x] 10-02-PLAN.md — HomeBay accessibility integration and API routes
 
 ### Phase 11: Complete SuiteRunner Integration
 
@@ -207,8 +207,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — Add accessibility and dry-run handlers to SuiteRunner
-- [ ] 11-02-PLAN.md — Update suite schema and create smoke test suite with all 6 test types
+- [x] 11-01-PLAN.md — Add accessibility and dry-run handlers to SuiteRunner
+- [x] 11-02-PLAN.md — Update suite schema and create comprehensive test suite with all 6 test types
 
 ### Phase 12: Suite History and Replay
 
@@ -218,12 +218,12 @@ Plans:
 **Gap Closure:** Closes suite history consumption gaps from v1.0 milestone audit
 **Success Criteria** (what must be TRUE):
   1. replayRun(runId) method loads historical run config and re-executes all tests
-  2. API endpoint GET /api/suites/:suiteId/runs/:runId/replay triggers replay and returns new runId
+  2. API endpoint POST /api/suites/:suiteId/runs/:runId/replay triggers replay and returns new runId
   3. API endpoint GET /api/suites/:suiteId/history reads history.jsonl and returns trend data
   4. Trend data includes: pass rate over time, flaky test detection, duration trends, last N runs summary
   5. Replay preserves original test configuration but generates new runId and timestamp
 **Plans:** 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — Implement suite replay functionality
-- [ ] 12-02-PLAN.md — Add history trend analysis endpoint
+- [ ] 12-01-PLAN.md — Preserve suite config in summary.json and add SuiteRunner.replayRun() static method
+- [ ] 12-02-PLAN.md — Add replay and history trend analysis API endpoints with streaming JSONL
