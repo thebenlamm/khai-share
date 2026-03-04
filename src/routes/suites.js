@@ -154,6 +154,54 @@ router.get('/:suiteId/runs/:runId/results', (req, res) => {
 });
 
 /**
+ * POST /api/suites/:suiteId/runs/:runId/replay
+ * Replay a historical run with new runId
+ */
+router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
+  try {
+    const { suiteId, runId } = req.params;
+
+    console.log(`[Suites] Starting replay: ${suiteId}/${runId}`);
+
+    // Create new job for replay
+    const newRunId = new Date().toISOString().replace(/[:.]/g, '-');
+    evictStale(activeJobs);
+    activeJobs.set(newRunId, {
+      type: 'suite-replay',
+      suiteId,
+      originalRunId: runId,
+      status: 'running',
+      startTime: new Date().toISOString(),
+      _createdAt: Date.now()
+    });
+
+    // Async replay execution (IIFE pattern from existing routes)
+    (async () => {
+      try {
+        const results = await SuiteRunner.replayRun(suiteId, runId);
+        activeJobs.get(newRunId).status = 'completed';
+        activeJobs.get(newRunId).results = results;
+        console.log(`[Suites] Replay completed: ${newRunId}`);
+      } catch (err) {
+        console.error(`[Suites] Replay failed:`, err);
+        activeJobs.get(newRunId).status = 'error';
+        activeJobs.get(newRunId).error = err.message;
+      }
+    })();
+
+    res.json(ok({
+      newRunId,
+      suiteId,
+      originalRunId: runId,
+      message: 'Suite replay started'
+    }));
+  } catch (err) {
+    console.error('[Suites] Error starting replay:', err);
+    res.status(500).json(fail(err.message));
+  }
+});
+
+/**
  * GET /api/suites/:suiteId/runs
  * List all historical runs for a suite (from directory listing)
  */
