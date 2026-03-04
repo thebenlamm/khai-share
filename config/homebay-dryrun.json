@@ -1,0 +1,74 @@
+{
+  "register": {
+    "url": "/register",
+    "role": null,
+    "tests": [
+      {
+        "name": "Missing required fields",
+        "formData": {
+          "email": "test@example.com",
+          "password": ""
+        },
+        "expectedErrors": ["Password is required"]
+      },
+      {
+        "name": "Invalid email format",
+        "formData": {
+          "email": "notanemail",
+          "password": "ValidPass123!"
+        },
+        "expectedErrors": ["Please enter a valid email address", "email"]
+      },
+      {
+        "name": "Password too short",
+        "formData": {
+          "email": "test@example.com",
+          "password": "short"
+        },
+        "expectedErrors": ["Password must be at least 8 characters", "at least", "characters"]
+      }
+    ]
+  },
+  "login": {
+    "url": "/login",
+    "role": null,
+    "tests": [
+      {
+        "name": "Missing email",
+        "formData": {
+          "email": "",
+          "password": "password123"
+        },
+        "expectedErrors": ["Email is required", "email", "required"]
+      },
+      {
+        "name": "Missing password",
+        "formData": {
+          "email": "test@example.com",
+          "password": ""
+        },
+        "expectedErrors": ["Password is required", "password", "required"]
+      }
+    ]
+  },
+  "forgot-password": {
+    "url": "/forgot-password",
+    "role": null,
+    "tests": [
+      {
+        "name": "Missing email",
+        "formData": {
+          "email": ""
+        },
+        "expectedErrors": ["Email is required", "email", "required"]
+      },
+      {
+        "name": "Invalid email format",
+        "formData": {
+          "email": "notanemail"
+        },
+        "expectedErrors": ["Please enter a valid email address", "email", "valid"]
+      }
+    ]
+  }
+}

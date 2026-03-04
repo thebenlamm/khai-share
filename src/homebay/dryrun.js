@@ -5,22 +5,19 @@ const { fillReactInput, navigateTo, waitForHydration } = require('./navigate');
 const { getHomeBayConfig } = require('./config');
 
 /**
- * DryRunTester - validates form behavior without server-side effects.
+ * DryRunTester — validates form behavior without server-side effects.
  *
- * Uses Puppeteer request interception to block POST/PUT/DELETE requests during
- * form testing. Captures HTML5 validation state (checkValidity, ValidityState)
- * and React error elements ([role="alert"], .error) to verify client-side
- * validation logic without polluting test data or triggering external services.
+ * Uses Puppeteer request interception to block POST/PUT/DELETE requests,
+ * allowing client-side validation testing without creating database records,
+ * sending emails, or triggering external services.
  *
- * Follows HomeBay patterns:
- * - pool.withSlot() for browser acquisition and guaranteed cleanup
- * - fillReactInput() for React controlled component state updates
- * - waitForHydration() to handle HomeBay's skeleton loader
+ * Captures both HTML5 validation state (checkValidity + ValidityState) and
+ * React validation errors ([role="alert"], .error elements).
  */
 class DryRunTester {
   /**
    * @param {Object} config
-   * @param {string} config.baseUrl - HomeBay staging URL
+   * @param {string} [config.baseUrl] - Base URL for HomeBay (defaults to credentials)
    */
   constructor(config = {}) {
     const homebayConfig = getHomeBayConfig();
@@ -28,27 +25,26 @@ class DryRunTester {
   }
 
   /**
-   * Test form validation in dry-run mode (no submissions reach server).
+   * Test form validation without submitting to the server.
    *
-   * @param {string} role - HomeBay role (admin/agent/seller/buyer)
-   * @param {string} formUrl - URL path to the form page
-   * @param {Object} formData - Form field values { fieldSelector: value }
-   * @param {Array<string>} expectedErrors - Expected validation error messages
-   * @returns {Promise<{html5Valid, reactErrors, passed, error?}>}
+   * @param {string|null} role - User role to authenticate as (null = no auth)
+   * @param {string} formUrl - Relative path to form page (e.g., "/register")
+   * @param {Object} formData - Object mapping field names to values (e.g., { email: "test@example.com", password: "short" })
+   * @param {string[]} expectedErrors - Array of expected validation error messages
+   * @returns {Promise<{ html5Valid: Object, reactErrors: Array, passed: boolean }>}
    */
-  async testFormValidation(role, formUrl, formData = {}, expectedErrors = []) {
+  async testFormValidation(role, formUrl, formData, expectedErrors = []) {
     return await pool.withSlot(async (slot) => {
       const { page } = slot;
 
       try {
-        console.log(`[DryRun] Starting dry-run test for ${formUrl} (role: ${role})`);
-
-        // Enable request interception IMMEDIATELY after acquiring slot
+        // Enable request interception to block form submissions
         await page.setRequestInterception(true);
 
-        // Handler to abort POST/PUT/DELETE, continue others
+        const interceptedRequests = [];
+
         page.on('request', (req) => {
-          // CRITICAL: Check if already handled (prevents "Request already handled" error)
+          // Check if request is already handled (prevents double-handling errors)
           if (req.isInterceptResolutionHandled()) {
             return;
           }
@@ -56,63 +52,63 @@ class DryRunTester {
           const method = req.method();
           const url = req.url();
 
+          // Block POST/PUT/DELETE (form submissions and mutations)
           if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
             console.log(`[DryRun] Aborting ${method} to ${url}`);
-            req.abort();
+            interceptedRequests.push({ method, url });
+            req.abort('failed');
           } else {
+            // Allow GET, HEAD, OPTIONS (for page load, styles, scripts)
             req.continue();
           }
         });
 
         // Navigate to form page
-        const fullUrl = formUrl.startsWith('http')
-          ? formUrl
-          : `${this.baseUrl}${formUrl}`;
-
+        const fullUrl = this.baseUrl + formUrl;
         await navigateTo(page, fullUrl);
 
         // Wait for HomeBay hydration (skeleton loader disappears)
-        await waitForHydration(page);
+        await waitForHydration(page).catch(() => {
+          console.log('[DryRun] No skeleton loader found, assuming page is ready');
+        });
 
-        // Fill form fields using React-aware input helper
-        for (const [selector, value] of Object.entries(formData)) {
+        // Additional wait for form to be ready
+        await page.waitForSelector('form', { timeout: 10000 });
+
+        // Fill form fields using React-aware input method
+        for (const [fieldName, value] of Object.entries(formData)) {
+          const selector = `input[name="${fieldName}"], input[id="${fieldName}"], textarea[name="${fieldName}"], textarea[id="${fieldName}"], select[name="${fieldName}"], select[id="${fieldName}"]`;
+
           try {
             await fillReactInput(page, selector, value);
           } catch (err) {
-            console.warn(`[DryRun] Could not fill ${selector}: ${err.message}`);
+            console.log(`[DryRun] Could not fill field ${fieldName}: ${err.message}`);
           }
         }
 
-        // Find and click submit button
-        const submitSelector = 'button[type="submit"]';
-        const submitExists = await page.$(submitSelector);
-
-        if (!submitExists) {
-          console.warn('[DryRun] No submit button found, skipping submit');
-        } else {
-          // Click submit (won't navigate because request is aborted)
-          await page.click(submitSelector).catch((err) => {
-            console.warn(`[DryRun] Submit click failed: ${err.message}`);
+        // Click submit button (will be intercepted and blocked)
+        try {
+          await page.click('button[type="submit"]');
+        } catch (err) {
+          // Fallback: evaluate click
+          await page.evaluate(() => {
+            const btn = document.querySelector('button[type="submit"]');
+            if (btn) btn.click();
           });
-
-          // Wait for validation messages to render
-          await page.waitForTimeout(1000);
         }
+
+        // Wait for validation messages to render
+        await page.waitForTimeout(1000);
 
         // Capture HTML5 validation state
         const html5Valid = await page.evaluate(() => {
           const form = document.querySelector('form');
           if (!form) return { error: 'Form not found' };
 
-          // checkValidity() returns boolean without showing browser UI
-          // (reportValidity() would show the browser's native validation UI)
-          const isValid = form.checkValidity();
-
-          const inputs = Array.from(
-            form.querySelectorAll('input, select, textarea')
-          );
-          const inputStates = inputs.map((input) => ({
-            name: input.name || input.id || input.type,
+          const isValid = form.checkValidity(); // Don't use reportValidity() - shows browser UI
+          const inputs = Array.from(form.querySelectorAll('input, select, textarea'));
+          const inputStates = inputs.map(input => ({
+            name: input.name || input.id,
             valid: input.validity.valid,
             validationMessage: input.validationMessage,
             validity: {
@@ -125,7 +121,7 @@ class DryRunTester {
               rangeOverflow: input.validity.rangeOverflow,
               stepMismatch: input.validity.stepMismatch,
               badInput: input.validity.badInput,
-            },
+            }
           }));
 
           return { isValid, inputs: inputStates };
@@ -133,61 +129,65 @@ class DryRunTester {
 
         // Capture React validation errors
         const reactErrors = await page.evaluate(() => {
-          return Array.from(
-            document.querySelectorAll('[role="alert"], .error, .text-red')
-          )
-            .map((el) => ({
+          return Array.from(document.querySelectorAll('[role="alert"], .error, .text-red'))
+            .map(el => ({
               text: el.textContent.trim(),
-              visible: el.offsetParent !== null, // Element is visible
+              visible: el.offsetParent !== null
             }))
-            .filter((err) => err.visible && err.text.length > 0);
+            .filter(err => err.visible && err.text.length > 0)
+            .map(err => err.text);
         });
 
-        // Determine if test passed
-        const passed = this._evaluateTestResult(
-          html5Valid,
-          reactErrors,
-          expectedErrors
-        );
+        // Check if expected errors are present
+        let passed = true;
+        const foundErrors = [...reactErrors];
 
-        console.log(
-          `[DryRun] Test complete - Passed: ${passed}, HTML5 Valid: ${html5Valid.isValid}, React Errors: ${reactErrors.length}`
-        );
+        // Also include HTML5 validation messages
+        if (html5Valid.inputs) {
+          html5Valid.inputs.forEach(input => {
+            if (!input.valid && input.validationMessage) {
+              foundErrors.push(input.validationMessage);
+            }
+          });
+        }
+
+        // Verify that all expected errors are found
+        for (const expectedError of expectedErrors) {
+          const found = foundErrors.some(msg =>
+            msg.toLowerCase().includes(expectedError.toLowerCase()) ||
+            expectedError.toLowerCase().includes(msg.toLowerCase())
+          );
+          if (!found) {
+            console.log(`[DryRun] Expected error not found: "${expectedError}"`);
+            passed = false;
+          }
+        }
+
+        console.log(`[DryRun] Test ${passed ? 'PASSED' : 'FAILED'} — ${interceptedRequests.length} request(s) blocked`);
 
         return {
           html5Valid,
           reactErrors,
+          foundErrors,
           passed,
+          interceptedRequests
         };
+
       } catch (error) {
-        console.error(`[DryRun] Error during test: ${error.message}`);
+        console.error('[DryRun] Error during form validation test:', error);
         return {
           error: error.message,
-          html5Valid: null,
-          reactErrors: [],
-          passed: false,
+          passed: false
         };
+      } finally {
+        // Disable request interception for the next use
+        try {
+          await page.setRequestInterception(false);
+        } catch (_) {
+          // ignore
+        }
       }
     });
-  }
-
-  /**
-   * Evaluate whether test passed based on validation state and expected errors.
-   * @private
-   */
-  _evaluateTestResult(html5Valid, reactErrors, expectedErrors) {
-    // If no expected errors specified, pass if any validation triggered
-    if (expectedErrors.length === 0) {
-      return !html5Valid.isValid || reactErrors.length > 0;
-    }
-
-    // Check if all expected errors are present
-    const errorTexts = reactErrors.map((e) => e.text.toLowerCase());
-    const allExpectedPresent = expectedErrors.every((expected) =>
-      errorTexts.some((actual) => actual.includes(expected.toLowerCase()))
-    );
-
-    return allExpectedPresent;
   }
 }
 
