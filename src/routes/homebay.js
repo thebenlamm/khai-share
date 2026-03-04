@@ -350,4 +350,87 @@ router.get('/visual/:role/baseline', (req, res) => {
   }
 });
 
+/**
+ * POST /api/homebay/dryrun/:form
+ * Run dry-run form validation tests for the specified form.
+ * Tests form validation without submitting to the server (no database writes).
+ *
+ * Params: form - Form name from config/homebay-dryrun.json (e.g., "register", "login")
+ * Body: {} (no parameters needed - uses test cases from config)
+ * Returns: { form, totalTests, passed, failed, results[] }
+ */
+router.post('/dryrun/:form', async (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  const { DryRunTester } = require('../homebay/dryrun');
+
+  try {
+    // Load dry-run test configuration
+    const configPath = path.join(__dirname, '../../config/homebay-dryrun.json');
+    if (!fs.existsSync(configPath)) {
+      return res.status(404).json(fail('Dry-run config not found: config/homebay-dryrun.json'));
+    }
+
+    const dryrunConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    const formName = req.params.form;
+    const formConfig = dryrunConfig[formName];
+
+    if (!formConfig) {
+      return res.status(404).json(fail(`Form '${formName}' not found in dry-run config. Available forms: ${Object.keys(dryrunConfig).join(', ')}`));
+    }
+
+    // Authenticate if required
+    if (formConfig.role) {
+      console.log(`[Khai] Dry-run test for ${formName} requires auth as ${formConfig.role}`);
+      const authResult = await loginHomeBay(formConfig.role);
+      if (!authResult.success) {
+        return res.status(400).json(fail(`Auth failed: ${authResult.error}`));
+      }
+    }
+
+    // Run all test cases for this form
+    console.log(`[Khai] Running ${formConfig.tests.length} dry-run test(s) for form: ${formName}`);
+    const config = getHomeBayConfig();
+    const results = [];
+
+    for (const test of formConfig.tests) {
+      console.log(`[Khai] Running test: ${test.name}`);
+      const tester = new DryRunTester({ baseUrl: config.baseUrl });
+      const result = await tester.testFormValidation(
+        formConfig.role,
+        formConfig.url,
+        test.formData,
+        test.expectedErrors
+      );
+      results.push({
+        name: test.name,
+        passed: result.passed,
+        html5Valid: result.html5Valid,
+        reactErrors: result.reactErrors,
+        foundErrors: result.foundErrors,
+        expectedErrors: test.expectedErrors,
+        interceptedRequests: result.interceptedRequests
+      });
+    }
+
+    // Calculate summary
+    const passCount = results.filter(r => r.passed).length;
+    const failCount = results.length - passCount;
+
+    console.log(`[Khai] Dry-run tests complete: ${passCount}/${results.length} passed`);
+
+    return res.json(ok({
+      form: formName,
+      totalTests: results.length,
+      passed: passCount,
+      failed: failCount,
+      results
+    }));
+
+  } catch (error) {
+    console.error('[Khai] Error in /api/homebay/dryrun:', error);
+    return res.status(500).json(fail('Internal server error'));
+  }
+});
+
 module.exports = router;
