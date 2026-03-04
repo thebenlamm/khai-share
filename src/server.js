@@ -8,6 +8,7 @@ const actionsRoutes = require('./routes/actions');
 const auditRoutes = require('./routes/audit');
 const advancedRoutes = require('./routes/advanced');
 const homebayRoutes = require('./routes/homebay');
+const suiteRoutes = require('./routes/suites');
 const { validateHomeBayCredentials } = require('./homebay/config');
 
 const app = express();
@@ -59,6 +60,7 @@ app.use('/api/actions', actionsRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/advanced', advancedRoutes);
 app.use('/api/homebay', homebayRoutes);
+app.use('/api/suites', suiteRoutes);
 
 // Serve frontend
 app.get('/', (req, res) => {
@@ -74,6 +76,8 @@ try {
   console.error('[Khai] HomeBay features will be unavailable — fix credentials.json');
   // Don't crash server — other features still work, but log prominently
 }
+
+console.log('[Khai] Suite routes registered at /api/suites');
 
 const server = app.listen(PORT, '127.0.0.1', () => {
   console.log(`
