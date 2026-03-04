@@ -215,6 +215,7 @@ class LighthouseAgent {
       ttfb: score(m.ttfb, 800, 1800),
       fcp: score(m.fcp, 1800, 3000),
       loadTime: score(m.loadTime, 3000, 6000),
+      inp: score(m.inp, 200, 500),
     };
   }
 
