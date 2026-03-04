@@ -1,0 +1,52 @@
+{
+  "roles": {
+    "buyer": {
+      "pages": [
+        {
+          "path": "/auctions",
+          "name": "Auction listings",
+          "captureOn": "load"
+        },
+        {
+          "path": "/dashboard",
+          "name": "Buyer dashboard",
+          "captureOn": "load"
+        }
+      ]
+    },
+    "agent": {
+      "pages": [
+        {
+          "path": "/agent/dashboard",
+          "name": "Agent dashboard",
+          "captureOn": "load"
+        },
+        {
+          "path": "/agent/auctions",
+          "name": "Manage auctions",
+          "captureOn": "load"
+        }
+      ]
+    },
+    "seller": {
+      "pages": [
+        {
+          "path": "/seller/dashboard",
+          "name": "Seller dashboard",
+          "captureOn": "load"
+        }
+      ]
+    },
+    "admin": {
+      "pages": [
+        {
+          "path": "/admin/dashboard",
+          "name": "Admin dashboard",
+          "captureOn": "load"
+        }
+      ]
+    }
+  },
+  "outputRoot": "screenshots/animations",
+  "captureLogin": true
+}

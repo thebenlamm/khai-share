@@ -12,6 +12,7 @@ const {
 const { getHomeBayConfig, checkHomeBayHealth } = require('../homebay/config');
 const { auditHomeBayRole } = require('../homebay/performance');
 const { captureHomeBayRole, compareAgainstBaseline } = require('../homebay/visual');
+const { testHomeBayAnimations } = require('../homebay/animationTest');
 const { ok, fail, errorHandler } = require('../utils/response');
 
 const ALLOWED_ROLES = ['admin', 'agent', 'seller', 'buyer'];
@@ -213,6 +214,34 @@ router.post('/perf/:role', async (req, res) => {
   } catch (err) {
     console.error(`[API] Performance audit failed for ${role}:`, err);
     errorHandler(res, err, 'homebay/perf');
+  }
+});
+
+/**
+ * POST /api/homebay/animation/:role
+ * Test HomeBay animations for specified role (skeleton transitions, countdown timers, modals).
+ * Captures login skeleton transition and detects animations on configured pages.
+ *
+ * Body: {} (no parameters needed - uses config/homebay-animations.json)
+ * Returns: { role, timestamp, login: { skeletonStates, screenshots }, pages: [...] }
+ */
+router.post('/animation/:role', async (req, res) => {
+  const { role } = req.params;
+
+  if (!ALLOWED_ROLES.includes(role)) {
+    return res.status(400).json(fail(`Invalid role. Must be one of: ${ALLOWED_ROLES.join(', ')}`));
+  }
+
+  try {
+    console.log(`[Khai] Starting animation test for role: ${role}`);
+    const results = await testHomeBayAnimations(role);
+    const totalScreenshots = results.login.screenshots.length +
+      results.pages.reduce((sum, p) => sum + p.screenshots.length, 0);
+    console.log(`[Khai] Animation test complete for ${role}: ${totalScreenshots} screenshots captured`);
+    return res.json(ok(results));
+  } catch (error) {
+    console.error(`[Khai] Animation test failed for ${role}:`, error.message);
+    return res.status(500).json(fail(`Animation test failed: ${error.message}`));
   }
 });
 
