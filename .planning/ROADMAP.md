@@ -134,8 +134,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — DryRunTester class with request interception and validation state inspection
-- [ ] 07-02-PLAN.md — HomeBay dry-run integration and API routes
+- [x] 07-01-PLAN.md — DryRunTester class with request interception and validation state inspection
+- [x] 07-02-PLAN.md — HomeBay dry-run integration and API routes
 
 ### Phase 8: Animation and transition screenshot testing
 
@@ -152,8 +152,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Animation detection and capture module using Web Animations API
-- [ ] 08-02-PLAN.md — HomeBay animation testing integration and API routes
+- [x] 08-01-PLAN.md — Animation detection and capture module using Web Animations API
+- [x] 08-02-PLAN.md — HomeBay animation testing integration and API routes
 
 ### Phase 9: Saved test suites with replay
 
@@ -170,8 +170,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — SuiteRunner class with test orchestration and result aggregation
-- [ ] 09-02-PLAN.md — Suite API routes and example suite manifests
+- [x] 09-01-PLAN.md — SuiteRunner class with test orchestration and result aggregation
+- [x] 09-02-PLAN.md — Suite API routes and example suite manifests
 
 ### Phase 10: Built-in accessibility audit with axe-core
 
