@@ -222,7 +222,7 @@ Plans:
   3. API endpoint GET /api/suites/:suiteId/history reads history.jsonl and returns trend data
   4. Trend data includes: pass rate over time, flaky test detection, duration trends, last N runs summary
   5. Replay preserves original test configuration but generates new runId and timestamp
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 12-01-PLAN.md — Preserve suite config in summary.json and add SuiteRunner.replayRun() static method
