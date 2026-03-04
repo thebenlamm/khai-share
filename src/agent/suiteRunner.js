@@ -21,6 +21,8 @@ const { loginHomeBay, registerHomeBay } = require('../homebay/auth');
 const { auditHomeBayRole } = require('../homebay/performance');
 const { captureHomeBayRole, compareAgainstBaseline } = require('../homebay/visual');
 const { testHomeBayAnimations } = require('../homebay/animationTest');
+const { auditHomeBayRole: auditAccessibility } = require('../homebay/accessibility');
+const { DryRunTester } = require('../homebay/dryrun');
 
 const SUITES_REPORTS_DIR = path.join(__dirname, '../../reports/suites');
 const SCHEMA_PATH = path.join(__dirname, '../../config/suites/suite.schema.json');
