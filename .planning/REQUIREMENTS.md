@@ -98,9 +98,9 @@
 - [x] **ANIM-01**: Animation detection via Web Animations API getAnimations() with running state filtering
 - [x] **ANIM-02**: Wait for animation completion using animation.finished promises with timeout handling
 - [x] **ANIM-03**: Capture screenshots at specific animation progress points (0%, 50%, 100%) via currentTime manipulation
-- [ ] **ANIM-04**: HomeBay skeleton transition captured in 3 states (visible, fading, hydrated) during login flows
-- [ ] **ANIM-05**: Animation captures stored in screenshots/animations/{role}-{timestamp}/ directory structure
-- [ ] **ANIM-06**: API endpoint POST /api/homebay/animation/:role exists for on-demand animation capture per role
+- [x] **ANIM-04**: HomeBay skeleton transition captured in 3 states (visible, fading, hydrated) during login flows
+- [x] **ANIM-05**: Animation captures stored in screenshots/animations/{role}-{timestamp}/ directory structure
+- [x] **ANIM-06**: API endpoint POST /api/homebay/animation/:role exists for on-demand animation capture per role
 
 ### Test Suite Management (Phase 9)
 
@@ -204,9 +204,9 @@
 | ANIM-01 | Phase 8 | Complete |
 | ANIM-02 | Phase 8 | Complete |
 | ANIM-03 | Phase 8 | Complete |
-| ANIM-04 | Phase 8 | Pending |
-| ANIM-05 | Phase 8 | Pending |
-| ANIM-06 | Phase 8 | Pending |
+| ANIM-04 | Phase 8 | Complete |
+| ANIM-05 | Phase 8 | Complete |
+| ANIM-06 | Phase 8 | Complete |
 | SUITE-01 | Phase 9 | Pending |
 | SUITE-02 | Phase 9 | Pending |
 | SUITE-03 | Phase 9 | Pending |
