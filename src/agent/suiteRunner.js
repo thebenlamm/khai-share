@@ -192,10 +192,30 @@ class SuiteRunner {
         const animResult = await testHomeBayAnimations(role, config);
         return { ...test, success: true, data: animResult };
 
+      case 'accessibility':
+        // Accessibility audit - runs axe-core on role's critical pages
+        const a11yResult = await auditAccessibility(role);
+        return { ...test, success: true, data: a11yResult };
+
       case 'dry-run':
-        // Dry-run test - simulate form submission without actually submitting
-        // Note: dry-run module doesn't exist yet, will be added in Phase 2
-        throw new Error('dry-run test type not yet implemented');
+        // Dry-run test - validate form without submitting
+        if (!config.formUrl || !config.formData) {
+          throw new Error('dry-run test requires config.formUrl and config.formData');
+        }
+
+        const tester = new DryRunTester();
+        const dryrunResult = await tester.testFormValidation(
+          role || null,  // null for unauthenticated forms
+          config.formUrl,
+          config.formData,
+          config.expectedErrors || []
+        );
+
+        return {
+          ...test,
+          success: dryrunResult.passed,
+          data: dryrunResult
+        };
 
       default:
         throw new Error(`Unknown test type: ${type}`);
