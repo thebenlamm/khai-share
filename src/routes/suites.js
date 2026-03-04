@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const readline = require('readline');
 const { SuiteRunner } = require('../agent/suiteRunner');
 const { ok, fail } = require('../utils/response');
 const { safePath, safeId } = require('../utils/safePath');
@@ -20,6 +21,95 @@ function evictStale(jobs) {
   for (const [id, job] of jobs.entries()) {
     if (job._createdAt < cutoff) jobs.delete(id);
   }
+}
+
+/**
+ * Analyze suite history from history.jsonl
+ * Streams JSONL line-by-line to avoid memory issues on large files
+ * @param {string} suiteId - Suite identifier
+ * @param {Object} options - { days: 30, limit: 100 }
+ * @returns {Promise<Object>} { runs: [], trends: {} }
+ */
+async function analyzeSuiteHistory(suiteId, options = {}) {
+  const historyPath = path.join(REPORTS_DIR, 'history.jsonl');
+  if (!fs.existsSync(historyPath)) {
+    return { runs: [], trends: null };
+  }
+
+  const { days = 30, limit = 100 } = options;
+  const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+  const runs = [];
+
+  // Stream history.jsonl line by line
+  const fileStream = fs.createReadStream(historyPath);
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity
+  });
+
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+
+    try {
+      const entry = JSON.parse(line);
+      if (entry.suiteId !== suiteId) continue;
+
+      const timestamp = new Date(entry.timestamp).getTime();
+      if (timestamp < cutoff) continue;
+
+      runs.push(entry);
+      if (runs.length >= limit) break;
+    } catch (err) {
+      console.error(`[Suites] Invalid JSON line in history.jsonl:`, err.message);
+      // Continue processing next line
+    }
+  }
+
+  // Compute trends if we have enough data
+  const trends = runs.length >= 2 ? computeTrends(runs) : null;
+
+  return { runs: runs.reverse(), trends };  // Most recent first
+}
+
+/**
+ * Compute simple trend metrics from run history
+ * @param {Array} runs - Array of history entries
+ * @returns {Object} Trend metrics
+ */
+function computeTrends(runs) {
+  const passRates = runs.map(r => r.passRate);
+  const durations = runs.map(r => r.duration);
+
+  // Detect flaky runs: passRate between 0 and 100%
+  const flakyRuns = runs.filter(r => r.passRate > 0 && r.passRate < 100);
+
+  const average = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
+
+  // Simple trend detection via quartile comparison
+  const detectTrend = (values) => {
+    if (values.length < 8) return 'insufficient-data';
+    const quarter = Math.floor(values.length / 4);
+    const recent = average(values.slice(-quarter));
+    const older = average(values.slice(0, quarter));
+    const change = (recent - older) / older;
+    if (Math.abs(change) < 0.05) return 'stable';
+    return change > 0 ? 'improving' : 'degrading';
+  };
+
+  return {
+    averagePassRate: Math.round(average(passRates)),
+    passRateTrend: detectTrend(passRates),
+    averageDuration: Math.round(average(durations)),
+    durationTrend: detectTrend(durations),
+    flakyTestRate: runs.length > 0 ? Math.round((flakyRuns.length / runs.length) * 100) : 0,
+    lastNRuns: runs.slice(-10).map(r => ({
+      runId: r.runId,
+      status: r.status,
+      passRate: r.passRate,
+      duration: r.duration,
+      timestamp: r.timestamp
+    }))
+  };
 }
 
 /**
@@ -246,6 +336,30 @@ router.get('/:suiteId/runs', (req, res) => {
     res.json(ok({ runs }));
   } catch (err) {
     console.error('[Suites] Error listing runs:', err);
+    res.status(500).json(fail(err.message));
+  }
+});
+
+/**
+ * GET /api/suites/:suiteId/history
+ * Get trend analysis from history.jsonl
+ * Query params: ?days=30 (optional), ?limit=100 (optional)
+ */
+router.get('/:suiteId/history', async (req, res) => {
+  try {
+    const { suiteId } = req.params;
+    const { days = 30, limit = 100 } = req.query;
+
+    console.log(`[Suites] Analyzing history for: ${suiteId} (${days} days, limit ${limit})`);
+
+    const history = await analyzeSuiteHistory(suiteId, {
+      days: parseInt(days),
+      limit: parseInt(limit)
+    });
+
+    res.json(ok(history));
+  } catch (err) {
+    console.error('[Suites] Error analyzing history:', err);
     res.status(500).json(fail(err.message));
   }
 });
