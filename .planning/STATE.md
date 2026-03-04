@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 12-suite-history-and-replay/12-01-PLAN.md
-last_updated: "2026-03-04T17:31:25.127Z"
-last_activity: 2026-03-04 -- Plan 11-02 complete (Suite schema and comprehensive manifest)
+status: executing
+stopped_at: Completed 12-suite-history-and-replay/12-02-PLAN.md
+last_updated: "2026-03-04T17:32:03.532Z"
+last_activity: 2026-03-04 -- Plan 12-01 complete (Suite history and replay support)
 progress:
   total_phases: 12
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 18
-  completed_plans: 17
-  percent: 89
+  completed_plans: 18
+  percent: 94
 ---
 
 # Project State
@@ -71,6 +71,7 @@ Progress: [█████████░] 94% (17 of 18 total plans complete)
 | Phase 11-complete-suiterunner-integration P11-01 | 48 | 2 tasks | 1 files |
 | Phase 11 P02 | 76 | 2 tasks | 2 files |
 | Phase 12-suite-history-and-replay P12-01 | 59 | 2 tasks | 1 files |
+| Phase 12 P02 | 92 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 11]: Allow null role for unauthenticated tests (dry-run, accessibility without login)
 - [Phase 12-suite-history-and-replay]: Store full suite manifest in summary.json for replay without config/suites/ dependency
 - [Phase 12-suite-history-and-replay]: Use static method pattern (not instance method) since replay creates new SuiteRunner internally
+- [Phase 12]: Use readline streaming for history.jsonl to prevent memory issues on large files
+- [Phase 12]: Default to 30 days and 100 runs limit for history queries to prevent slow queries
+- [Phase 12]: Quartile comparison for trend detection requires 8+ data points for statistical validity
 
 ### Pending Todos
 
@@ -138,6 +142,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T17:31:25.121Z
-Stopped at: Completed 12-suite-history-and-replay/12-01-PLAN.md
+Last session: 2026-03-04T17:32:03.526Z
+Stopped at: Completed 12-suite-history-and-replay/12-02-PLAN.md
 Resume file: None

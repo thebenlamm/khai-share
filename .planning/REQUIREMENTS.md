@@ -111,7 +111,7 @@
 - [x] **SUITE-05**: Suite execution history tracked in newline-delimited JSON (history.jsonl) for trend analysis
 - [x] **SUITE-06**: Suite-level timeout enforced to prevent indefinite hangs
 - [ ] **SUITE-07**: API endpoint POST /api/suites/:suiteId/run executes suite and returns runId
-- [ ] **SUITE-08**: API endpoint GET /api/suites/:suiteId/runs/:runId/results retrieves aggregated results
+- [x] **SUITE-08**: API endpoint GET /api/suites/:suiteId/runs/:runId/results retrieves aggregated results
 - [x] **SUITE-09**: Suite results stored in reports/suites/{suiteId}/{runId}/ with summary.json and per-test outputs
 
 ### Accessibility Auditing (Phase 10)
@@ -214,7 +214,7 @@
 | SUITE-05 | Phase 9 | Complete |
 | SUITE-06 | Phase 9 | Complete |
 | SUITE-07 | Phase 9 | Pending |
-| SUITE-08 | Phase 12 | Pending |
+| SUITE-08 | Phase 12 | Complete |
 | SUITE-09 | Phase 12 | Complete |
 | A11Y-01 | Phase 10 | Complete |
 | A11Y-02 | Phase 10 | Complete |
