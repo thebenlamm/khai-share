@@ -95,9 +95,9 @@
 
 ### Animation Testing (Phase 8)
 
-- [ ] **ANIM-01**: Animation detection via Web Animations API getAnimations() with running state filtering
-- [ ] **ANIM-02**: Wait for animation completion using animation.finished promises with timeout handling
-- [ ] **ANIM-03**: Capture screenshots at specific animation progress points (0%, 50%, 100%) via currentTime manipulation
+- [x] **ANIM-01**: Animation detection via Web Animations API getAnimations() with running state filtering
+- [x] **ANIM-02**: Wait for animation completion using animation.finished promises with timeout handling
+- [x] **ANIM-03**: Capture screenshots at specific animation progress points (0%, 50%, 100%) via currentTime manipulation
 - [ ] **ANIM-04**: HomeBay skeleton transition captured in 3 states (visible, fading, hydrated) during login flows
 - [ ] **ANIM-05**: Animation captures stored in screenshots/animations/{role}-{timestamp}/ directory structure
 - [ ] **ANIM-06**: API endpoint POST /api/homebay/animation/:role exists for on-demand animation capture per role
@@ -201,9 +201,9 @@
 | DRYRUN-03 | Phase 7 | Complete |
 | DRYRUN-04 | Phase 7 | Complete |
 | DRYRUN-05 | Phase 7 | Complete |
-| ANIM-01 | Phase 8 | Pending |
-| ANIM-02 | Phase 8 | Pending |
-| ANIM-03 | Phase 8 | Pending |
+| ANIM-01 | Phase 8 | Complete |
+| ANIM-02 | Phase 8 | Complete |
+| ANIM-03 | Phase 8 | Complete |
 | ANIM-04 | Phase 8 | Pending |
 | ANIM-05 | Phase 8 | Pending |
 | ANIM-06 | Phase 8 | Pending |
