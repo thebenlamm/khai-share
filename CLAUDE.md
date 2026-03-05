@@ -102,8 +102,11 @@ curl -X POST http://localhost:3001/api/actions/execute \
     {"type": "screenshot", "name": "admin-panel"}
   ]}'
 
-# Get action session status (async polling)
+# Get action session status (summary only — use /results for full output)
 curl http://localhost:3001/api/actions/status/{sessionId}
+
+# Get action session results (full output)
+curl http://localhost:3001/api/actions/results/{sessionId}
 ```
 
 **Action types:** `navigate`, `wait`, `screenshot`, `evaluate`, `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
