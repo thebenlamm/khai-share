@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
+milestone: v1.1
+milestone_name: Beta Feedback
 status: executing
-stopped_at: Completed 12-suite-history-and-replay/12-02-PLAN.md
-last_updated: "2026-03-04T18:15:09.783Z"
-last_activity: 2026-03-04 -- Plan 12-01 complete (Suite history and replay support)
+stopped_at: Completed 13-login-failure-detection-and-status-short-circuit/13-01-PLAN.md
+last_updated: "2026-03-05T02:55:30Z"
+last_activity: 2026-03-04 -- Plan 13-01 complete (Login failure detection and status short-circuit)
 progress:
-  total_phases: 12
-  completed_phases: 9
-  total_plans: 18
-  completed_plans: 18
+  total_phases: 7
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
   percent: 94
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-Phase: 12 of 12 (Suite History and Replay) - In Progress
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-04 -- Plan 12-01 complete (Suite history and replay support)
+Phase: 13 of 16 (Login Failure Detection and Status Short-Circuit) - Complete
+Plan: 1 of 1 in current phase
+Status: Complete
+Last activity: 2026-03-04 -- Plan 13-01 complete (Login failure detection and status short-circuit)
 
-Progress: [█████████░] 94% (17 of 18 total plans complete)
+Progress: [██████████] 100% (3 of 3 v1.1 plans complete)
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Progress: [█████████░] 94% (17 of 18 total plans complete)
 | Phase 11 P02 | 76 | 2 tasks | 2 files |
 | Phase 12-suite-history-and-replay P12-01 | 59 | 2 tasks | 1 files |
 | Phase 12 P02 | 92 | 2 tasks | 1 files |
+| Phase 13-login-failure-detection P13-01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,9 @@ Recent decisions affecting current work:
 - [Phase 12]: Use readline streaming for history.jsonl to prevent memory issues on large files
 - [Phase 12]: Default to 30 days and 100 runs limit for history queries to prevent slow queries
 - [Phase 12]: Quartile comparison for trend detection requires 8+ data points for statistical validity
+- [Phase 13-01]: Guard terminal states (login-failed/error/completed) in status endpoint to avoid accessing closed crawler
+- [Phase 13-01]: Use completedTests map for terminal state data instead of crawler.results
+- [Phase 13-01]: Store results on login failure for debugging (browser closed, report saved)
 
 ### Pending Todos
 
@@ -133,6 +137,12 @@ None yet.
 - Phase 8 added: Animation and transition screenshot testing
 - Phase 9 added: Saved test suites with replay
 - Phase 10 added: Built-in accessibility audit with axe-core
+- v1.1 Beta Feedback milestone created with phases 13-16 (from first real crawl test feedback)
+- Phase 13 added: Login failure detection and status short-circuit (feedback #1, #2, #5)
+- Phase 14 added: Issue deduplication and severity tiers (feedback #3, #6)
+- Phase 15 added: Crawl accuracy - login redirect detection and noise reduction (feedback #7, #8, #9)
+- Phase 16 added: MCP tool API consistency (feedback #4)
+- HomeBay phases (2-4) moved to v1.2 milestone
 
 ### Blockers/Concerns
 
@@ -142,6 +152,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-04T17:32:03.526Z
-Stopped at: Completed 12-suite-history-and-replay/12-02-PLAN.md
+Last session: 2026-03-05T02:55:30Z
+Stopped at: Completed 13-login-failure-detection-and-status-short-circuit/13-01-PLAN.md
 Resume file: None
