@@ -33,7 +33,7 @@ class WebsiteCrawler {
       pages: [],
       issues: [],
       purchases: [],
-      summary: { total: 0, passed: 0, failed: 0, warnings: 0, warnings_only: 0 }
+      summary: { total: 0, passed: 0, failed: 0, errors: 0, warnings: 0, warnings_only: 0 }
     };
     this.screenshotDir = path.join(__dirname, '../../screenshots', this.results.id);
   }
@@ -524,6 +524,69 @@ class WebsiteCrawler {
     }
   }
 
+  issueFingerprint(issue) {
+    // Extract net::ERR_* code from message
+    const errMatch = issue.message.match(/net::(ERR_\w+)/);
+    const errCode = errMatch ? errMatch[1] : null;
+
+    // Extract resource URL from message and normalize to pathname
+    const urlMatch = issue.message.match(/https?:\/\/[^\s"')]+/);
+    let resourcePath = null;
+    if (urlMatch) {
+      try {
+        resourcePath = new URL(urlMatch[0]).pathname;
+      } catch (_) {
+        resourcePath = urlMatch[0];
+      }
+    }
+
+    // If both error code and resource URL found, use compact fingerprint
+    if (errCode && resourcePath) {
+      return `${issue.url}|${resourcePath}|${errCode}`;
+    }
+
+    // Fallback: use type + truncated message
+    return `${issue.url}|${issue.type}|${issue.message.substring(0, 100)}`;
+  }
+
+  deduplicateIssues() {
+    const fingerprints = new Map(); // fingerprint -> index in deduped array
+    const deduped = [];
+
+    for (const issue of this.results.issues) {
+      const fp = this.issueFingerprint(issue);
+
+      if (fingerprints.has(fp)) {
+        // Merge into existing entry
+        const primaryIdx = fingerprints.get(fp);
+        const primary = deduped[primaryIdx];
+
+        if (!primary.relatedSignals) {
+          primary.relatedSignals = [];
+        }
+        primary.relatedSignals.push({ type: issue.type, message: issue.message });
+
+        // Promote severity if secondary is higher
+        if (issue.severity === 'error' && primary.severity !== 'error') {
+          primary.severity = issue.severity;
+          primary.type = issue.type;
+          primary.message = issue.message;
+        }
+      } else {
+        // New unique issue
+        fingerprints.set(fp, deduped.length);
+        deduped.push({ ...issue });
+      }
+    }
+
+    this.results.issues = deduped;
+  }
+
+  recomputeSummary() {
+    this.results.summary.errors = this.results.issues.filter(i => i.severity === 'error').length;
+    this.results.summary.warnings = this.results.issues.filter(i => i.severity === 'warning').length;
+  }
+
   async takeScreenshot(name) {
     try {
       const filepath = path.join(this.screenshotDir, `${name}.png`);
@@ -554,6 +617,8 @@ class WebsiteCrawler {
 
   async close() {
     this.results.endTime = new Date().toISOString();
+    this.deduplicateIssues();
+    this.recomputeSummary();
     if (this.browser) {
       await this.browser.close();
     }

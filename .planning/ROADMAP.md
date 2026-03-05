@@ -28,7 +28,7 @@
 ### 📋 v1.1 Beta Feedback (Planned)
 
 - [x] Phase 13: Login failure detection and status short-circuit (1 plan) (completed 2026-03-05)
-- [ ] Phase 14: Issue deduplication and severity tiers (0 plans)
+- [ ] Phase 14: Issue deduplication and severity tiers (1 plan)
 - [ ] Phase 15: Crawl accuracy - login redirect detection and noise reduction (0 plans)
 - [ ] Phase 16: MCP tool API consistency (0 plans)
 
@@ -54,7 +54,9 @@ Plans:
 **Goal**: Deduplicate issues sharing the same root cause (e.g., DNS failure as both request-failed and console-error); add error/warning/passed severity tiers to result summaries
 **Depends on**: Phase 13
 **Feedback**: BETA-FEEDBACK.md #3, #6
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 14-01-PLAN.md — Fingerprint-based issue dedup and severity-tier summary
 
 ### Phase 15: Crawl accuracy - login redirect detection and noise reduction
 **Goal**: Detect when authenticated pages render login forms instead of expected content; allowlist known third-party request patterns (Sentry); confirm hash fragment URL deduplication
@@ -101,8 +103,8 @@ Plans:
 | 10. Accessibility Audit | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 11. SuiteRunner Integration | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 12. Suite History & Replay | v1.0 | 2/2 | Complete | 2026-03-04 |
-| 13. Login failure detection | 1/1 | Complete   | 2026-03-05 | — |
-| 14. Issue dedup & severity | v1.1 | 0 | Not started | — |
+| 13. Login failure detection | v1.1 | 1/1 | Complete | 2026-03-05 |
+| 14. Issue dedup & severity | v1.1 | 0/1 | Planned | — |
 | 15. Crawl accuracy | v1.1 | 0 | Not started | — |
 | 16. MCP tool consistency | v1.1 | 0 | Not started | — |
 | 2. Role Workflows | v1.2 | 0 | Not started | — |
