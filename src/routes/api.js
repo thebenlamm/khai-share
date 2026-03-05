@@ -189,6 +189,20 @@ router.get('/test/:testId/status', (req, res) => {
   const results = test.crawler.results;
   const pendingPurchases = test.crawler.getPendingPurchases();
 
+  // Approximate deduplicated count for in-progress status
+  let dedupedIssueCount = results.issues.length;
+  if (test.crawler.issueFingerprint) {
+    const seen = new Set();
+    dedupedIssueCount = 0;
+    for (const issue of results.issues) {
+      const fp = test.crawler.issueFingerprint(issue);
+      if (!seen.has(fp)) {
+        seen.add(fp);
+        dedupedIssueCount++;
+      }
+    }
+  }
+
   res.json(ok({
     testId,
     status: test.status,
@@ -197,7 +211,7 @@ router.get('/test/:testId/status', (req, res) => {
     account: test.account,
     startTime: test.startTime,
     pagesScanned: results.pages.length,
-    issuesFound: results.issues.length,
+    issuesFound: dedupedIssueCount,
     summary: results.summary,
     error: test.error || null,
     loginError: test.loginError || null,
