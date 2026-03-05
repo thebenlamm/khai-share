@@ -103,7 +103,9 @@ def khai_test_status(test_id: str) -> dict:
         test_id: The testId returned from khai_start_test
 
     Returns:
-        Status (running/logging-in/crawling/completed/error), pages scanned, issues found.
+        Status (running/logging-in/crawling/completed/login-failed/error),
+        phase (login/crawl/complete), pages scanned, issues found.
+        If login-failed, loginError field contains the specific failure reason.
     """
     return _unwrap(client.get(f"/api/test/{test_id}/status"))
 
