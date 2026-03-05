@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Beta Feedback
 status: completed
-stopped_at: Completed 13-login-failure-detection-and-status-short-circuit/13-01-PLAN.md
-last_updated: "2026-03-05T02:59:31.764Z"
-last_activity: 2026-03-04 -- Plan 13-01 complete (Login failure detection and status short-circuit)
+stopped_at: Completed 14-issue-deduplication-and-severity-tiers/14-01-PLAN.md
+last_updated: "2026-03-05T03:14:07.933Z"
+last_activity: 2026-03-04 -- Plan 14-01 complete (Issue deduplication and severity tiers)
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-Phase: 13 of 16 (Login Failure Detection and Status Short-Circuit) - Complete
+Phase: 14 of 16 (Issue Deduplication and Severity Tiers) - Complete
 Plan: 1 of 1 in current phase
 Status: Complete
-Last activity: 2026-03-04 -- Plan 13-01 complete (Login failure detection and status short-circuit)
+Last activity: 2026-03-04 -- Plan 14-01 complete (Issue deduplication and severity tiers)
 
-Progress: [██████████] 100% (3 of 3 v1.1 plans complete)
+Progress: [██████████] 100% (4 of 4 v1.1 plans complete)
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [██████████] 100% (3 of 3 v1.1 plans complete)
 | Phase 12-suite-history-and-replay P12-01 | 59 | 2 tasks | 1 files |
 | Phase 12 P02 | 92 | 2 tasks | 1 files |
 | Phase 13-login-failure-detection P13-01 | 2 | 2 tasks | 2 files |
+| Phase 14 P01 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 13-01]: Guard terminal states (login-failed/error/completed) in status endpoint to avoid accessing closed crawler
 - [Phase 13-01]: Use completedTests map for terminal state data instead of crawler.results
 - [Phase 13-01]: Store results on login failure for debugging (browser closed, report saved)
+- [Phase 14]: Post-processing dedup in close() preserves raw issues for page-level classification
+- [Phase 14]: Fingerprint uses net::ERR_* code + resource pathname for DNS/network dedup
+- [Phase 14]: Severity promotion: if duplicate has higher severity, primary inherits it
 
 ### Pending Todos
 
@@ -152,6 +156,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T02:55:30Z
-Stopped at: Completed 13-login-failure-detection-and-status-short-circuit/13-01-PLAN.md
+Last session: 2026-03-05T03:14:07.931Z
+Stopped at: Completed 14-issue-deduplication-and-severity-tiers/14-01-PLAN.md
 Resume file: None
