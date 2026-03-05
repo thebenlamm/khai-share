@@ -1,67 +1,110 @@
-# Khai (חי) - AI Lifecycle Agent
+# Khai (חי) - Browser Automation MCP Server
 
 > **18 = Life** - Bringing Projects to Life
 
-Khai is a local testing agent that works alongside Claude Code. It handles things Claude can't do on its own: logging into websites, taking screenshots of authenticated pages, testing checkout flows, and monitoring communications.
+Khai is an MCP (Model Context Protocol) server that gives Claude Code browser automation superpowers. It handles things Claude can't do on its own: logging into websites, taking screenshots of authenticated pages, testing checkout flows, checking for broken links, and running security audits.
+
+## Architecture
+
+Khai has two layers:
+
+1. **Express server** (`src/server.js`) — Puppeteer-powered browser automation on `localhost:3001`
+2. **MCP server** (`khai_mcp/server.py`) — Python MCP wrapper that exposes the Express API as Claude Code tools
+
+Claude Code talks to the MCP server, which forwards requests to the Express server.
 
 ## Quick Start
 
+### 1. Install dependencies
+
 ```bash
 npm install
+pip install -e .   # or: cd khai_mcp && pip install -e ..
+```
+
+### 2. Configure credentials
+
+```bash
 cp config/credentials.example.json config/credentials.json
 # Edit credentials.json with your site's login credentials
+```
+
+### 3. Start the Express server
+
+```bash
 npm start
 ```
 
-Open http://localhost:3001
+### 4. Add to Claude Code's MCP config
 
-## Using with Claude Code
+**SSE mode** (recommended for shared/persistent use):
 
-Drop this folder into your project and open it with Claude Code. The `CLAUDE.md` tells Claude how to use Khai automatically. When you need authenticated testing, just tell Claude:
+```bash
+khai-mcp --sse  # or: MCP_SSE_PORT=3105 khai-mcp
+```
 
-> "summon khai" or "test my site with khai"
+Add to your Claude Code MCP settings:
+```json
+{
+  "khai": {
+    "type": "sse",
+    "url": "http://localhost:3105/sse"
+  }
+}
+```
 
-Claude will call Khai's API to crawl your site, take screenshots, and report issues.
+**Stdio mode** (simpler, single-session):
+
+```json
+{
+  "khai": {
+    "type": "command",
+    "command": ["khai-mcp"]
+  }
+}
+```
+
+## MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `khai_list_sites` | List configured sites and accounts |
+| `khai_start_test` | Start an authenticated crawl test |
+| `khai_test_status` | Check crawl test progress |
+| `khai_test_results` | Get full crawl test results |
+| `khai_execute_actions` | Run browser action sequences (navigate, screenshot, etc.) |
+| `khai_action_status` | Check action session status |
+| `khai_action_results` | Get full action session results |
+| `khai_run_audit` | Start a security/configuration audit |
+| `khai_audit_results` | Get audit status and results |
+| `khai_check_links` | Check a site for broken links |
+
+### Workflow
+
+1. `khai_list_sites()` — discover configured sites
+2. Start a test/audit/action sequence — returns an ID
+3. Poll status until complete
+4. Get results
+
+All operations are async: start, poll, get results.
 
 ## Features
 
-### Generic Site Testing
-- **Authenticated crawling** — log into any configured site and crawl protected pages
+- **Authenticated crawling** — log into any configured site and crawl protected pages, with login failure detection and session expiry handling
 - **Deep link discovery** — configurable depth (1-10 levels), reports broken links, slow pages, JS errors
-- **Screenshot capture** — full-page screenshots of every page visited, organized by test ID
+- **Issue deduplication** — fingerprint-based dedup with severity tiers (critical/high/medium/low), filters benign patterns (Sentry, analytics)
+- **Screenshot capture** — full-page screenshots of every page visited, plus animation/transition capture
+- **Test suites** — saved test definitions with tag filtering, replay, run history, and trend analysis
+- **Accessibility audits** — axe-core integration for WCAG compliance checking
 - **Security auditing** — exposed files (.env, .git), missing headers, auth bypass
-- **Purchase testing** — fill payment forms (requires your confirmation before completing)
-- **Communication monitoring** — email, SMS, fax inbox monitoring with verification code extraction
-- **Flow testing** — multi-step test sequences (login, navigate, fill forms, assert, screenshot)
-- **API & form fuzzing** — edge-case input testing
 - **Lighthouse audits** — performance, accessibility, SEO scoring
-- **Visual regression** — screenshot comparison over time
+- **Visual regression** — screenshot comparison over time with pixelmatch
+- **Flow testing** — multi-step test sequences (login, navigate, fill forms, assert, screenshot)
+- **API & form fuzzing** — edge-case input testing for endpoints and form fields
+- **Link checking** — crawl sites for broken links with configurable concurrency
+- **Purchase testing** — fill payment forms (requires confirmation before completing)
+- **Communication monitoring** — email, SMS, fax inbox monitoring with verification code extraction
 - **Password rotation** — automated password changes with 2FA support
-
-### HomeBay QA Testing
-
-Purpose-built test suite for [HomeBay](https://homebay.com) real estate auction platform. Tests all 4 user roles (admin, agent, seller, buyer) through authentication and critical workflows.
-
-**What's built (Phase 1):**
-
-| Module | What it does |
-|--------|-------------|
-| `src/homebay/pool.js` | BrowserPool — max 3 concurrent Puppeteer instances, 30s queue timeout, 5-min force-kill, crash recovery, `withSlot` guaranteed cleanup |
-| `src/homebay/config.js` | Loads HomeBay credentials from `credentials.json`, validates all 4 roles on startup, staging health check |
-| `src/homebay/navigate.js` | React-aware form filling (native value setter + event dispatch), Next.js navigation (waitForSelector, not waitForNavigation), hydration detection |
-| `src/homebay/auth.js` | Login (all 4 roles + role-selector modal), registration, forgot-password, reset-password — all with screenshot capture |
-| `src/routes/homebay.js` | 7 Express API endpoints at `/api/homebay/*` |
-
-**Key technical decisions:**
-- React controlled inputs require `Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set` + synthetic events — `page.type()` alone does NOT trigger React state updates
-- Next.js client-side routing does NOT trigger full page loads, so `waitForNavigation()` times out — use `waitForSelector()` on expected content instead
-- HomeBay shows `.animate-pulse` skeleton during auth store hydration — must wait for it to disappear before filling forms
-- Max 3 concurrent browsers enforced for 8GB MacBook Air memory constraint
-
-**What's planned (Phases 2-4):**
-- Phase 2: All role workflows (agent creates auction, buyer bids, seller monitors) + Stripe payment testing
-- Phase 3: Multi-browser concurrent bidding with WebSocket event verification
-- Phase 4: One-command orchestrated test suite with HTML reporting
 
 ## Configuration
 
@@ -80,14 +123,6 @@ Edit `config/credentials.json` to add your sites:
           "submitButton": "button[type='submit']",
           "username": "admin@yoursite.com",
           "password": "your-password"
-        },
-        "user": {
-          "loginUrl": "/login",
-          "usernameField": "input[name='email']",
-          "passwordField": "input[name='password']",
-          "submitButton": "button[type='submit']",
-          "username": "user@yoursite.com",
-          "password": "user-password"
         }
       }
     }
@@ -106,97 +141,117 @@ Edit `config/credentials.json` to add your sites:
 }
 ```
 
-## API Reference
+## REST API Reference
 
-### Generic Testing
-- `GET /api/sites` - List configured sites
-- `POST /api/test/start` - Start new crawl test
-- `GET /api/test/:id/status` - Get test status
-- `GET /api/test/:id/results` - Get results
-- `POST /api/test/:id/stop` - Stop test
+The Express server also exposes a REST API directly on `localhost:3001`. This is what the MCP server calls under the hood.
 
-### HomeBay Testing (`/api/homebay/*`)
+### Health & Configuration
+- `GET /health` — Health check (no auth required)
+- `GET /api/sites` — List configured sites
 
-| Method | Endpoint | Body | What it does |
-|--------|----------|------|-------------|
-| `POST` | `/api/homebay/login` | `{ role: "admin"\|"agent"\|"seller"\|"buyer" }` | Login as a specific role |
-| `POST` | `/api/homebay/login/all` | none | Health check + login all 4 roles sequentially |
-| `POST` | `/api/homebay/register` | `{ email, password, dateOfBirth?, firstName?, lastName?, phone? }` | Register new buyer account |
-| `POST` | `/api/homebay/forgot-password` | `{ email }` | Submit forgot-password form |
-| `POST` | `/api/homebay/reset-password` | `{ token, newPassword }` | Reset password with email token |
-| `GET` | `/api/homebay/health` | — | Check if HomeBay staging is reachable |
-| `GET` | `/api/homebay/config` | — | Show configured roles (no passwords) |
+### Crawl Testing
+- `POST /api/test/start` — Start a crawl test
+- `GET /api/test/:id/status` — Test status
+- `GET /api/test/:id/results` — Test results
+- `POST /api/test/:id/stop` — Stop a test
+- `DELETE /api/test/:id` — Delete a test
 
-All endpoints return `{ success: true, data: {...} }` or `{ success: false, error: "..." }`.
-
-**Login response includes:** `{ success, role, finalUrl }` on success, `{ success: false, role, error, screenshot }` on failure.
-
-**Login/all response includes:** `{ results: [...], summary: { total, succeeded, failed, health } }`.
-
-### Custom Actions
-- `POST /api/actions/execute` - Run a sequence of actions (navigate, click, fill, screenshot, etc.)
+### Actions (Browser Automation)
+- `POST /api/actions/execute` — Execute action sequence
+- `GET /api/actions/status/:id` — Action status (summary)
+- `GET /api/actions/results/:id` — Action results (full)
 
 ### Audit
-- `GET /api/audit/profiles` - List available audit profiles
-- `POST /api/audit/start` - Start an audit
-- `GET /api/audit/:id/status` - Audit status
-- `GET /api/audit/:id/results` - Audit results
+- `GET /api/audit/profiles` — List audit profiles
+- `POST /api/audit/start` — Start an audit
+- `GET /api/audit/:id/status` — Audit status
+- `GET /api/audit/:id/results` — Audit results
+
+### Test Suites
+- `GET /api/suites` — List saved test suites
+- `POST /api/suites/:id/run` — Run a suite (supports `?tags=smoke,critical` and `?dryRun=true`)
+- `GET /api/suites/:id/runs/:runId/results` — Get suite run results
+- `POST /api/suites/:id/runs/:runId/replay` — Replay a historical run
+- `GET /api/suites/:id/runs` — List all runs for a suite
+- `GET /api/suites/:id/history` — Trend analysis (supports `?days=30&limit=100`)
+
+### Advanced Testing
+- `POST /api/advanced/links/check` — Link checking
+- `POST /api/advanced/flows/run` — Flow testing
+- `POST /api/advanced/fuzz/api` — API fuzzing
+- `POST /api/advanced/fuzz/forms` — Form fuzzing
+- `POST /api/advanced/lighthouse` — Lighthouse audit
+- `POST /api/advanced/visual/compare` — Visual regression
+- `GET /api/advanced/jobs/:id` — Job status
+- `GET /api/advanced/jobs/:id/results` — Job results
 
 ### Purchases
-- `GET /api/purchases/pending` - Pending confirmations
-- `POST /api/purchases/:id/confirm` - Confirm/cancel
+- `GET /api/purchases/pending` — Pending confirmations
+- `POST /api/purchases/:id/confirm` — Confirm/cancel
+
+### Quick Actions
+- `POST /api/actions/create-note` — Create a patient note (shorthand)
+- `POST /api/actions/send-fax` — Send a fax (shorthand)
+- `POST /api/actions/send-sms` — Send an SMS (shorthand)
 
 ### Communications
-- `POST /api/comms/init` - Start monitoring
-- `POST /api/comms/stop` - Stop monitoring
-- `GET /api/comms/messages` - Get messages
-- `GET /api/comms/unread` - Get unread counts
+- `POST /api/comms/init` — Start monitoring
+- `POST /api/comms/stop` — Stop monitoring
+- `GET /api/comms/messages` — Get messages
+- `GET /api/comms/unread` — Get unread counts
 
 ## File Structure
 
 ```
-khai/
+khai-share/
+├── khai_mcp/                       # Python MCP server
+│   ├── server.py                   # MCP tool definitions
+│   └── client.py                   # HTTP client for Express API
 ├── config/
 │   ├── credentials.example.json    # Template - copy to credentials.json
 │   ├── credentials.json            # Your credentials (gitignored)
-│   ├── audit-profiles/             # Site audit definitions
+│   ├── audit-profiles/             # Audit profile definitions
 │   ├── flows/                      # Multi-step test flows
 │   └── schedules.json              # Scheduled tests
+├── src/
+│   ├── server.js                   # Express server (port 3001)
+│   ├── agent/                      # Core automation modules
+│   │   ├── crawler.js              # Web crawling with auth, issue dedup, login detection
+│   │   ├── actions.js              # Custom action executor
+│   │   ├── suiteRunner.js          # Test suite execution, replay, history
+│   │   ├── accessibility.js        # axe-core accessibility audits
+│   │   ├── animationCapture.js     # Animation/transition screenshot capture
+│   │   ├── purchaseTester.js       # Payment form testing
+│   │   ├── communicationMonitor.js # Email/SMS/fax monitoring
+│   │   ├── auditor.js              # Audit profile runner
+│   │   ├── flowTester.js           # Flow definition runner
+│   │   ├── apiFuzzer.js            # API endpoint fuzzing
+│   │   ├── formFuzzer.js           # Form field fuzzing
+│   │   ├── linkChecker.js          # Link validation
+│   │   ├── lighthouse.js           # Performance auditing
+│   │   ├── visualRegression.js     # Visual diff testing
+│   │   ├── passwordRotator.js      # Password rotation
+│   │   └── scheduler.js            # Scheduled test execution
+│   ├── routes/
+│   │   ├── api.js                  # Core test/site/purchase/rotation routes
+│   │   ├── actions.js              # Browser action execution routes
+│   │   ├── audit.js                # Security audit routes
+│   │   ├── advanced.js             # Lighthouse, visual, fuzzing, links, flows
+│   │   ├── suites.js               # Test suite management routes
+│   │   └── communications.js       # Email/SMS/fax monitoring routes
+│   └── public/                     # Web UI
 ├── screenshots/                    # Test screenshots (auto-generated)
 ├── reports/                        # Test reports (auto-generated)
-└── src/
-    ├── server.js                   # Express server (port 3001)
-    ├── homebay/                    # HomeBay QA testing module
-    │   ├── pool.js                 # BrowserPool (max 3, queue, timeout, crash recovery)
-    │   ├── config.js               # Credential loading, validation, health check
-    │   ├── navigate.js             # React form filling, Next.js navigation helpers
-    │   └── auth.js                 # Login, register, forgot/reset password flows
-    ├── agent/                      # Generic agent modules
-    │   ├── crawler.js              # Web crawling with auth
-    │   ├── actions.js              # Custom action executor
-    │   ├── purchaseTester.js       # Payment form testing
-    │   ├── communicationMonitor.js # Email/SMS/fax monitoring
-    │   ├── auditor.js              # Audit profile runner
-    │   ├── flowTester.js           # Flow definition runner
-    │   ├── apiFuzzer.js            # API endpoint fuzzing
-    │   ├── formFuzzer.js           # Form field fuzzing
-    │   ├── linkChecker.js          # Link validation
-    │   ├── lighthouse.js           # Performance auditing
-    │   ├── visualRegression.js     # Visual diff testing
-    │   ├── passwordRotator.js      # Password rotation
-    │   └── scheduler.js            # Scheduled test execution
-    ├── routes/
-    │   ├── api.js                  # Generic test/audit/action routes
-    │   └── homebay.js              # HomeBay-specific API routes
-    └── public/                     # Web UI
+└── pyproject.toml                  # Python package config
 ```
 
 ## Security
 
-- **Local only** - Khai runs on localhost, never exposed to the internet
-- **Credentials protected** - Stored locally in gitignored file, never logged
-- **Confirmation required** - All purchases need your explicit approval
-- **Audit trail** - All actions logged
+- **Local only** — Khai runs on localhost, never exposed to the internet
+- **Credentials protected** — stored locally in gitignored file, never logged
+- **Confirmation required** — all purchases need explicit approval
+- **API key support** — set `KHAI_API_KEY` env var to require authentication on `/api/*` endpoints
+- **Audit trail** — all actions logged
 
 ## Legal
 

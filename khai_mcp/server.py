@@ -29,6 +29,18 @@ Available tools:
 - khai_audit_results: Get audit status and results
 - khai_check_links: Check a site for broken links
 
+Features beyond MCP tools (available via REST API on localhost:3001):
+- Test suites: saved test definitions with tag filtering, replay, run history, and trend analysis (/api/suites/*)
+- Accessibility audits: axe-core WCAG compliance checking
+- Animation/transition screenshot capture
+- Issue deduplication with severity tiers (critical/high/medium/low)
+- Login failure detection and session expiry handling
+- Lighthouse performance/SEO/accessibility scoring (/api/advanced/lighthouse)
+- Visual regression with pixelmatch (/api/advanced/visual/compare)
+- Flow testing with multi-step sequences (/api/advanced/flows/run)
+- API and form fuzzing (/api/advanced/fuzz/*)
+- Quick actions: /api/actions/create-note, /api/actions/send-fax, /api/actions/send-sms
+
 Workflow:
 1. Use khai_list_sites() to see configured sites and accounts
 2. Start a test/audit/action sequence
