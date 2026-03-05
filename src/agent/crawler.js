@@ -367,11 +367,13 @@ class WebsiteCrawler {
         }
       }
 
-      // Get all links
+      // Get all links (strip hash fragments and deduplicate)
       const links = await this.page.evaluate(() => {
-        return Array.from(document.querySelectorAll('a[href]'))
-          .map(a => a.href)
-          .filter(href => href && !href.startsWith('javascript:') && !href.startsWith('mailto:') && !href.startsWith('tel:'));
+        return [...new Set(
+          Array.from(document.querySelectorAll('a[href]'))
+            .map(a => a.href.split('#')[0])
+            .filter(href => href && !href.startsWith('javascript:') && !href.startsWith('mailto:') && !href.startsWith('tel:'))
+        )];
       });
 
       pageResult.links = links;
