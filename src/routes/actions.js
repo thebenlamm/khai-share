@@ -178,9 +178,27 @@ router.get('/status/:sessionId', (req, res) => {
   res.json(ok({
     sessionId,
     status: session.status,
-    results: session.results,
-    error: session.error,
+    actionsCompleted: session.results.length,
+    error: session.error || null,
     startTime: session.startTime
+  }));
+});
+
+// Get full action session results
+router.get('/results/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+  const session = activeSessions.get(sessionId);
+
+  if (!session) {
+    return res.status(404).json(fail('Session not found'));
+  }
+
+  res.json(ok({
+    sessionId,
+    status: session.status,
+    results: session.results,
+    startTime: session.startTime,
+    error: session.error || null
   }));
 });
 
