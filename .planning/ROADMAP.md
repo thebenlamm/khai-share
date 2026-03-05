@@ -30,7 +30,7 @@
 - [x] Phase 13: Login failure detection and status short-circuit (1 plan) (completed 2026-03-05)
 - [x] Phase 14: Issue deduplication and severity tiers (1 plan) (completed 2026-03-05)
 - [x] Phase 15: Crawl accuracy - login redirect detection and noise reduction (1 plan) (completed 2026-03-05)
-- [ ] Phase 16: MCP tool API consistency (1 plan)
+- [x] Phase 16: MCP tool API consistency (1 plan) (completed 2026-03-05)
 
 ### 📋 v1.2 HomeBay Complete (Planned)
 
@@ -70,7 +70,7 @@ Plans:
 **Goal**: Add khai_action_results MCP tool for parity with crawl test tools (separate status/results), or document the intentional difference
 **Depends on**: Phase 13
 **Feedback**: BETA-FEEDBACK.md #4
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 16-01-PLAN.md — Add khai_action_results tool, slim status endpoint, update docs
 
@@ -110,7 +110,7 @@ Plans:
 | 13. Login failure detection | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 14. Issue dedup & severity | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 15. Crawl accuracy | v1.1 | 1/1 | Complete | 2026-03-05 |
-| 16. MCP tool consistency | v1.1 | 0/1 | Not started | — |
+| 16. MCP tool consistency | 1/1 | Complete   | 2026-03-05 | — |
 | 2. Role Workflows | v1.2 | 0 | Not started | — |
 | 3. Real-Time Bidding | v1.2 | 0 | Not started | — |
 | 4. Orchestration | v1.2 | 0 | Not started | — |
