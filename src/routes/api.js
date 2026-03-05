@@ -92,18 +92,44 @@ router.post('/test/start', async (req, res) => {
 
     // Run test asynchronously
     (async () => {
+      const test = activeTests.get(testId);
       try {
-        activeTests.get(testId).status = 'logging-in';
+        test.status = 'logging-in';
+        test.phase = 'login';
         const loginSuccess = await crawler.login(accountConfig);
 
-        if (loginSuccess) {
-          activeTests.get(testId).status = 'crawling';
-          const startUrl = startPath ? siteConfig.baseUrl + startPath : null;
-          await crawler.crawl(startUrl, maxDepth);
+        if (!loginSuccess) {
+          // Extract specific login error from crawler issues
+          const loginIssues = crawler.results.issues.filter(
+            i => i.type === 'login-failed' || i.type === 'login-error'
+          );
+          const errorDetail = loginIssues.length > 0
+            ? loginIssues[0].message
+            : 'Login failed (unknown reason)';
+
+          test.status = 'login-failed';
+          test.error = errorDetail;
+          test.loginError = errorDetail;
+
+          // Still close browser and save results for debugging
+          const results = await crawler.close();
+          evictStale(completedTests);
+          completedTests.set(testId, { ...results, _createdAt: Date.now() });
+
+          fs.mkdirSync(REPORTS_DIR, { recursive: true });
+          const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
+          fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
+          return;
         }
 
+        test.status = 'crawling';
+        test.phase = 'crawl';
+        const startUrl = startPath ? siteConfig.baseUrl + startPath : null;
+        await crawler.crawl(startUrl, maxDepth);
+
         const results = await crawler.close();
-        activeTests.get(testId).status = 'completed';
+        test.status = 'completed';
+        test.phase = 'complete';
         evictStale(completedTests);
         completedTests.set(testId, { ...results, _createdAt: Date.now() });
 
@@ -114,8 +140,8 @@ router.post('/test/start', async (req, res) => {
 
       } catch (error) {
         console.error('[Khai] Test error:', error);
-        activeTests.get(testId).status = 'error';
-        activeTests.get(testId).error = 'Test failed';
+        test.status = 'error';
+        test.error = 'Test failed';
         try { await crawler.close(); } catch (_) {}
       }
     })();
@@ -141,19 +167,40 @@ router.get('/test/:testId/status', (req, res) => {
     return res.status(404).json(fail('Test not found'));
   }
 
+  // For terminal states, crawler may be closed -- use completedTests data
+  if (test.status === 'login-failed' || test.status === 'error' || test.status === 'completed') {
+    const completed = completedTests.get(testId);
+    return res.json(ok({
+      testId,
+      status: test.status,
+      phase: test.phase || null,
+      site: test.site,
+      account: test.account,
+      startTime: test.startTime,
+      pagesScanned: completed ? completed.pages.length : 0,
+      issuesFound: completed ? completed.issues.length : 0,
+      summary: completed ? completed.summary : null,
+      error: test.error || null,
+      loginError: test.loginError || null,
+      pendingPurchase: null
+    }));
+  }
+
   const results = test.crawler.results;
   const pendingPurchases = test.crawler.getPendingPurchases();
 
   res.json(ok({
     testId,
     status: test.status,
+    phase: test.phase || null,
     site: test.site,
     account: test.account,
     startTime: test.startTime,
     pagesScanned: results.pages.length,
     issuesFound: results.issues.length,
     summary: results.summary,
-    error: test.error,
+    error: test.error || null,
+    loginError: test.loginError || null,
     pendingPurchase: pendingPurchases.length > 0 ? pendingPurchases[0] : null
   }));
 });
