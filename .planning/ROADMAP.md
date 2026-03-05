@@ -29,7 +29,7 @@
 
 - [x] Phase 13: Login failure detection and status short-circuit (1 plan) (completed 2026-03-05)
 - [x] Phase 14: Issue deduplication and severity tiers (1 plan) (completed 2026-03-05)
-- [ ] Phase 15: Crawl accuracy - login redirect detection and noise reduction (0 plans)
+- [ ] Phase 15: Crawl accuracy - login redirect detection and noise reduction (1 plan)
 - [ ] Phase 16: MCP tool API consistency (0 plans)
 
 ### 📋 v1.2 HomeBay Complete (Planned)
@@ -62,7 +62,9 @@ Plans:
 **Goal**: Detect when authenticated pages render login forms instead of expected content; allowlist known third-party request patterns (Sentry); confirm hash fragment URL deduplication
 **Depends on**: Phase 14
 **Feedback**: BETA-FEEDBACK.md #7, #8, #9
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 15-01-PLAN.md — Login redirect detection, request allowlist, and link fragment cleanup
 
 ### Phase 16: MCP tool API consistency
 **Goal**: Add khai_action_results MCP tool for parity with crawl test tools (separate status/results), or document the intentional difference
@@ -104,8 +106,8 @@ Plans:
 | 11. SuiteRunner Integration | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 12. Suite History & Replay | v1.0 | 2/2 | Complete | 2026-03-04 |
 | 13. Login failure detection | v1.1 | 1/1 | Complete | 2026-03-05 |
-| 14. Issue dedup & severity | 1/1 | Complete   | 2026-03-05 | — |
-| 15. Crawl accuracy | v1.1 | 0 | Not started | — |
+| 14. Issue dedup & severity | v1.1 | 1/1 | Complete | 2026-03-05 |
+| 15. Crawl accuracy | v1.1 | 0/1 | Not started | — |
 | 16. MCP tool consistency | v1.1 | 0 | Not started | — |
 | 2. Role Workflows | v1.2 | 0 | Not started | — |
 | 3. Real-Time Bidding | v1.2 | 0 | Not started | — |

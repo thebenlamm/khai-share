@@ -7,7 +7,7 @@ const PurchaseTester = require('./purchaseTester');
 // Issue types that are errors (fail the page). Everything else is a warning.
 const ERROR_SEVERITY_TYPES = new Set([
   'http-error', 'js-error', 'request-failed', 'login-failed',
-  'login-error', 'broken-image', 'navigation-error'
+  'login-error', 'broken-image', 'navigation-error', 'redirected-to-login'
 ]);
 
 // Issue types that are explicitly warnings (do NOT fail the page).
@@ -16,6 +16,16 @@ const WARNING_SEVERITY_TYPES = new Set([
   'console-error', 'resource-404', 'slow-page', 'form-missing-csrf'
   // a11y-* types handled via prefix check below
 ]);
+
+// Known benign third-party request patterns that can safely fail (e.g. ERR_ABORTED)
+const BENIGN_REQUEST_PATTERNS = [
+  '/_sentry/',           // Sentry error reporting tunnel
+  '/sentry.',            // Sentry CDN
+  'sentry.io',           // Sentry SaaS
+  '/gtag/',              // Google Analytics
+  '/analytics',          // Generic analytics
+  'googletagmanager.com' // GTM
+];
 
 class WebsiteCrawler {
   constructor(config) {
@@ -71,9 +81,17 @@ class WebsiteCrawler {
       this.addIssue('js-error', error.message, this.page.url(), 'error');
     });
 
-    // Capture failed requests
+    // Capture failed requests (skip benign third-party failures)
     this.page.on('requestfailed', request => {
-      this.addIssue('request-failed', `${request.url()} - ${request.failure().errorText}`, this.page.url(), 'error');
+      const failureText = request.failure().errorText;
+      const requestUrl = request.url();
+
+      // Skip known benign patterns that abort (Sentry, analytics, etc.)
+      if (failureText === 'net::ERR_ABORTED' && BENIGN_REQUEST_PATTERNS.some(p => requestUrl.includes(p))) {
+        return;
+      }
+
+      this.addIssue('request-failed', `${requestUrl} - ${failureText}`, this.page.url(), 'error');
     });
 
     // Capture 404 responses
@@ -231,6 +249,37 @@ class WebsiteCrawler {
     }
   }
 
+  async detectLoginRedirect(requestedUrl) {
+    const currentUrl = this.page.url();
+
+    // If we requested a login URL, don't flag it
+    if (requestedUrl.includes('/login') || requestedUrl.includes('/signin')) {
+      return false;
+    }
+
+    // Check if URL redirected to a login/signin page
+    const redirectedToLogin = (currentUrl.includes('/login') || currentUrl.includes('/signin')) && currentUrl !== requestedUrl;
+
+    // Check DOM for visible password field (login form signature)
+    const hasLoginForm = await this.page.evaluate(() => {
+      const passwordFields = document.querySelectorAll('input[type="password"]');
+      for (const field of passwordFields) {
+        if (field.offsetParent !== null) {
+          // Visible password field found - check it's a login form, not a settings page
+          // Settings/profile pages typically have many form fields; login forms are minimal
+          const allInputs = document.querySelectorAll('input:not([type="hidden"])');
+          const visibleInputs = Array.from(allInputs).filter(i => i.offsetParent !== null);
+          if (visibleInputs.length <= 4) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
+
+    return redirectedToLogin || hasLoginForm;
+  }
+
   async crawl(startUrl = null, maxDepth = 3, currentDepth = 0) {
     if (!this.results.startTime) {
       this.results.startTime = new Date().toISOString();
@@ -277,6 +326,19 @@ class WebsiteCrawler {
       if (pageResult.status >= 400) {
         this.addIssue('http-error', `HTTP ${pageResult.status}`, url, 'error');
         pageResult.issues.push({ type: 'http-error', message: `HTTP ${pageResult.status}` });
+      }
+
+      // Detect login redirect (authenticated crawls only)
+      if (this.config.accountType && this.config.accountType !== 'public') {
+        const isLoginRedirect = await this.detectLoginRedirect(url);
+        if (isLoginRedirect) {
+          this.addIssue('redirected-to-login', 'Page rendered login form instead of expected content', url, 'error');
+          pageResult.issues.push({ type: 'redirected-to-login', message: 'Page rendered login form instead of expected content' });
+          this.results.pages.push(pageResult);
+          this.results.summary.total++;
+          this.results.summary.failed++;
+          return; // Skip remaining checks and child link crawling -- login page links are not real content links
+        }
       }
 
       // Check for slow pages
