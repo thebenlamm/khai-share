@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Beta Feedback
 status: completed
-stopped_at: Completed 14-issue-deduplication-and-severity-tiers/14-01-PLAN.md
-last_updated: "2026-03-05T03:16:23.528Z"
-last_activity: 2026-03-04 -- Plan 14-01 complete (Issue deduplication and severity tiers)
+stopped_at: Completed 15-crawl-accuracy-login-redirect-detection-and-noise-reduction/15-01-PLAN.md
+last_updated: "2026-03-05T03:30:35.415Z"
+last_activity: 2026-03-05 -- Plan 15-01 complete (Crawl accuracy - login redirect detection and noise reduction)
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 
 ## Current Position
 
-Phase: 14 of 16 (Issue Deduplication and Severity Tiers) - Complete
+Phase: 15 of 16 (Crawl Accuracy - Login Redirect Detection and Noise Reduction) - Complete
 Plan: 1 of 1 in current phase
 Status: Complete
-Last activity: 2026-03-04 -- Plan 14-01 complete (Issue deduplication and severity tiers)
+Last activity: 2026-03-05 -- Plan 15-01 complete (Crawl accuracy - login redirect detection and noise reduction)
 
-Progress: [██████████] 100% (4 of 4 v1.1 plans complete)
+Progress: [██████████] 100% (5 of 5 v1.1 plans complete)
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100% (4 of 4 v1.1 plans complete)
 | Phase 12 P02 | 92 | 2 tasks | 1 files |
 | Phase 13-login-failure-detection P13-01 | 2 | 2 tasks | 2 files |
 | Phase 14 P01 | 1 | 2 tasks | 2 files |
+| Phase 15 P01 | 2 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,9 @@ Recent decisions affecting current work:
 - [Phase 14]: Post-processing dedup in close() preserves raw issues for page-level classification
 - [Phase 14]: Fingerprint uses net::ERR_* code + resource pathname for DNS/network dedup
 - [Phase 14]: Severity promotion: if duplicate has higher severity, primary inherits it
+- [Phase 15]: Login form detection uses visible password field + input count heuristic (<=4 inputs = login page)
+- [Phase 15]: Benign request patterns checked only on ERR_ABORTED (not all failures) to avoid silencing real errors
+- [Phase 15]: Login redirect causes early return from crawl() -- login page links are not real content
 
 ### Pending Todos
 
@@ -156,6 +160,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-05T03:14:07.931Z
-Stopped at: Completed 14-issue-deduplication-and-severity-tiers/14-01-PLAN.md
+Last session: 2026-03-05T03:30:35.412Z
+Stopped at: Completed 15-crawl-accuracy-login-redirect-detection-and-noise-reduction/15-01-PLAN.md
 Resume file: None
