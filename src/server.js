@@ -11,6 +11,7 @@ const homebayRoutes = require('./routes/homebay');
 const suiteRoutes = require('./routes/suites');
 const watchRoutes = require('./routes/watches');
 const { manager: watchManager } = require('./routes/watches');
+const baselineRoutes = require('./routes/baselines');
 const { validateHomeBayCredentials } = require('./homebay/config');
 
 const app = express();
@@ -64,6 +65,7 @@ app.use('/api/advanced', advancedRoutes);
 app.use('/api/homebay', homebayRoutes);
 app.use('/api/suites', suiteRoutes);
 app.use('/api/watches', watchRoutes);
+app.use('/api/baselines', baselineRoutes);
 
 // Serve frontend
 app.get('/', (req, res) => {
