@@ -62,6 +62,11 @@ These are the tools available when Khai is connected as an MCP server:
 | `khai_watch_delete` | Delete a watch by id |
 | `khai_watch_history` | Get recent run history for a watch |
 | `khai_action_har` | Get HAR network trace from a completed action session |
+| `khai_baseline_create` | Create a baseline from a completed crawl test |
+| `khai_baseline_list` | List baselines, optionally filtered by site |
+| `khai_baseline_get` | Get full baseline details including snapshot pages |
+| `khai_baseline_update` | Update a baseline from a new crawl test |
+| `khai_baseline_delete` | Delete a baseline |
 
 **Action types:** `navigate`, `wait`, `screenshot`, `evaluate`, `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
 
