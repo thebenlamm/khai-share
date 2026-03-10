@@ -8,9 +8,9 @@
 ### Baselines
 
 - [x] **BASE-01**: User can create a baseline from a completed crawl test, snapshotting page URLs, titles, status codes, and response timing
-- [ ] **BASE-02**: User can list all saved baselines for a site
-- [ ] **BASE-03**: User can view a baseline's snapshot data (what was captured)
-- [ ] **BASE-04**: User can delete a baseline that is no longer needed
+- [x] **BASE-02**: User can list all saved baselines for a site
+- [x] **BASE-03**: User can view a baseline's snapshot data (what was captured)
+- [x] **BASE-04**: User can delete a baseline that is no longer needed
 - [x] **BASE-05**: User can update an existing baseline from a new crawl test, preserving the baseline ID and threshold config
 
 ### Regression Detection
@@ -51,9 +51,9 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | BASE-01 | Phase 20 | Complete |
-| BASE-02 | Phase 20 | Pending |
-| BASE-03 | Phase 20 | Pending |
-| BASE-04 | Phase 20 | Pending |
+| BASE-02 | Phase 20 | Complete |
+| BASE-03 | Phase 20 | Complete |
+| BASE-04 | Phase 20 | Complete |
 | BASE-05 | Phase 20 | Complete |
 | THRS-01 | Phase 20 | Complete |
 | THRS-02 | Phase 20 | Complete |
