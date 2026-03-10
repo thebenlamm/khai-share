@@ -19,15 +19,15 @@ It runs as an Express server on localhost:3001 with Puppeteer for browser contro
 
 Available tools:
 - khai_list_sites: See which sites are configured with credentials
-- khai_start_test: Start an authenticated crawl test on a site
+- khai_start_test: Start an authenticated crawl test on a site (supports webhook_url)
 - khai_test_status: Check if a running test is done yet
 - khai_test_results: Get full results from a completed test
-- khai_execute_actions: Run a sequence of browser actions (navigate, screenshot, etc.)
+- khai_execute_actions: Run a sequence of browser actions (navigate, screenshot, etc.) (supports webhook_url)
 - khai_action_status: Check if a running action session is done yet (summary only)
 - khai_action_results: Get full results from a completed action session
-- khai_run_audit: Start a security/configuration audit on a site
+- khai_run_audit: Start a security/configuration audit on a site (supports webhook_url)
 - khai_audit_results: Get audit status and results
-- khai_check_links: Check a site for broken links
+- khai_check_links: Check a site for broken links (supports webhook_url)
 
 Features beyond MCP tools (available via REST API on localhost:3001):
 - Test suites: saved test definitions with tag filtering, replay, run history, and trend analysis (/api/suites/*)
@@ -48,6 +48,11 @@ Workflow:
 4. Get results
 
 All operations are async — they return an ID immediately, then you poll for completion.
+
+Webhooks: Any start operation accepts an optional webhook_url parameter. When provided,
+Khai will POST the full results to that URL when the operation completes. Payloads are
+signed with HMAC-SHA256 if KHAI_WEBHOOK_SECRET is set. Delivery retries up to 3 times
+with exponential backoff. Check the webhook field in results for delivery status.
 
 IMPORTANT: Khai's Express server (localhost:3001) must be running. Check with khai_list_sites first.
 """,
@@ -81,6 +86,7 @@ def khai_start_test(
     max_depth: int = 3,
     viewport: str = "desktop",
     start_path: str | None = None,
+    webhook_url: str | None = None,
 ) -> dict:
     """Start an authenticated crawl test on a configured site.
 
@@ -93,6 +99,7 @@ def khai_start_test(
         max_depth: How many links deep to crawl (default 3)
         viewport: "desktop" or "mobile"
         start_path: Optional path to start crawling from (e.g. "/dashboard")
+        webhook_url: URL to POST results to when test completes (optional). Set KHAI_WEBHOOK_SECRET env var for HMAC-SHA256 signing.
 
     Returns:
         testId for polling with khai_test_status
@@ -105,6 +112,8 @@ def khai_start_test(
     }
     if start_path:
         payload["startPath"] = start_path
+    if webhook_url:
+        payload["webhookUrl"] = webhook_url
     return _unwrap(client.post("/api/test/start", payload))
 
 
@@ -141,6 +150,7 @@ def khai_execute_actions(
     site: str,
     account: str,
     actions: list[dict],
+    webhook_url: str | None = None,
 ) -> dict:
     """Execute a sequence of browser actions on an authenticated site.
 
@@ -158,15 +168,19 @@ def khai_execute_actions(
             - {"type": "create-note", "patientId": "123", "content": {...}}
             - {"type": "send-fax", "faxNumber": "+15551234567", "content": "..."}
             - {"type": "send-sms", "phoneNumber": "+15551234567", "message": "..."}
+        webhook_url: URL to POST results to when the session completes (optional). Set KHAI_WEBHOOK_SECRET env var for HMAC-SHA256 signing.
 
     Returns:
         sessionId for polling with khai_action_status
     """
-    return _unwrap(client.post("/api/actions/execute", {
+    payload = {
         "site": site,
         "account": account,
         "actions": actions,
-    }))
+    }
+    if webhook_url:
+        payload["webhookUrl"] = webhook_url
+    return _unwrap(client.post("/api/actions/execute", payload))
 
 
 @mcp.tool(annotations={"readOnlyHint": True})
@@ -206,6 +220,7 @@ def khai_run_audit(
     site: str | None = None,
     base_url: str | None = None,
     categories: list[str] | None = None,
+    webhook_url: str | None = None,
 ) -> dict:
     """Start a security/configuration audit on a site.
 
@@ -216,6 +231,7 @@ def khai_run_audit(
         site: Site name that matches an audit profile (optional)
         base_url: Direct URL to audit (optional, at least one of site/base_url required)
         categories: List of audit categories to run (optional, runs all by default)
+        webhook_url: URL to POST results to when the audit completes (optional). Set KHAI_WEBHOOK_SECRET env var for HMAC-SHA256 signing.
 
     Returns:
         auditId for polling with khai_audit_results
@@ -227,6 +243,8 @@ def khai_run_audit(
         payload["baseUrl"] = base_url
     if categories:
         payload["categories"] = categories
+    if webhook_url:
+        payload["webhookUrl"] = webhook_url
     return _unwrap(client.post("/api/audit/start", payload))
 
 
@@ -256,6 +274,7 @@ def khai_check_links(
     max_pages: int = 50,
     concurrency: int = 5,
     timeout: int = 10000,
+    webhook_url: str | None = None,
 ) -> dict:
     """Check a website for broken links.
 
@@ -267,16 +286,20 @@ def khai_check_links(
         max_pages: Maximum pages to crawl (default 50)
         concurrency: Parallel link checks (default 5)
         timeout: Per-link timeout in ms (default 10000)
+        webhook_url: URL to POST results to when the check completes (optional). Set KHAI_WEBHOOK_SECRET env var for HMAC-SHA256 signing.
 
     Returns:
         jobId for polling. Use GET /api/advanced/jobs/{jobId}/results to get results.
     """
-    resp = _unwrap(client.post("/api/advanced/links/check", {
+    payload = {
         "baseUrl": base_url,
         "maxPages": max_pages,
         "concurrency": concurrency,
         "timeout": timeout,
-    }))
+    }
+    if webhook_url:
+        payload["webhookUrl"] = webhook_url
+    resp = _unwrap(client.post("/api/advanced/links/check", payload))
 
     # Poll for completion (link checks are usually fast)
     job_id = resp.get("jobId")
