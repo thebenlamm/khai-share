@@ -27,8 +27,8 @@
 
 ### MCP Tools
 
-- [ ] **MCPA-01**: MCP tool to create a baseline from a completed crawl test
-- [ ] **MCPA-02**: MCP tool to list, view, and delete baselines for a site
+- [x] **MCPA-01**: MCP tool to create a baseline from a completed crawl test
+- [x] **MCPA-02**: MCP tool to list, view, and delete baselines for a site
 
 ## Future Requirements (v1.4+)
 
@@ -61,8 +61,8 @@
 | REGR-02 | Phase 21 | Complete |
 | REGR-03 | Phase 21 | Complete |
 | REGR-04 | Phase 21 | Complete |
-| MCPA-01 | Phase 22 | Pending |
-| MCPA-02 | Phase 22 | Pending |
+| MCPA-01 | Phase 22 | Complete |
+| MCPA-02 | Phase 22 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 13 total

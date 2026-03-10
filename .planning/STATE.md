@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Auto-Assertions
 status: executing
-stopped_at: Completed 21-02-PLAN.md (regression detection wiring)
-last_updated: "2026-03-10T22:36:37.672Z"
+stopped_at: Completed 22-01-PLAN.md (baseline MCP tools)
+last_updated: "2026-03-10T23:13:27.932Z"
 last_activity: "2026-03-10 — 20-01 complete: crawler title capture + BaselineManager CRUD"
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
-  percent: 8
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** MCP server giving Claude Code browser automation superpowers -- authenticated testing, screenshots, audits, link checking
-**Current focus:** v1.3 Auto-Assertions (Phase 20: Baseline Engine)
+**Current focus:** v1.3 Auto-Assertions complete
 
 ## Current Position
 
-Phase: 20 — Baseline Engine (in progress)
-Plan: 01 complete (of ~3 in phase)
-Status: In progress
-Last activity: 2026-03-10 — 20-01 complete: crawler title capture + BaselineManager CRUD
+Phase: 22 — MCP Tools (complete)
+Plan: 01 complete (of 1 in phase)
+Status: Complete — v1.3 Auto-Assertions shipped
+Last activity: 2026-03-10 — 22-01 complete: five baseline MCP tools (khai_baseline_create/list/get/update/delete)
 
-Progress: [█░░░░░░░░░] 8%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -72,7 +72,7 @@ None.
 - v1.0 shipped 2026-03-04 (9 phases, 18 plans)
 - v1.1 shipped 2026-03-05 (4 phases, 4 plans -- beta feedback)
 - v1.2 shipped 2026-03-10 (3 phases, 7 plans -- integration & monitoring)
-- v1.3 started 2026-03-10 (3 phases, auto-assertions)
+- v1.3 shipped 2026-03-10 (3 phases, auto-assertions: baseline engine + regression detection + MCP tools)
 
 ### Blockers/Concerns
 
@@ -80,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:36:37.670Z
-Stopped at: Completed 21-02-PLAN.md (regression detection wiring)
+Last session: 2026-03-10T23:13:27.929Z
+Stopped at: Completed 22-01-PLAN.md (baseline MCP tools)
 Resume file: None

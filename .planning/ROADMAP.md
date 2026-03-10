@@ -53,7 +53,7 @@
 
 - [x] **Phase 20: Baseline Engine** - Crawl captures page metadata; baseline CRUD REST API with threshold config (completed 2026-03-10)
 - [x] **Phase 21: Regression Detection** - Comparison engine diffs current crawl against baseline; regressions surface in results and webhooks (completed 2026-03-10)
-- [ ] **Phase 22: MCP Tools** - Claude Code tools for baseline management and regression visibility
+- [x] **Phase 22: MCP Tools** - Claude Code tools for baseline management and regression visibility (completed 2026-03-10)
 
 ---
 
@@ -95,7 +95,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Claude Code can call a single MCP tool to create a baseline from a crawl test ID and receive confirmation with baseline details
   2. Claude Code can call a single MCP tool to list baselines for a site, view a specific baseline's snapshot, or delete a baseline
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 22-01-PLAN.md -- Baseline CRUD MCP tools + documentation updates
 
@@ -123,4 +123,4 @@ Plans:
 | 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 20. Baseline Engine | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 21. Regression Detection | v1.3 | 2/2 | Complete | 2026-03-10 |
-| 22. MCP Tools | v1.3 | 0/1 | Not started | - |
+| 22. MCP Tools | 1/1 | Complete   | 2026-03-10 | - |
