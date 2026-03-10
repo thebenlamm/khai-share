@@ -32,6 +32,7 @@ Available tools:
 - khai_watch_list: List all configured watches and their status
 - khai_watch_delete: Delete a watch by id
 - khai_watch_history: Get recent run records for a watch showing what changed and when
+- khai_action_har: Get the HAR network trace from a completed action session (must start with record_har=True)
 
 Features beyond MCP tools (available via REST API on localhost:3001):
 - Test suites: saved test definitions with tag filtering, replay, run history, and trend analysis (/api/suites/*)
@@ -61,6 +62,11 @@ with exponential backoff. Check the webhook field in results for delivery status
 Watches: Use khai_watch_create to monitor authenticated pages on a schedule. Khai logs in, captures
 content and a screenshot, and compares to the previous run. When content or visual changes are detected,
 a webhook notification fires. Use khai_watch_history to review what changed and when.
+
+HAR Recording: Use record_har=True in khai_execute_actions to capture all network traffic during a session.
+After the session completes, use khai_action_har to retrieve the full HAR 1.2 file. Useful for debugging
+API calls, analyzing page load waterfalls, and auditing network behavior. The HAR file can be opened in
+Chrome DevTools (Network tab > Import) or any HAR viewer.
 
 IMPORTANT: Khai's Express server (localhost:3001) must be running. Check with khai_list_sites first.
 """,
@@ -159,6 +165,7 @@ def khai_execute_actions(
     account: str,
     actions: list[dict],
     webhook_url: str | None = None,
+    record_har: bool = False,
 ) -> dict:
     """Execute a sequence of browser actions on an authenticated site.
 
@@ -177,9 +184,12 @@ def khai_execute_actions(
             - {"type": "send-fax", "faxNumber": "+15551234567", "content": "..."}
             - {"type": "send-sms", "phoneNumber": "+15551234567", "message": "..."}
         webhook_url: URL to POST results to when the session completes (optional). Set KHAI_WEBHOOK_SECRET env var for HMAC-SHA256 signing.
+        record_har: If True, records all network requests/responses as a HAR file during the session.
+            Retrieve with khai_action_har after completion.
 
     Returns:
-        sessionId for polling with khai_action_status
+        sessionId for polling with khai_action_status. If record_har=True, use khai_action_har
+        to get the network trace after completion.
     """
     payload = {
         "site": site,
@@ -188,6 +198,8 @@ def khai_execute_actions(
     }
     if webhook_url:
         payload["webhookUrl"] = webhook_url
+    if record_har:
+        payload["recordHar"] = True
     return _unwrap(client.post("/api/actions/execute", payload))
 
 
@@ -221,6 +233,33 @@ def khai_action_results(session_id: str) -> dict:
         return _unwrap(client.get(f"/api/actions/results/{session_id}"))
     except Exception:
         return {"error": f"Session '{session_id}' not found. It may have expired (sessions are kept for 1 hour)."}
+
+
+@mcp.tool(annotations={"readOnlyHint": True})
+def khai_action_har(session_id: str) -> dict:
+    """Get the HAR (HTTP Archive) file from a completed action session.
+
+    The session must have been started with record_har=True in khai_execute_actions.
+    Contains all network requests and responses captured during the session.
+
+    The returned HAR follows the HAR 1.2 specification and can be opened in
+    Chrome DevTools (Network tab > Import) or any HAR viewer.
+
+    Args:
+        session_id: The sessionId returned from khai_execute_actions
+
+    Returns:
+        Full HAR 1.2 JSON object with all network entries, or error if no HAR exists.
+    """
+    try:
+        resp = client.get(f"/api/actions/har/{session_id}")
+        # HAR endpoint streams raw JSON (not {success,data} envelope)
+        # If it's a HAR, it has a "log" key; if error, it has "success: false"
+        if isinstance(resp, dict) and resp.get("success") is False:
+            raise Exception(resp.get("error", "Unknown error"))
+        return resp
+    except Exception as e:
+        return {"error": f"No HAR file for session '{session_id}'. {e}"}
 
 
 @mcp.tool(annotations={"readOnlyHint": True, "openWorldHint": True})
