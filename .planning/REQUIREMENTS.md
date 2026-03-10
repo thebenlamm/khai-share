@@ -15,10 +15,10 @@
 
 ### Regression Detection
 
-- [x] **REGR-01**: When a crawl test completes, Khai automatically compares results against the site's active baseline (one per site+account) and flags regressions
-- [x] **REGR-02**: Regressions include specific diffs: changed titles, new/missing pages, status code changes, timing degradation
-- [x] **REGR-03**: Regression results are included in the crawl test results payload (alongside existing issue data)
-- [x] **REGR-04**: Webhook payloads for crawl completion include regression summary when a baseline exists
+- [ ] **REGR-01**: When a crawl test completes, Khai automatically compares results against the site's active baseline (one per site+account) and flags regressions
+- [ ] **REGR-02**: Regressions include specific diffs: changed titles, new/missing pages, status code changes, timing degradation
+- [ ] **REGR-03**: Regression results are included in the crawl test results payload (alongside existing issue data)
+- [ ] **REGR-04**: Webhook payloads for crawl completion include regression summary when a baseline exists
 
 ### Thresholds
 
@@ -57,17 +57,18 @@
 | BASE-05 | Phase 20 | Complete |
 | THRS-01 | Phase 20 | Complete |
 | THRS-02 | Phase 20 | Complete |
-| REGR-01 | Phase 21 | Complete |
-| REGR-02 | Phase 21 | Complete |
-| REGR-03 | Phase 21 | Complete |
-| REGR-04 | Phase 21 | Complete |
+| REGR-01 | Phase 23 | Pending |
+| REGR-02 | Phase 23 | Pending |
+| REGR-03 | Phase 23 | Pending |
+| REGR-04 | Phase 23 | Pending |
 | MCPA-01 | Phase 22 | Complete |
 | MCPA-02 | Phase 22 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 13 total
 - Mapped to phases: 13
-- Unmapped: 0
+- Satisfied: 9
+- Pending (gap closure): 4 (REGR-01–04 → Phase 23)
 
 ---
 *Requirements defined: 2026-03-10*

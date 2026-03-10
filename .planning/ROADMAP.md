@@ -54,6 +54,7 @@
 - [x] **Phase 20: Baseline Engine** - Crawl captures page metadata; baseline CRUD REST API with threshold config (completed 2026-03-10)
 - [x] **Phase 21: Regression Detection** - Comparison engine diffs current crawl against baseline; regressions surface in results and webhooks (completed 2026-03-10)
 - [x] **Phase 22: MCP Tools** - Claude Code tools for baseline management and regression visibility (completed 2026-03-10)
+- [ ] **Phase 23: Fix Cross-Phase Integration Wiring** - Fix export name mismatch breaking regression detection + docstring correction
 
 ---
 
@@ -99,6 +100,18 @@ Plans:
 Plans:
 - [ ] 22-01-PLAN.md -- Baseline CRUD MCP tools + documentation updates
 
+### Phase 23: Fix Cross-Phase Integration Wiring
+**Goal**: Fix export name mismatch that silently disables regression detection, and correct docstring field names
+**Depends on**: Phase 22
+**Requirements**: REGR-01, REGR-02, REGR-03, REGR-04, BASE-03
+**Gap Closure:** Closes gaps from audit (INT-01, INT-02, broken flow)
+**Success Criteria** (what must be TRUE):
+  1. `require('./baselines')` in api.js resolves `baselineManager` to a valid BaselineManager instance
+  2. Crawl completion with an active baseline produces non-null `regressions` field in results
+  3. MCP tool `khai_baseline_get` docstring matches actual snapshot field names (url, title, status, loadTime, pageLoadTime)
+Plans:
+- [ ] 23-01-PLAN.md -- Fix export wiring + docstring correction
+
 ---
 
 ## Progress
@@ -123,4 +136,5 @@ Plans:
 | 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 20. Baseline Engine | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 21. Regression Detection | v1.3 | 2/2 | Complete | 2026-03-10 |
-| 22. MCP Tools | 1/1 | Complete   | 2026-03-10 | - |
+| 22. MCP Tools | v1.3 | 1/1 | Complete | 2026-03-10 |
+| 23. Integration Wiring Fix | v1.3 | 0/1 | Pending | - |

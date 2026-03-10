@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Auto-Assertions
-status: executing
+status: completed
 stopped_at: Completed 22-01-PLAN.md (baseline MCP tools)
-last_updated: "2026-03-10T23:13:27.932Z"
-last_activity: "2026-03-10 — 20-01 complete: crawler title capture + BaselineManager CRUD"
+last_updated: "2026-03-10T23:16:10.521Z"
+last_activity: "2026-03-10 — 22-01 complete: five baseline MCP tools (khai_baseline_create/list/get/update/delete)"
 progress:
   total_phases: 3
   completed_phases: 3
