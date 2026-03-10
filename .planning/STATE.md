@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Integration & Monitoring
 status: completed
-stopped_at: Completed 18-01-PLAN.md (WatchManager agent)
-last_updated: "2026-03-10T17:12:24.404Z"
+stopped_at: Completed 18-02-PLAN.md (Watch REST routes)
+last_updated: "2026-03-10T17:16:22.297Z"
 last_activity: "2026-03-10 -- Completed 17-02: MCP webhook parameters and full documentation sync"
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 33
 ---
 
@@ -53,6 +53,7 @@ Recent decisions affecting current work:
 - [Phase 17-webhooks]: webhook_url optional param on all 4 start-operation MCP tools; backward compatible with None default
 - [Phase 18-watches]: pixelmatch v7 CJS import: use .default || fallback for CJS/ESM compatibility
 - [Phase 18-watches]: Visual change threshold: >1% pixel diff to reduce false positives from animations
+- [Phase 18-watches]: Single require() call gives both watchRouter and watchManager via .manager property; fire-and-forget POST /run returns 202; cron errors return 400
 
 ### Pending Todos
 
@@ -70,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10T17:12:24.402Z
-Stopped at: Completed 18-01-PLAN.md (WatchManager agent)
+Last session: 2026-03-10T17:16:22.295Z
+Stopped at: Completed 18-02-PLAN.md (Watch REST routes)
 Resume file: None
