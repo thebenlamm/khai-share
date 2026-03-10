@@ -78,7 +78,12 @@ Plans:
   4. When a change is detected, Khai fires a webhook notification to the configured URL
   5. User can list, create, update, and delete watches via REST API and via MCP tools
   6. Watch history stores past snapshots and change events so users can review what changed and when
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 18-01-PLAN.md -- WatchManager agent: cron scheduling, browser capture, diff, webhook, persistence
+- [ ] 18-02-PLAN.md -- REST API routes for watch CRUD and history, server.js integration
+- [ ] 18-03-PLAN.md -- MCP tools (khai_watch_create/list/delete/history) and documentation updates
 
 ### Phase 19: HAR Export
 **Goal**: Action sessions can record the full network trace so users can replay and analyze browser activity
@@ -110,6 +115,6 @@ Plans:
 | 14. Issue dedup & severity | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 15. Crawl accuracy | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 16. MCP tool consistency | v1.1 | 1/1 | Complete | 2026-03-05 |
-| 17. Webhooks | 2/2 | Complete   | 2026-03-10 | - |
-| 18. Watches | v1.2 | 0/TBD | Not started | - |
+| 17. Webhooks | v1.2 | 2/2 | Complete | 2026-03-10 |
+| 18. Watches | v1.2 | 0/3 | Not started | - |
 | 19. HAR Export | v1.2 | 0/TBD | Not started | - |
