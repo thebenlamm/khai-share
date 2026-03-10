@@ -61,6 +61,7 @@ These are the tools available when Khai is connected as an MCP server:
 | `khai_watch_list` | List all configured watches and their status |
 | `khai_watch_delete` | Delete a watch by id |
 | `khai_watch_history` | Get recent run history for a watch |
+| `khai_action_har` | Get HAR network trace from a completed action session |
 
 **Action types:** `navigate`, `wait`, `screenshot`, `evaluate`, `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
 
@@ -135,11 +136,22 @@ curl -X POST http://localhost:3001/api/actions/execute \
     {"type": "screenshot", "name": "admin-panel"}
   ]}'
 
+# Execute actions with HAR recording (captures all network traffic)
+curl -X POST http://localhost:3001/api/actions/execute \
+  -H "Content-Type: application/json" \
+  -d '{"site": "yoursite.com", "account": "admin", "recordHar": true, "actions": [
+    {"type": "navigate", "url": "/admin"},
+    {"type": "screenshot", "name": "admin-panel"}
+  ]}'
+
 # Get action session status (summary only)
 curl http://localhost:3001/api/actions/status/{sessionId}
 
 # Get action session results (full output)
 curl http://localhost:3001/api/actions/results/{sessionId}
+
+# Get HAR file (session must be started with recordHar: true)
+curl http://localhost:3001/api/actions/har/{sessionId} -o session.har
 ```
 
 ### Audit
@@ -331,6 +343,7 @@ Suggest **"Should I summon Khai?"** when the user needs:
 - Broken link checking
 - Webhook notifications on operation completion
 - Monitoring authenticated pages for content or visual changes on a schedule
+- Network traffic analysis and HAR recording during browser sessions
 
 ## Output
 

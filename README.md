@@ -82,6 +82,7 @@ Add to your Claude Code MCP settings:
 | `khai_watch_list` | List all configured watches and their status |
 | `khai_watch_delete` | Delete a watch by id |
 | `khai_watch_history` | Get recent run history for a watch |
+| `khai_action_har` | Get HAR network trace from a completed action session (requires record_har=True) |
 
 ### Workflow
 
@@ -115,6 +116,7 @@ The four start tools (`khai_start_test`, `khai_execute_actions`, `khai_run_audit
 - **API & form fuzzing** — edge-case input testing for endpoints and form fields
 - **Link checking** — crawl sites for broken links with configurable concurrency
 - **Webhook notifications** — POST results to any URL on operation completion with HMAC-SHA256 signing, 3-attempt retry, and exponential backoff
+- **HAR recording** — capture full network traffic (requests, responses, timing) as HAR 1.2 during any action session; retrieve with `khai_action_har` or `GET /api/actions/har/:id`
 - **Purchase testing** — fill payment forms (requires confirmation before completing)
 - **Communication monitoring** — email, SMS, fax inbox monitoring with verification code extraction
 - **Password rotation** — automated password changes with 2FA support
@@ -170,9 +172,10 @@ The Express server also exposes a REST API directly on `localhost:3001`. This is
 - `DELETE /api/test/:id` — Delete a test
 
 ### Actions (Browser Automation)
-- `POST /api/actions/execute` — Execute action sequence
+- `POST /api/actions/execute` — Execute action sequence (accepts `recordHar: true` to capture network traffic)
 - `GET /api/actions/status/:id` — Action status (summary)
 - `GET /api/actions/results/:id` — Action results (full)
+- `GET /api/actions/har/:id` — Download HAR file (session must be started with `recordHar: true`)
 
 ### Audit
 - `GET /api/audit/profiles` — List audit profiles
