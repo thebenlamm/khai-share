@@ -9,6 +9,8 @@ const auditRoutes = require('./routes/audit');
 const advancedRoutes = require('./routes/advanced');
 const homebayRoutes = require('./routes/homebay');
 const suiteRoutes = require('./routes/suites');
+const watchRoutes = require('./routes/watches');
+const { manager: watchManager } = require('./routes/watches');
 const { validateHomeBayCredentials } = require('./homebay/config');
 
 const app = express();
@@ -61,6 +63,7 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/advanced', advancedRoutes);
 app.use('/api/homebay', homebayRoutes);
 app.use('/api/suites', suiteRoutes);
+app.use('/api/watches', watchRoutes);
 
 // Serve frontend
 app.get('/', (req, res) => {
@@ -91,11 +94,15 @@ const server = app.listen(PORT, '127.0.0.1', () => {
   ║                                                       ║
   ╚═══════════════════════════════════════════════════════╝
   `);
+  // Start scheduled watches
+  watchManager.startAll();
+  console.log('[Khai] Watch scheduler started');
 });
 
 // Graceful shutdown
 function shutdown(signal) {
   console.log(`\n[Khai] ${signal} received, shutting down...`);
+  watchManager.stopAll();
   server.close(() => {
     console.log('[Khai] Server closed');
     process.exit(0);
