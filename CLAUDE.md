@@ -48,15 +48,15 @@ These are the tools available when Khai is connected as an MCP server:
 | Tool | Description |
 |------|-------------|
 | `khai_list_sites` | List configured sites and accounts |
-| `khai_start_test` | Start an authenticated crawl test |
+| `khai_start_test` | Start an authenticated crawl test (supports webhookUrl) |
 | `khai_test_status` | Check crawl test progress |
 | `khai_test_results` | Get full crawl test results |
-| `khai_execute_actions` | Run browser action sequences |
+| `khai_execute_actions` | Run browser action sequences (supports webhookUrl) |
 | `khai_action_status` | Check action session status |
 | `khai_action_results` | Get full action session results |
-| `khai_run_audit` | Start a security/configuration audit |
+| `khai_run_audit` | Start a security/configuration audit (supports webhookUrl) |
 | `khai_audit_results` | Get audit status and results |
-| `khai_check_links` | Check a site for broken links |
+| `khai_check_links` | Check a site for broken links (supports webhookUrl) |
 
 **Action types:** `navigate`, `wait`, `screenshot`, `evaluate`, `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
 
@@ -66,6 +66,15 @@ All operations are async:
 1. **Start** — returns an ID (`testId`, `auditId`, `sessionId`, `jobId`)
 2. **Poll** — check status until `completed` or `error`
 3. **Results** — get full data
+
+## Webhooks
+
+Any async start operation accepts an optional `webhookUrl` parameter. When provided, Khai POSTs the full operation results to that URL on completion.
+
+- **Signing**: Set `KHAI_WEBHOOK_SECRET` env var. Khai computes HMAC-SHA256 of the JSON body and sends it as `X-Khai-Signature: sha256=<hex>`.
+- **Retry**: Up to 3 attempts with exponential backoff (1s, 4s, 16s). No retry on 4xx.
+- **Status**: Results include a `webhook` field: `{status: "delivered"|"failed", attempts, ...}`.
+- **Headers**: `X-Khai-Event: operation.completed`, `X-Khai-Operation: test|audit|action|link-check`, `X-Khai-Operation-Id: <id>`.
 
 ## REST API Quick Reference
 
@@ -88,6 +97,11 @@ curl http://localhost:3001/api/sites
 curl -X POST http://localhost:3001/api/test/start \
   -H "Content-Type: application/json" \
   -d '{"site": "yoursite.com", "account": "admin", "maxDepth": 2}'
+
+# Start a crawl test with webhook notification
+curl -X POST http://localhost:3001/api/test/start \
+  -H "Content-Type: application/json" \
+  -d '{"site": "yoursite.com", "account": "admin", "webhookUrl": "https://example.com/webhook"}'
 
 # Get test status (async polling)
 curl http://localhost:3001/api/test/{testId}/status
@@ -280,6 +294,7 @@ All API endpoints return a consistent envelope:
 | `config/audit-profiles/*.json` | Audit profiles defining what to test per site |
 | `config/flows/*.json` | Multi-step test flows (login, checkout, etc.) |
 | `config/schedules.json` | Scheduled recurring tests |
+| `KHAI_WEBHOOK_SECRET` env var | Shared secret for HMAC-SHA256 webhook signatures |
 
 ### Quick Actions
 
@@ -310,6 +325,7 @@ Suggest **"Should I summon Khai?"** when the user needs:
 - Any task requiring stored credentials
 - Security auditing of a website
 - Broken link checking
+- Webhook notifications on operation completion
 
 ## Output
 

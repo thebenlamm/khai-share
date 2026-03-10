@@ -69,15 +69,15 @@ Add to your Claude Code MCP settings:
 | Tool | Description |
 |------|-------------|
 | `khai_list_sites` | List configured sites and accounts |
-| `khai_start_test` | Start an authenticated crawl test |
+| `khai_start_test` | Start an authenticated crawl test (supports webhook_url) |
 | `khai_test_status` | Check crawl test progress |
 | `khai_test_results` | Get full crawl test results |
-| `khai_execute_actions` | Run browser action sequences (navigate, screenshot, etc.) |
+| `khai_execute_actions` | Run browser action sequences (navigate, screenshot, etc.) (supports webhook_url) |
 | `khai_action_status` | Check action session status |
 | `khai_action_results` | Get full action session results |
-| `khai_run_audit` | Start a security/configuration audit |
+| `khai_run_audit` | Start a security/configuration audit (supports webhook_url) |
 | `khai_audit_results` | Get audit status and results |
-| `khai_check_links` | Check a site for broken links |
+| `khai_check_links` | Check a site for broken links (supports webhook_url) |
 
 ### Workflow
 
@@ -87,6 +87,14 @@ Add to your Claude Code MCP settings:
 4. Get results
 
 All operations are async: start, poll, get results.
+
+### Webhooks
+
+The four start tools (`khai_start_test`, `khai_execute_actions`, `khai_run_audit`, `khai_check_links`) accept an optional `webhook_url` parameter. When provided, Khai POSTs the full operation results to that URL on completion.
+
+- Set `KHAI_WEBHOOK_SECRET` env var to enable HMAC-SHA256 signing (`X-Khai-Signature: sha256=<hex>`)
+- Delivery retries up to 3 times with exponential backoff (1s, 4s, 16s); no retry on 4xx responses
+- Results include a `webhook` field with delivery status (`delivered`/`failed`, attempts, timestamps)
 
 ## Features
 
@@ -102,6 +110,7 @@ All operations are async: start, poll, get results.
 - **Flow testing** — multi-step test sequences (login, navigate, fill forms, assert, screenshot)
 - **API & form fuzzing** — edge-case input testing for endpoints and form fields
 - **Link checking** — crawl sites for broken links with configurable concurrency
+- **Webhook notifications** — POST results to any URL on operation completion with HMAC-SHA256 signing, 3-attempt retry, and exponential backoff
 - **Purchase testing** — fill payment forms (requires confirmation before completing)
 - **Communication monitoring** — email, SMS, fax inbox monitoring with verification code extraction
 - **Password rotation** — automated password changes with 2FA support
@@ -251,6 +260,7 @@ khai-share/
 - **Credentials protected** — stored locally in gitignored file, never logged
 - **Confirmation required** — all purchases need explicit approval
 - **API key support** — set `KHAI_API_KEY` env var to require authentication on `/api/*` endpoints
+- **Webhook signing** — set `KHAI_WEBHOOK_SECRET` env var for HMAC-SHA256 signatures on outbound webhook payloads
 - **Audit trail** — all actions logged
 
 ## Legal
