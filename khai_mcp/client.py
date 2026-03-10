@@ -26,6 +26,22 @@ def post(path: str, data: dict | None = None) -> dict:
         return r.json()
 
 
+def put(path: str, data: dict | None = None) -> dict:
+    """PUT request to Khai API. Returns parsed JSON."""
+    with _client() as c:
+        r = c.put(path, json=data or {})
+        r.raise_for_status()
+        return r.json()
+
+
+def delete(path: str) -> dict:
+    """DELETE request to Khai API. Returns parsed JSON."""
+    with _client() as c:
+        r = c.delete(path)
+        r.raise_for_status()
+        return r.json()
+
+
 def health() -> dict:
     """Check Khai server health."""
     return get("/health")

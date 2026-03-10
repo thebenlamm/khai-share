@@ -28,6 +28,10 @@ Available tools:
 - khai_run_audit: Start a security/configuration audit on a site (supports webhook_url)
 - khai_audit_results: Get audit status and results
 - khai_check_links: Check a site for broken links (supports webhook_url)
+- khai_watch_create: Create a scheduled watch to monitor an authenticated page for changes (fires webhook on change)
+- khai_watch_list: List all configured watches and their status
+- khai_watch_delete: Delete a watch by id
+- khai_watch_history: Get recent run records for a watch showing what changed and when
 
 Features beyond MCP tools (available via REST API on localhost:3001):
 - Test suites: saved test definitions with tag filtering, replay, run history, and trend analysis (/api/suites/*)
@@ -53,6 +57,10 @@ Webhooks: Any start operation accepts an optional webhook_url parameter. When pr
 Khai will POST the full results to that URL when the operation completes. Payloads are
 signed with HMAC-SHA256 if KHAI_WEBHOOK_SECRET is set. Delivery retries up to 3 times
 with exponential backoff. Check the webhook field in results for delivery status.
+
+Watches: Use khai_watch_create to monitor authenticated pages on a schedule. Khai logs in, captures
+content and a screenshot, and compares to the previous run. When content or visual changes are detected,
+a webhook notification fires. Use khai_watch_history to review what changed and when.
 
 IMPORTANT: Khai's Express server (localhost:3001) must be running. Check with khai_list_sites first.
 """,
@@ -313,6 +321,91 @@ def khai_check_links(
                 return job
         return {"status": "timeout", "jobId": job_id, "message": "Still running after 2 minutes"}
     return resp
+
+
+@mcp.tool(annotations={"destructiveHint": True})
+def khai_watch_create(
+    site: str,
+    account: str,
+    url: str,
+    schedule: str,
+    selector: str | None = None,
+    webhook_url: str | None = None,
+) -> dict:
+    """Create a watch to monitor an authenticated page on a schedule.
+
+    Khai will log in to the site and capture page content and a screenshot
+    on each scheduled run, comparing against the previous snapshot. When a
+    change is detected, a webhook notification is sent (if webhook_url provided).
+
+    Args:
+        site: Site name from khai_list_sites (e.g. "yoursite.com")
+        account: Account type (e.g. "admin", "user")
+        url: Full URL or path to monitor (e.g. "/dashboard" or "https://yoursite.com/page")
+        schedule: Cron expression for run frequency (e.g. "0 * * * *" = hourly,
+                  "*/30 * * * *" = every 30 min, "0 9 * * 1-5" = weekdays at 9am UTC)
+        selector: CSS selector to extract specific content (optional; default = full body text)
+        webhook_url: URL to POST change notifications to (optional)
+
+    Returns:
+        Watch object with id for use in khai_watch_history and khai_watch_delete
+    """
+    payload = {
+        "site": site,
+        "account": account,
+        "url": url,
+        "schedule": schedule,
+    }
+    if selector:
+        payload["selector"] = selector
+    if webhook_url:
+        payload["webhookUrl"] = webhook_url
+    return _unwrap(client.post("/api/watches", payload))
+
+
+@mcp.tool(annotations={"readOnlyHint": True})
+def khai_watch_list() -> dict:
+    """List all configured watches and their current status.
+
+    Returns all watch definitions with their schedule, last run status,
+    and whether they are currently active (running field).
+
+    Returns:
+        List of watch objects with id, site, url, schedule, enabled, running fields.
+    """
+    return _unwrap(client.get("/api/watches"))
+
+
+@mcp.tool(annotations={"destructiveHint": True})
+def khai_watch_delete(watch_id: str) -> dict:
+    """Delete a watch by its id.
+
+    Stops the scheduled runs and removes all associated history and screenshots.
+
+    Args:
+        watch_id: The id returned from khai_watch_create or khai_watch_list
+
+    Returns:
+        Confirmation of deletion.
+    """
+    return _unwrap(client.delete(f"/api/watches/{watch_id}"))
+
+
+@mcp.tool(annotations={"readOnlyHint": True})
+def khai_watch_history(watch_id: str, limit: int = 20) -> dict:
+    """Get recent run history for a watch.
+
+    Each run record shows whether content or visual changes were detected,
+    the diff summary, webhook delivery status, and any errors.
+
+    Args:
+        watch_id: The id returned from khai_watch_create or khai_watch_list
+        limit: Maximum number of recent runs to return (default 20)
+
+    Returns:
+        List of run records with status, changed, diff, timestamp, and webhook fields.
+    """
+    return _unwrap(client.get(f"/api/watches/{watch_id}/history?limit={limit}"))
 
 
 def main():
