@@ -4,7 +4,7 @@ milestone: v1.3
 milestone_name: Auto-Assertions
 status: executing
 stopped_at: Completed 20-02-PLAN.md (baseline REST API)
-last_updated: "2026-03-10T20:21:01.838Z"
+last_updated: "2026-03-10T20:24:32.362Z"
 last_activity: "2026-03-10 — 20-01 complete: crawler title capture + BaselineManager CRUD"
 progress:
   total_phases: 3
