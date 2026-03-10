@@ -3,6 +3,7 @@ const router = express.Router();
 const KhaiActions = require('../agent/actions');
 const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
+const { deliverWebhook } = require('../utils/webhook');
 
 // Store active action sessions
 const activeSessions = new Map();
@@ -22,7 +23,7 @@ function evictStale(map) {
 
 // Execute a sequence of actions
 router.post('/execute', async (req, res) => {
-  const { site, account, actions } = req.body;
+  const { site, account, actions, webhookUrl = null } = req.body;
 
   if (!site || !account || !actions) {
     return res.status(400).json(fail('Site, account, and actions are required'));
@@ -54,6 +55,8 @@ router.post('/execute', async (req, res) => {
       status: 'initializing',
       results: [],
       startTime: new Date().toISOString(),
+      webhookUrl: webhookUrl || null,
+      webhook: null,
       _createdAt: Date.now()
     });
 
@@ -74,6 +77,12 @@ router.post('/execute', async (req, res) => {
             session.status = 'login-failed';
             session.error = 'Login failed';
             try { await khai.close(); } catch (_) {}
+            if (session.webhookUrl) {
+              session.webhook = await deliverWebhook(session.webhookUrl, {
+                sessionId, status: session.status, results: session.results,
+                startTime: session.startTime, error: session.error
+              }, { operationType: 'action', operationId: sessionId });
+            }
             return;
           }
         }
@@ -144,22 +153,30 @@ router.post('/execute', async (req, res) => {
 
         session.status = 'completed';
         try { await khai.close(); } catch (_) {}
+        if (session.webhookUrl) {
+          session.webhook = await deliverWebhook(session.webhookUrl, {
+            sessionId, status: session.status, results: session.results,
+            startTime: session.startTime, error: null
+          }, { operationType: 'action', operationId: sessionId });
+        }
 
       } catch (error) {
         console.error('[Khai] Action error:', error);
         session.status = 'error';
         session.error = error.message || 'Action execution failed';
         try { await khai.close(); } catch (_) {}
+        if (session.webhookUrl) {
+          session.webhook = await deliverWebhook(session.webhookUrl, {
+            sessionId, status: session.status, results: session.results,
+            startTime: session.startTime, error: session.error
+          }, { operationType: 'action', operationId: sessionId });
+        }
       }
     })();
 
-    res.json(ok({
-      sessionId,
-      message: 'Action execution started',
-      site,
-      account,
-      actionCount: actions.length
-    }));
+    const startResponse = { sessionId, message: 'Action execution started', site, account, actionCount: actions.length };
+    if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+    res.json(ok(startResponse));
 
   } catch (error) {
     errorHandler(res, error, 'actions/execute');
@@ -180,7 +197,8 @@ router.get('/status/:sessionId', (req, res) => {
     status: session.status,
     actionsCompleted: session.results.length,
     error: session.error || null,
-    startTime: session.startTime
+    startTime: session.startTime,
+    webhook: session.webhook || null
   }));
 });
 
@@ -198,7 +216,8 @@ router.get('/results/:sessionId', (req, res) => {
     status: session.status,
     results: session.results,
     startTime: session.startTime,
-    error: session.error || null
+    error: session.error || null,
+    webhook: session.webhook || null
   }));
 });
 

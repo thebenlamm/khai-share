@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
+const { deliverWebhook } = require('../utils/webhook');
 
 // Store active audits
 const activeAudits = new Map();
@@ -82,7 +83,7 @@ router.get('/profiles', (req, res) => {
 
 // Start an audit
 router.post('/start', async (req, res) => {
-  const { site, baseUrl, useKhai = false, categories = null, profile: profileName = null } = req.body;
+  const { site, baseUrl, useKhai = false, categories = null, profile: profileName = null, webhookUrl = null } = req.body;
 
   if (!site && !baseUrl) {
     return res.status(400).json(fail('Either site name or baseUrl is required'));
@@ -114,28 +115,37 @@ router.post('/start', async (req, res) => {
     status: 'running',
     site: site || resolvedBaseUrl,
     startTime: new Date().toISOString(),
+    webhookUrl: webhookUrl || null,
+    webhook: null,
     _createdAt: Date.now()
   });
 
   (async () => {
+    const audit = activeAudits.get(auditId);
     try {
       const results = await auditor.run();
-      activeAudits.get(auditId).status = 'completed';
-      activeAudits.get(auditId).results = results;
+      audit.status = 'completed';
+      audit.results = results;
+      if (audit.webhookUrl) {
+        audit.webhook = await deliverWebhook(audit.webhookUrl, audit.results || {}, {
+          operationType: 'audit', operationId: auditId
+        });
+      }
     } catch (err) {
       console.error('[Audit] Error:', err);
-      activeAudits.get(auditId).status = 'error';
-      activeAudits.get(auditId).error = 'Audit failed';
+      audit.status = 'error';
+      audit.error = 'Audit failed';
+      if (audit.webhookUrl) {
+        audit.webhook = await deliverWebhook(audit.webhookUrl, { auditId, status: 'error', error: audit.error }, {
+          operationType: 'audit', operationId: auditId
+        });
+      }
     }
   })();
 
-  res.json(ok({
-    auditId,
-    message: 'Audit started',
-    site: site || resolvedBaseUrl,
-    useKhai,
-    categories: categories || 'all',
-  }));
+  const startResponse = { auditId, message: 'Audit started', site: site || resolvedBaseUrl, useKhai, categories: categories || 'all' };
+  if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+  res.json(ok(startResponse));
 });
 
 // Get audit status
@@ -163,6 +173,7 @@ router.get('/:auditId/status', (req, res) => {
     startTime: audit.startTime,
     summary,
     error: audit.error,
+    webhook: audit.webhook || null,
   }));
 });
 

@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
+const { deliverWebhook } = require('../utils/webhook');
 
 const VisualRegression = require('../agent/visualRegression');
 const FlowTester = require('../agent/flowTester');
@@ -236,12 +237,12 @@ router.post('/lighthouse', async (req, res) => {
 // ===========================
 
 router.post('/links/check', async (req, res) => {
-  const { baseUrl, maxPages, concurrency, timeout } = req.body;
+  const { baseUrl, maxPages, concurrency, timeout, webhookUrl = null } = req.body;
   if (!baseUrl) return res.status(400).json(fail('baseUrl is required'));
 
   const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   evictStale(activeJobs);
-  activeJobs.set(jobId, { type: 'link-check', status: 'running', startTime: new Date().toISOString(), _createdAt: Date.now() });
+  activeJobs.set(jobId, { type: 'link-check', status: 'running', startTime: new Date().toISOString(), webhookUrl: webhookUrl || null, webhook: null, _createdAt: Date.now() });
 
   (async () => {
     const lc = new LinkChecker({ baseUrl, maxPages, concurrency, timeout });
@@ -249,16 +250,30 @@ router.post('/links/check', async (req, res) => {
       await lc.init();
       const results = await lc.crawlAndCheck();
       await lc.close();
-      activeJobs.get(jobId).status = 'completed';
-      activeJobs.get(jobId).results = results;
+      const job = activeJobs.get(jobId);
+      job.status = 'completed';
+      job.results = results;
+      if (job.webhookUrl) {
+        job.webhook = await deliverWebhook(job.webhookUrl, job.results || {}, {
+          operationType: 'link-check', operationId: jobId
+        });
+      }
     } catch (err) {
       try { await lc.close(); } catch (_) {}
-      activeJobs.get(jobId).status = 'error';
-      activeJobs.get(jobId).error = 'Link check failed';
+      const job = activeJobs.get(jobId);
+      job.status = 'error';
+      job.error = 'Link check failed';
+      if (job.webhookUrl) {
+        job.webhook = await deliverWebhook(job.webhookUrl, { jobId, status: 'error', error: job.error }, {
+          operationType: 'link-check', operationId: jobId
+        });
+      }
     }
   })();
 
-  res.json(ok({ jobId, message: 'Link check started', baseUrl }));
+  const startResponse = { jobId, message: 'Link check started', baseUrl };
+  if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+  res.json(ok(startResponse));
 });
 
 // ===========================
@@ -305,7 +320,7 @@ router.get('/scheduler/:id/history', (req, res) => {
 router.get('/jobs/:jobId', (req, res) => {
   const job = activeJobs.get(req.params.jobId);
   if (!job) return res.status(404).json(fail('Job not found'));
-  const { results, _createdAt, ...meta } = job;
+  const { results, _createdAt, webhookUrl, ...meta } = job;
   res.json(ok(meta));
 });
 

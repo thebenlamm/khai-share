@@ -7,6 +7,7 @@ const path = require('path');
 const { loadCredentials } = require('../utils/config');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
+const { deliverWebhook } = require('../utils/webhook');
 
 // Store active tests with TTL-based eviction
 const activeTests = new Map();
@@ -52,7 +53,7 @@ router.get('/sites', (req, res) => {
 
 // Start a new test
 router.post('/test/start', async (req, res) => {
-  const { site, account, maxDepth = 3, viewport = 'desktop', startPath = null } = req.body;
+  const { site, account, maxDepth = 3, viewport = 'desktop', startPath = null, webhookUrl = null } = req.body;
 
   if (!site || !account) {
     return res.status(400).json(fail('Site and account are required'));
@@ -87,6 +88,8 @@ router.post('/test/start', async (req, res) => {
       site,
       account,
       startTime: new Date().toISOString(),
+      webhookUrl: webhookUrl || null,
+      webhook: null,
       _createdAt: Date.now()
     });
 
@@ -119,6 +122,12 @@ router.post('/test/start', async (req, res) => {
           fs.mkdirSync(REPORTS_DIR, { recursive: true });
           const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
           fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
+
+          if (test.webhookUrl) {
+            test.webhook = await deliverWebhook(test.webhookUrl, results, {
+              operationType: 'test', operationId: testId
+            });
+          }
           return;
         }
 
@@ -138,20 +147,28 @@ router.post('/test/start', async (req, res) => {
         const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
         fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
 
+        if (test.webhookUrl) {
+          test.webhook = await deliverWebhook(test.webhookUrl, results, {
+            operationType: 'test', operationId: testId
+          });
+        }
+
       } catch (error) {
         console.error('[Khai] Test error:', error);
         test.status = 'error';
         test.error = 'Test failed';
         try { await crawler.close(); } catch (_) {}
+        if (test.webhookUrl) {
+          test.webhook = await deliverWebhook(test.webhookUrl, { testId, status: 'error', error: test.error }, {
+            operationType: 'test', operationId: testId
+          });
+        }
       }
     })();
 
-    res.json(ok({
-      testId,
-      message: 'Khai test started',
-      site,
-      account
-    }));
+    const startResponse = { testId, message: 'Khai test started', site, account };
+    if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+    res.json(ok(startResponse));
 
   } catch (error) {
     errorHandler(res, error, 'test/start');
@@ -182,7 +199,8 @@ router.get('/test/:testId/status', (req, res) => {
       summary: completed ? completed.summary : null,
       error: test.error || null,
       loginError: test.loginError || null,
-      pendingPurchase: null
+      pendingPurchase: null,
+      webhook: test.webhook || null
     }));
   }
 
