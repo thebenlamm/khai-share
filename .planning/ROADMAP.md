@@ -5,6 +5,7 @@
 - v1.0 MVP -- Phases 1, 5-12 (shipped 2026-03-04)
 - v1.1 Beta Feedback -- Phases 13-16 (shipped 2026-03-05)
 - v1.2 Integration & Monitoring -- Phases 17-19 (shipped 2026-03-10)
+- v1.3 Auto-Assertions -- Phases 20-22 (active)
 
 ## Phases
 
@@ -48,6 +49,51 @@
 
 </details>
 
+### v1.3 Auto-Assertions (Active)
+
+- [ ] **Phase 20: Baseline Engine** - Crawl captures page metadata; baseline CRUD REST API with threshold config
+- [ ] **Phase 21: Regression Detection** - Comparison engine diffs current crawl against baseline; regressions surface in results and webhooks
+- [ ] **Phase 22: MCP Tools** - Claude Code tools for baseline management and regression visibility
+
+---
+
+## Phase Details
+
+### Phase 20: Baseline Engine
+**Goal**: Users can create, view, update, and delete baselines that capture crawl snapshot data with configurable timing thresholds
+**Depends on**: Phase 19 (existing crawl infrastructure)
+**Requirements**: BASE-01, BASE-02, BASE-03, BASE-04, BASE-05, THRS-01, THRS-02
+**Success Criteria** (what must be TRUE):
+  1. User can create a baseline from a completed crawl test ID and see it stored with page URLs, titles, status codes, and response timing
+  2. User can list all baselines for a site+account and see each baseline's metadata
+  3. User can view the full snapshot data captured in a specific baseline
+  4. User can delete a baseline and confirm it no longer appears in listings
+  5. User can update a baseline from a new crawl test and the baseline ID and any custom thresholds are preserved
+**Plans:** 2 plans
+Plans:
+- [ ] 20-01-PLAN.md -- Crawler title capture + BaselineManager CRUD module
+- [ ] 20-02-PLAN.md -- Baseline REST API routes + documentation updates
+
+### Phase 21: Regression Detection
+**Goal**: Crawl completions automatically compare against the site's active baseline and surface regressions in results and webhooks
+**Depends on**: Phase 20
+**Requirements**: REGR-01, REGR-02, REGR-03, REGR-04
+**Success Criteria** (what must be TRUE):
+  1. When a crawl completes for a site+account with an active baseline, regression detection runs automatically without user action
+  2. Regression results show specific diffs: changed titles, new or missing pages, status code changes, and timing degradation against threshold
+  3. GET /api/test/{testId}/results includes a regressions field alongside the existing issues data when a baseline exists
+  4. Webhook payloads for crawl completion include a regression summary when a baseline exists for that site+account
+**Plans**: TBD
+
+### Phase 22: MCP Tools
+**Goal**: Claude Code can create baselines and inspect regression results directly through MCP tools without using the REST API
+**Depends on**: Phase 21
+**Requirements**: MCPA-01, MCPA-02
+**Success Criteria** (what must be TRUE):
+  1. Claude Code can call a single MCP tool to create a baseline from a crawl test ID and receive confirmation with baseline details
+  2. Claude Code can call a single MCP tool to list baselines for a site, view a specific baseline's snapshot, or delete a baseline
+**Plans**: TBD
+
 ---
 
 ## Progress
@@ -70,3 +116,6 @@
 | 17. Webhooks | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 18. Watches | v1.2 | 3/3 | Complete | 2026-03-10 |
 | 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
+| 20. Baseline Engine | v1.3 | 0/2 | Planning | - |
+| 21. Regression Detection | v1.3 | 0/? | Not started | - |
+| 22. MCP Tools | v1.3 | 0/? | Not started | - |

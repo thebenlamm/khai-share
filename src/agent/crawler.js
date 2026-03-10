@@ -301,6 +301,7 @@ class WebsiteCrawler {
 
     const pageResult = {
       url,
+      title: null,
       status: null,
       loadTime: null,
       issues: [],
@@ -316,6 +317,9 @@ class WebsiteCrawler {
       });
       pageResult.loadTime = Date.now() - startTime;
       pageResult.status = response ? response.status() : null;
+
+      // Capture page title
+      pageResult.title = await this.page.title();
 
       // Take screenshot
       const screenshotName = this.urlToFilename(url);
