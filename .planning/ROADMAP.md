@@ -83,7 +83,7 @@ Plans:
   2. Regression results show specific diffs: changed titles, new or missing pages, status code changes, and timing degradation against threshold
   3. GET /api/test/{testId}/results includes a regressions field alongside the existing issues data when a baseline exists
   4. Webhook payloads for crawl completion include a regression summary when a baseline exists for that site+account
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 21-01-PLAN.md -- RegressionDetector pure comparison module
 - [ ] 21-02-PLAN.md -- Wire regression detection into crawl completion, results, and webhooks
@@ -120,5 +120,5 @@ Plans:
 | 18. Watches | v1.2 | 3/3 | Complete | 2026-03-10 |
 | 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 20. Baseline Engine | v1.3 | 2/2 | Complete | 2026-03-10 |
-| 21. Regression Detection | v1.3 | 0/2 | Not started | - |
+| 21. Regression Detection | 1/2 | In Progress|  | - |
 | 22. MCP Tools | v1.3 | 0/? | Not started | - |
