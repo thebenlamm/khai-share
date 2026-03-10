@@ -9,7 +9,7 @@ const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
 const { detectRegressions } = require('../agent/regressionDetector');
-const { baselineManager } = require('./baselines');
+const { manager: baselineManager } = require('./baselines');
 
 // Store active tests with TTL-based eviction
 const activeTests = new Map();
