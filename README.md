@@ -120,6 +120,7 @@ The four start tools (`khai_start_test`, `khai_execute_actions`, `khai_run_audit
 - **Purchase testing** — fill payment forms (requires confirmation before completing)
 - **Communication monitoring** — email, SMS, fax inbox monitoring with verification code extraction
 - **Password rotation** — automated password changes with 2FA support
+- **Crawl baselines** — capture and store crawl snapshots with configurable timing thresholds for regression detection
 
 ## Configuration
 
@@ -250,6 +251,35 @@ curl "http://localhost:3001/api/watches/{watchId}/history?limit=10"
 
 # Trigger an immediate run
 curl -X POST http://localhost:3001/api/watches/{watchId}/run
+```
+
+### Baselines
+- `POST /api/baselines` — Create a baseline from a completed crawl test
+- `GET /api/baselines` — List all baselines (supports `?site=yoursite.com` filter)
+- `GET /api/baselines/:id` — Get full baseline with snapshot page data
+- `PUT /api/baselines/:id` — Update baseline from new crawl test (preserves ID and thresholds)
+- `DELETE /api/baselines/:id` — Delete a baseline
+
+```bash
+# Create a baseline from a completed crawl test
+curl -X POST http://localhost:3001/api/baselines \
+  -H "Content-Type: application/json" \
+  -d '{"testId": "uuid-from-crawl", "thresholds": {"responseTime": 5000, "pageLoadTime": 10000}}'
+
+# List all baselines (optional site filter)
+curl http://localhost:3001/api/baselines
+curl "http://localhost:3001/api/baselines?site=yoursite.com"
+
+# Get full baseline with snapshot data
+curl http://localhost:3001/api/baselines/{baselineId}
+
+# Update baseline from new crawl test
+curl -X PUT http://localhost:3001/api/baselines/{baselineId} \
+  -H "Content-Type: application/json" \
+  -d '{"testId": "new-crawl-test-uuid"}'
+
+# Delete a baseline
+curl -X DELETE http://localhost:3001/api/baselines/{baselineId}
 ```
 
 ## File Structure

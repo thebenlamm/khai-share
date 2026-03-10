@@ -95,6 +95,30 @@ curl http://localhost:3001/health
 curl http://localhost:3001/api/sites
 ```
 
+### Baselines
+
+```bash
+# Create a baseline from a completed crawl test
+curl -X POST http://localhost:3001/api/baselines \
+  -H "Content-Type: application/json" \
+  -d '{"testId": "uuid-from-crawl", "thresholds": {"responseTime": 5000, "pageLoadTime": 10000}}'
+
+# List all baselines (optional site filter)
+curl http://localhost:3001/api/baselines
+curl http://localhost:3001/api/baselines?site=yoursite.com
+
+# Get full baseline with snapshot data
+curl http://localhost:3001/api/baselines/{baselineId}
+
+# Update baseline from new crawl test
+curl -X PUT http://localhost:3001/api/baselines/{baselineId} \
+  -H "Content-Type: application/json" \
+  -d '{"testId": "new-crawl-test-uuid"}'
+
+# Delete a baseline
+curl -X DELETE http://localhost:3001/api/baselines/{baselineId}
+```
+
 ### Crawl Testing
 
 ```bash
@@ -344,6 +368,7 @@ Suggest **"Should I summon Khai?"** when the user needs:
 - Webhook notifications on operation completion
 - Monitoring authenticated pages for content or visual changes on a schedule
 - Network traffic analysis and HAR recording during browser sessions
+- Creating and managing crawl baselines for regression detection
 
 ## Output
 
