@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const KhaiActions = require('../agent/actions');
 const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
@@ -23,7 +25,7 @@ function evictStale(map) {
 
 // Execute a sequence of actions
 router.post('/execute', async (req, res) => {
-  const { site, account, actions, webhookUrl = null } = req.body;
+  const { site, account, actions, webhookUrl = null, recordHar = false } = req.body;
 
   if (!site || !account || !actions) {
     return res.status(400).json(fail('Site, account, and actions are required'));
@@ -57,16 +59,44 @@ router.post('/execute', async (req, res) => {
       startTime: new Date().toISOString(),
       webhookUrl: webhookUrl || null,
       webhook: null,
+      recordHar: !!recordHar,
+      harFile: null,
       _createdAt: Date.now()
     });
 
     // Run actions in background
     (async () => {
       const session = activeSessions.get(sessionId);
+      let harRecorder = null;
+
+      // Helper: stop HAR recorder and save to disk (partial traces are valuable)
+      async function saveHar() {
+        if (!harRecorder) return;
+        try {
+          const har = await harRecorder.stop();
+          const harDir = path.join(__dirname, '../../reports/har');
+          fs.mkdirSync(harDir, { recursive: true });
+          const harPath = path.join(harDir, sessionId + '.har');
+          fs.writeFileSync(harPath, JSON.stringify(har, null, 2));
+          session.harFile = harPath;
+          console.log(`[Khai] HAR saved to ${harPath}`);
+        } catch (harError) {
+          console.error('[Khai] Failed to save HAR:', harError.message);
+        }
+        harRecorder = null;
+      }
 
       try {
         await khai.init();
         session.status = 'logging-in';
+
+        // Start HAR recording after browser is initialized
+        if (session.recordHar) {
+          const { HarRecorder } = require('../utils/har-recorder');
+          harRecorder = new HarRecorder(khai.page);
+          await harRecorder.start();
+          console.log('[Khai] HAR recording started');
+        }
 
         let loginSuccess = true;
         if (accountConfig.skipLogin) {
@@ -76,11 +106,13 @@ router.post('/execute', async (req, res) => {
           if (!loginSuccess) {
             session.status = 'login-failed';
             session.error = 'Login failed';
+            await saveHar();
             try { await khai.close(); } catch (_) {}
             if (session.webhookUrl) {
               session.webhook = await deliverWebhook(session.webhookUrl, {
                 sessionId, status: session.status, results: session.results,
-                startTime: session.startTime, error: session.error
+                startTime: session.startTime, error: session.error,
+                harFile: session.harFile || null
               }, { operationType: 'action', operationId: sessionId });
             }
             return;
@@ -152,11 +184,13 @@ router.post('/execute', async (req, res) => {
         }
 
         session.status = 'completed';
+        await saveHar();
         try { await khai.close(); } catch (_) {}
         if (session.webhookUrl) {
           session.webhook = await deliverWebhook(session.webhookUrl, {
             sessionId, status: session.status, results: session.results,
-            startTime: session.startTime, error: null
+            startTime: session.startTime, error: null,
+            harFile: session.harFile || null
           }, { operationType: 'action', operationId: sessionId });
         }
 
@@ -164,11 +198,13 @@ router.post('/execute', async (req, res) => {
         console.error('[Khai] Action error:', error);
         session.status = 'error';
         session.error = error.message || 'Action execution failed';
+        await saveHar();
         try { await khai.close(); } catch (_) {}
         if (session.webhookUrl) {
           session.webhook = await deliverWebhook(session.webhookUrl, {
             sessionId, status: session.status, results: session.results,
-            startTime: session.startTime, error: session.error
+            startTime: session.startTime, error: session.error,
+            harFile: session.harFile || null
           }, { operationType: 'action', operationId: sessionId });
         }
       }
@@ -176,6 +212,7 @@ router.post('/execute', async (req, res) => {
 
     const startResponse = { sessionId, message: 'Action execution started', site, account, actionCount: actions.length };
     if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+    if (recordHar) startResponse.recordHar = true;
     res.json(ok(startResponse));
 
   } catch (error) {
@@ -198,7 +235,8 @@ router.get('/status/:sessionId', (req, res) => {
     actionsCompleted: session.results.length,
     error: session.error || null,
     startTime: session.startTime,
-    webhook: session.webhook || null
+    webhook: session.webhook || null,
+    harFile: session.harFile || null
   }));
 });
 
@@ -217,8 +255,34 @@ router.get('/results/:sessionId', (req, res) => {
     results: session.results,
     startTime: session.startTime,
     error: session.error || null,
-    webhook: session.webhook || null
+    webhook: session.webhook || null,
+    harFile: session.harFile || null
   }));
+});
+
+// Download HAR file for a completed session
+router.get('/har/:sessionId', (req, res) => {
+  const { sessionId } = req.params;
+  const session = activeSessions.get(sessionId);
+
+  if (!session) {
+    return res.status(404).json(fail('Session not found'));
+  }
+
+  if (!session.harFile) {
+    return res.status(404).json(fail('No HAR file for this session. Was recordHar enabled?'));
+  }
+
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename="${sessionId}.har"`);
+  const harStream = fs.createReadStream(session.harFile);
+  harStream.on('error', (err) => {
+    console.error('[Khai] HAR stream error:', err.message);
+    if (!res.headersSent) {
+      res.status(500).json(fail('Failed to read HAR file'));
+    }
+  });
+  harStream.pipe(res);
 });
 
 // Quick action endpoints that delegate to /execute
