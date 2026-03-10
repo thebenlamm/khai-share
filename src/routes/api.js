@@ -8,6 +8,8 @@ const { loadCredentials } = require('../utils/config');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
+const { detectRegressions } = require('../agent/regressionDetector');
+const { baselineManager } = require('./baselines');
 
 // Store active tests with TTL-based eviction
 const activeTests = new Map();
@@ -139,6 +141,18 @@ router.post('/test/start', async (req, res) => {
         const results = await crawler.close();
         test.status = 'completed';
         test.phase = 'complete';
+
+        // Regression detection — runs automatically when a baseline exists for this site+account
+        try {
+          const baseline = baselineManager.getBaselineForSite(results.site, results.account);
+          results.regressions = baseline
+            ? detectRegressions(baseline, results.pages)
+            : null;
+        } catch (err) {
+          console.error('[Khai] Regression detection error:', err);
+          results.regressions = null;
+        }
+
         evictStale(completedTests);
         completedTests.set(testId, { ...results, _createdAt: Date.now() });
 
