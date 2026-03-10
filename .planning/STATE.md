@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Integration & Monitoring
 status: completed
-stopped_at: Completed 18-02-PLAN.md (Watch REST routes)
-last_updated: "2026-03-10T17:16:22.297Z"
+stopped_at: Completed 18-03-PLAN.md (Watch MCP tools)
+last_updated: "2026-03-10T17:20:06.631Z"
 last_activity: "2026-03-10 -- Completed 17-02: MCP webhook parameters and full documentation sync"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 33
 ---
 
@@ -54,6 +54,7 @@ Recent decisions affecting current work:
 - [Phase 18-watches]: pixelmatch v7 CJS import: use .default || fallback for CJS/ESM compatibility
 - [Phase 18-watches]: Visual change threshold: >1% pixel diff to reduce false positives from animations
 - [Phase 18-watches]: Single require() call gives both watchRouter and watchManager via .manager property; fire-and-forget POST /run returns 202; cron errors return 400
+- [Phase 18-watches]: Added put() and delete() to client.py since khai_watch_delete requires DELETE HTTP method
 
 ### Pending Todos
 
@@ -71,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10T17:16:22.295Z
-Stopped at: Completed 18-02-PLAN.md (Watch REST routes)
+Last session: 2026-03-10T17:20:06.629Z
+Stopped at: Completed 18-03-PLAN.md (Watch MCP tools)
 Resume file: None

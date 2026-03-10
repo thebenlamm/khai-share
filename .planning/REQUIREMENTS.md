@@ -21,7 +21,7 @@
 - [x] **WATCH-04**: Watch fires webhook notification when a change is detected
 - [x] **WATCH-05**: User can list, create, update, and delete watches via REST API
 - [x] **WATCH-06**: Watch history stores snapshots and change events for review
-- [ ] **WATCH-07**: MCP tools expose watch management (list, create, delete, get results)
+- [x] **WATCH-07**: MCP tools expose watch management (list, create, delete, get results)
 
 ### HAR Export
 
@@ -62,7 +62,7 @@
 | WATCH-04 | Phase 18 | Complete |
 | WATCH-05 | Phase 18 | Complete |
 | WATCH-06 | Phase 18 | Complete |
-| WATCH-07 | Phase 18 | Pending |
+| WATCH-07 | Phase 18 | Complete |
 | HAR-01 | Phase 19 | Pending |
 | HAR-02 | Phase 19 | Pending |
 | HAR-03 | Phase 19 | Pending |
