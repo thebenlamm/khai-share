@@ -515,7 +515,7 @@ def khai_baseline_get(baseline_id: str) -> dict:
 
     Returns:
         Full baseline object including snapshot.pages array with per-page data
-        (url, title, statusCode, responseTime, pageLoadTime).
+        (url, title, status, loadTime).
     """
     try:
         return _unwrap(client.get(f"/api/baselines/{baseline_id}"))
