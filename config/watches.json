@@ -1,0 +1,46 @@
+{
+  "watches": [
+    {
+      "id": "8eb4c044-6e14-4658-8b41-4a5049bd316d",
+      "site": "test",
+      "account": "admin",
+      "url": "http://example.com",
+      "selector": null,
+      "schedule": "0 * * * *",
+      "webhookUrl": null,
+      "enabled": true,
+      "createdAt": "2026-03-10T17:15:17.682Z",
+      "updatedAt": "2026-03-10T17:15:17.682Z"
+    }
+  ],
+  "history": {
+    "8eb4c044-6e14-4658-8b41-4a5049bd316d": [
+      {
+        "runId": "f4f1c11b-5aa0-4dae-9a34-b0def948ebd5",
+        "watchId": "8eb4c044-6e14-4658-8b41-4a5049bd316d",
+        "timestamp": "2026-03-10T18:00:00.063Z",
+        "status": "error",
+        "contentHash": "",
+        "screenshotPath": "screenshots/watches/8eb4c044-6e14-4658-8b41-4a5049bd316d/f4f1c11b-5aa0-4dae-9a34-b0def948ebd5.png",
+        "contentText": "",
+        "changed": false,
+        "diff": null,
+        "webhook": null,
+        "error": "Site not found: test"
+      },
+      {
+        "runId": "4bee2a24-0922-4e1a-aa74-1572f3024955",
+        "watchId": "8eb4c044-6e14-4658-8b41-4a5049bd316d",
+        "timestamp": "2026-03-10T19:00:00.041Z",
+        "status": "error",
+        "contentHash": "",
+        "screenshotPath": "screenshots/watches/8eb4c044-6e14-4658-8b41-4a5049bd316d/4bee2a24-0922-4e1a-aa74-1572f3024955.png",
+        "contentText": "",
+        "changed": false,
+        "diff": null,
+        "webhook": null,
+        "error": "Site not found: test"
+      }
+    ]
+  }
+}

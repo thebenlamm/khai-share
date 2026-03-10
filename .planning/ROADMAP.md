@@ -4,7 +4,7 @@
 
 - v1.0 MVP -- Phases 1, 5-12 (shipped 2026-03-04)
 - v1.1 Beta Feedback -- Phases 13-16 (shipped 2026-03-05)
-- v1.2 Integration & Monitoring -- Phases 17-19 (in progress)
+- v1.2 Integration & Monitoring -- Phases 17-19 (shipped 2026-03-10)
 
 ## Phases
 
@@ -37,68 +37,16 @@
 
 </details>
 
----
+<details>
+<summary>v1.2 Integration & Monitoring (Phases 17-19) -- SHIPPED 2026-03-10</summary>
 
-### v1.2 Integration & Monitoring (In Progress)
+- [x] Phase 17: Webhooks (2/2 plans) -- completed 2026-03-10
+- [x] Phase 18: Watches (3/3 plans) -- completed 2026-03-10
+- [x] Phase 19: HAR Export (2/2 plans) -- completed 2026-03-10
 
-**Milestone Goal:** Add webhook-based integrations, authenticated page monitoring, and network trace export so Khai can push results to external systems and detect changes on authenticated pages over time.
+**Full details:** `.planning/milestones/v1.2-ROADMAP.md`
 
-## Phase Summary
-
-- [x] **Phase 17: Webhooks** - Operations can POST signed results to external URLs on completion (completed 2026-03-10)
-- [x] **Phase 18: Watches** - Scheduled authenticated page monitoring with change detection (completed 2026-03-10)
-- [x] **Phase 19: HAR Export** - Full network trace recording and retrieval for action sessions (completed 2026-03-10)
-
-## Phase Details
-
-### Phase 17: Webhooks
-**Goal**: Any async operation can notify an external system when it completes
-**Depends on**: Phase 16 (consistent 3-tool MCP pattern established)
-**Requirements**: HOOK-01, HOOK-02, HOOK-03, HOOK-04, HOOK-05
-**Success Criteria** (what must be TRUE):
-  1. User can pass a `webhookUrl` to any start operation (test, audit, action, link check) and receive a POST to that URL when the operation completes
-  2. Webhook payload contains the full operation results, not just a status signal
-  3. If the webhook endpoint is down or returns an error, Khai retries up to 3 times with exponential backoff before giving up
-  4. Webhook requests include an HMAC-SHA256 signature header computed from a configurable shared secret, verifiable by the receiver
-  5. Operation results include a `webhook` field showing delivery status (delivered, failed, or retrying)
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 17-01-PLAN.md -- Webhook delivery engine and route integration
-- [ ] 17-02-PLAN.md -- MCP tool parameters and documentation updates
-
-### Phase 18: Watches
-**Goal**: Users can monitor authenticated pages on a schedule and be alerted when content changes
-**Depends on**: Phase 17 (webhook delivery consumed by WATCH-04)
-**Requirements**: WATCH-01, WATCH-02, WATCH-03, WATCH-04, WATCH-05, WATCH-06, WATCH-07
-**Success Criteria** (what must be TRUE):
-  1. User can create a watch by specifying a site, account, URL, optional CSS selector, and cron schedule, and Khai begins running it automatically
-  2. On each scheduled run, Khai logs into the site and captures current page content and a screenshot
-  3. Khai compares the current snapshot to the previous one and surfaces a diff (content and/or visual) when something has changed
-  4. When a change is detected, Khai fires a webhook notification to the configured URL
-  5. User can list, create, update, and delete watches via REST API and via MCP tools
-  6. Watch history stores past snapshots and change events so users can review what changed and when
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] 18-01-PLAN.md -- WatchManager agent: cron scheduling, browser capture, diff, webhook, persistence
-- [ ] 18-02-PLAN.md -- REST API routes for watch CRUD and history, server.js integration
-- [ ] 18-03-PLAN.md -- MCP tools (khai_watch_create/list/delete/history) and documentation updates
-
-### Phase 19: HAR Export
-**Goal**: Action sessions can record the full network trace so users can replay and analyze browser activity
-**Depends on**: Phase 16 (action session pattern established; HAR is additive)
-**Requirements**: HAR-01, HAR-02, HAR-03, HAR-04
-**Success Criteria** (what must be TRUE):
-  1. User can add a `recordHar: true` parameter when starting an action session to enable HAR capture
-  2. All network requests and responses made during the session are captured via Chrome DevTools Protocol and written to a valid HAR file
-  3. Completed HAR files are saved to disk and retrievable via a REST endpoint for that session
-  4. MCP tool exposes HAR retrieval so Claude Code can access the network trace without using the REST API directly
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 19-01-PLAN.md -- HAR recorder utility and action route integration
-- [ ] 19-02-PLAN.md -- MCP tool for HAR retrieval and documentation updates
+</details>
 
 ---
 
@@ -121,4 +69,4 @@ Plans:
 | 16. MCP tool consistency | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 17. Webhooks | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 18. Watches | v1.2 | 3/3 | Complete | 2026-03-10 |
-| 19. HAR Export | 2/2 | Complete   | 2026-03-10 | - |
+| 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
