@@ -78,6 +78,10 @@ Add to your Claude Code MCP settings:
 | `khai_run_audit` | Start a security/configuration audit (supports webhook_url) |
 | `khai_audit_results` | Get audit status and results |
 | `khai_check_links` | Check a site for broken links (supports webhook_url) |
+| `khai_watch_create` | Create a scheduled watch to monitor an authenticated page for changes |
+| `khai_watch_list` | List all configured watches and their status |
+| `khai_watch_delete` | Delete a watch by id |
+| `khai_watch_history` | Get recent run history for a watch |
 
 ### Workflow
 
@@ -208,6 +212,42 @@ The Express server also exposes a REST API directly on `localhost:3001`. This is
 - `POST /api/comms/stop` — Stop monitoring
 - `GET /api/comms/messages` — Get messages
 - `GET /api/comms/unread` — Get unread counts
+
+### Watches
+- `POST /api/watches` — Create a watch
+- `GET /api/watches` — List all watches
+- `GET /api/watches/:id` — Get a watch
+- `PUT /api/watches/:id` — Update a watch
+- `DELETE /api/watches/:id` — Delete a watch
+- `GET /api/watches/:id/history` — Get watch run history (supports `?limit=N`)
+- `POST /api/watches/:id/run` — Trigger an immediate run
+
+```bash
+# Create a watch
+curl -X POST http://localhost:3001/api/watches \
+  -H "Content-Type: application/json" \
+  -d '{"site": "yoursite.com", "account": "admin", "url": "/dashboard", "schedule": "0 * * * *", "webhookUrl": "https://example.com/hook"}'
+
+# List all watches
+curl http://localhost:3001/api/watches
+
+# Get a watch
+curl http://localhost:3001/api/watches/{watchId}
+
+# Update a watch
+curl -X PUT http://localhost:3001/api/watches/{watchId} \
+  -H "Content-Type: application/json" \
+  -d '{"schedule": "*/30 * * * *", "enabled": true}'
+
+# Delete a watch
+curl -X DELETE http://localhost:3001/api/watches/{watchId}
+
+# Get watch run history
+curl "http://localhost:3001/api/watches/{watchId}/history?limit=10"
+
+# Trigger an immediate run
+curl -X POST http://localhost:3001/api/watches/{watchId}/run
+```
 
 ## File Structure
 

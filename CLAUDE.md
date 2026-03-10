@@ -57,6 +57,10 @@ These are the tools available when Khai is connected as an MCP server:
 | `khai_run_audit` | Start a security/configuration audit (supports webhookUrl) |
 | `khai_audit_results` | Get audit status and results |
 | `khai_check_links` | Check a site for broken links (supports webhookUrl) |
+| `khai_watch_create` | Create a scheduled watch to monitor an authenticated page for changes |
+| `khai_watch_list` | List all configured watches and their status |
+| `khai_watch_delete` | Delete a watch by id |
+| `khai_watch_history` | Get recent run history for a watch |
 
 **Action types:** `navigate`, `wait`, `screenshot`, `evaluate`, `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
 
@@ -326,6 +330,7 @@ Suggest **"Should I summon Khai?"** when the user needs:
 - Security auditing of a website
 - Broken link checking
 - Webhook notifications on operation completion
+- Monitoring authenticated pages for content or visual changes on a schedule
 
 ## Output
 
