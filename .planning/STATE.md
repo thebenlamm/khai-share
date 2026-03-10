@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Integration & Monitoring
-status: active
-stopped_at: null
-last_updated: "2026-03-10T16:33:33Z"
-last_activity: 2026-03-10 -- Completed 17-01 (webhook delivery engine)
+status: completed
+stopped_at: Completed 17-02-PLAN.md (MCP webhook parameters and docs)
+last_updated: "2026-03-10T16:40:14.260Z"
+last_activity: "2026-03-10 -- Completed 17-02: MCP webhook parameters and full documentation sync"
 progress:
-  total_phases: 19
-  completed_phases: 16
-  total_plans: TBD
-  completed_plans: 23
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
   percent: 33
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 ## Current Position
 
 Phase: 17 of 19 (Webhooks)
-Plan: 1 of 1 in current phase (complete)
+Plan: 2 of 2 in current phase (complete)
 Status: Phase 17 complete — ready for Phase 18 (Watches)
-Last activity: 2026-03-10 -- Completed 17-01: webhook delivery engine with HMAC signing and retry
+Last activity: 2026-03-10 -- Completed 17-02: MCP webhook parameters and full documentation sync
 
 Progress: [███░░░░░░░] 33% (v1.2 phases — Phase 17 complete)
 
@@ -50,6 +50,7 @@ Recent decisions affecting current work:
 - Watches depend on webhooks: WATCH-04 fires webhook on change detection, so Phase 18 depends on Phase 17
 - Webhook utility uses Node.js built-in http/https/crypto only — no new dependencies (Phase 17)
 - Webhook fires on ALL terminal states (completed, error, login-failed); 4xx = permanent, network/5xx/timeout = retry (Phase 17)
+- [Phase 17-webhooks]: webhook_url optional param on all 4 start-operation MCP tools; backward compatible with None default
 
 ### Pending Todos
 
@@ -67,6 +68,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10T16:33:33Z
-Stopped at: Completed 17-01-PLAN.md (webhook delivery engine)
+Last session: 2026-03-10T16:40:07.063Z
+Stopped at: Completed 17-02-PLAN.md (MCP webhook parameters and docs)
 Resume file: None

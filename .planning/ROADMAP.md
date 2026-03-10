@@ -45,7 +45,7 @@
 
 ## Phase Summary
 
-- [ ] **Phase 17: Webhooks** - Operations can POST signed results to external URLs on completion
+- [x] **Phase 17: Webhooks** - Operations can POST signed results to external URLs on completion (completed 2026-03-10)
 - [ ] **Phase 18: Watches** - Scheduled authenticated page monitoring with change detection
 - [ ] **Phase 19: HAR Export** - Full network trace recording and retrieval for action sessions
 
@@ -61,7 +61,7 @@
   3. If the webhook endpoint is down or returns an error, Khai retries up to 3 times with exponential backoff before giving up
   4. Webhook requests include an HMAC-SHA256 signature header computed from a configurable shared secret, verifiable by the receiver
   5. Operation results include a `webhook` field showing delivery status (delivered, failed, or retrying)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 17-01-PLAN.md -- Webhook delivery engine and route integration
@@ -110,6 +110,6 @@ Plans:
 | 14. Issue dedup & severity | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 15. Crawl accuracy | v1.1 | 1/1 | Complete | 2026-03-05 |
 | 16. MCP tool consistency | v1.1 | 1/1 | Complete | 2026-03-05 |
-| 17. Webhooks | 1/2 | In Progress|  | - |
+| 17. Webhooks | 2/2 | Complete   | 2026-03-10 | - |
 | 18. Watches | v1.2 | 0/TBD | Not started | - |
 | 19. HAR Export | v1.2 | 0/TBD | Not started | - |
