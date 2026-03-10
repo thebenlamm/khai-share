@@ -68,6 +68,12 @@ After the session completes, use khai_action_har to retrieve the full HAR 1.2 fi
 API calls, analyzing page load waterfalls, and auditing network behavior. The HAR file can be opened in
 Chrome DevTools (Network tab > Import) or any HAR viewer.
 
+Baselines & Regression Detection: Use khai_baseline_create to snapshot a completed crawl as a baseline.
+Use khai_baseline_list and khai_baseline_get to inspect baselines. Use khai_baseline_update to refresh
+from a new crawl. Use khai_baseline_delete to remove a baseline. When a crawl completes for a site with
+an active baseline, regressions (title changes, missing pages, status code changes, timing degradation)
+appear automatically in test results.
+
 IMPORTANT: Khai's Express server (localhost:3001) must be running. Check with khai_list_sites first.
 """,
 )
@@ -445,6 +451,115 @@ def khai_watch_history(watch_id: str, limit: int = 20) -> dict:
         List of run records with status, changed, diff, timestamp, and webhook fields.
     """
     return _unwrap(client.get(f"/api/watches/{watch_id}/history?limit={limit}"))
+
+
+@mcp.tool(annotations={"destructiveHint": True})
+def khai_baseline_create(
+    test_id: str,
+    thresholds: dict | None = None,
+) -> dict:
+    """Create a baseline from a completed crawl test.
+
+    Snapshots the crawl results so future crawls on the same site can be compared
+    against it for regression detection. Only one baseline is allowed per site+account;
+    use khai_baseline_update to refresh an existing baseline.
+
+    Args:
+        test_id: The testId from a completed khai_start_test crawl
+        thresholds: Optional timing thresholds dict to override defaults.
+            Supported keys: responseTime (ms), pageLoadTime (ms).
+            Example: {"responseTime": 3000, "pageLoadTime": 8000}
+
+    Returns:
+        Created baseline object with id, site, account, sourceTestId, createdAt,
+        thresholds, and snapshot summary (pageCount).
+    """
+    try:
+        payload: dict = {"testId": test_id}
+        if thresholds:
+            payload["thresholds"] = thresholds
+        return _unwrap(client.post("/api/baselines", payload))
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool(annotations={"readOnlyHint": True})
+def khai_baseline_list(site: str | None = None) -> dict:
+    """List all configured baselines.
+
+    Returns metadata for each baseline (excludes snapshot page details for compact output).
+    Use khai_baseline_get to retrieve full snapshot data for a specific baseline.
+
+    Args:
+        site: Optional site name to filter results (e.g. "yoursite.com")
+
+    Returns:
+        List of baseline objects with id, site, account, sourceTestId, createdAt,
+        updatedAt, thresholds, and pageCount.
+    """
+    try:
+        path = "/api/baselines"
+        if site:
+            path = f"/api/baselines?site={site}"
+        return _unwrap(client.get(path))
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool(annotations={"readOnlyHint": True})
+def khai_baseline_get(baseline_id: str) -> dict:
+    """Get full details for a specific baseline, including all snapshot pages.
+
+    Args:
+        baseline_id: The baseline id from khai_baseline_list or khai_baseline_create
+
+    Returns:
+        Full baseline object including snapshot.pages array with per-page data
+        (url, title, statusCode, responseTime, pageLoadTime).
+    """
+    try:
+        return _unwrap(client.get(f"/api/baselines/{baseline_id}"))
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool(annotations={"destructiveHint": True})
+def khai_baseline_update(baseline_id: str, test_id: str) -> dict:
+    """Update an existing baseline from a new crawl test.
+
+    Replaces the snapshot data while preserving the baseline id and thresholds.
+    Use this to refresh a baseline after deploying changes.
+
+    Args:
+        baseline_id: The baseline id from khai_baseline_list or khai_baseline_create
+        test_id: The testId from a completed khai_start_test crawl to use as new snapshot
+
+    Returns:
+        Updated baseline object with new snapshot data and updatedAt timestamp.
+    """
+    try:
+        return _unwrap(client.put(f"/api/baselines/{baseline_id}", {"testId": test_id}))
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@mcp.tool(annotations={"destructiveHint": True})
+def khai_baseline_delete(baseline_id: str) -> dict:
+    """Delete a baseline.
+
+    Removes the baseline and its snapshot data. Future crawls on the same site
+    will no longer produce regression comparisons until a new baseline is created.
+
+    Args:
+        baseline_id: The baseline id from khai_baseline_list or khai_baseline_create
+
+    Returns:
+        Confirmation of deletion.
+    """
+    try:
+        return _unwrap(client.delete(f"/api/baselines/{baseline_id}"))
+    except Exception as e:
+        return {"error": str(e)}
 
 
 def main():

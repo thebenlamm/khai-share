@@ -17,8 +17,8 @@
 
 - [x] **REGR-01**: When a crawl test completes, Khai automatically compares results against the site's active baseline (one per site+account) and flags regressions
 - [x] **REGR-02**: Regressions include specific diffs: changed titles, new/missing pages, status code changes, timing degradation
-- [ ] **REGR-03**: Regression results are included in the crawl test results payload (alongside existing issue data)
-- [ ] **REGR-04**: Webhook payloads for crawl completion include regression summary when a baseline exists
+- [x] **REGR-03**: Regression results are included in the crawl test results payload (alongside existing issue data)
+- [x] **REGR-04**: Webhook payloads for crawl completion include regression summary when a baseline exists
 
 ### Thresholds
 
@@ -59,8 +59,8 @@
 | THRS-02 | Phase 20 | Complete |
 | REGR-01 | Phase 21 | Complete |
 | REGR-02 | Phase 21 | Complete |
-| REGR-03 | Phase 21 | Pending |
-| REGR-04 | Phase 21 | Pending |
+| REGR-03 | Phase 21 | Complete |
+| REGR-04 | Phase 21 | Complete |
 | MCPA-01 | Phase 22 | Pending |
 | MCPA-02 | Phase 22 | Pending |
 

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Auto-Assertions
 status: executing
-stopped_at: Completed 21-01-PLAN.md (regression detector module)
-last_updated: "2026-03-10T22:34:17.903Z"
+stopped_at: Completed 21-02-PLAN.md (regression detection wiring)
+last_updated: "2026-03-10T22:36:37.672Z"
 last_activity: "2026-03-10 — 20-01 complete: crawler title capture + BaselineManager CRUD"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 8
 ---
 
@@ -52,6 +52,7 @@ Progress: [█░░░░░░░░░] 8%
 - [Phase 21-regression-detection]: Timing regressions use threshold as ceiling (currentLoadTime > threshold), not direct comparison to snapshot loadTime
 - [Phase 21-regression-detection]: Title changes skipped when either title is null — null means title not captured, not a real regression
 - [Phase 21-regression-detection]: URL matching is exact string equality — no normalization, consistent with crawler recording
+- [Phase 21-regression-detection]: Regression detection placed before completedTests.set and writeFileSync so all downstream consumers receive regressions in a single assignment
 
 ### v1.3 Key Constraints
 
@@ -79,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10T22:34:17.901Z
-Stopped at: Completed 21-01-PLAN.md (regression detector module)
+Last session: 2026-03-10T22:36:37.670Z
+Stopped at: Completed 21-02-PLAN.md (regression detection wiring)
 Resume file: None

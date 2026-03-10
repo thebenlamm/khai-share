@@ -52,7 +52,7 @@
 ### v1.3 Auto-Assertions (Active)
 
 - [x] **Phase 20: Baseline Engine** - Crawl captures page metadata; baseline CRUD REST API with threshold config (completed 2026-03-10)
-- [ ] **Phase 21: Regression Detection** - Comparison engine diffs current crawl against baseline; regressions surface in results and webhooks
+- [x] **Phase 21: Regression Detection** - Comparison engine diffs current crawl against baseline; regressions surface in results and webhooks (completed 2026-03-10)
 - [ ] **Phase 22: MCP Tools** - Claude Code tools for baseline management and regression visibility
 
 ---
@@ -83,7 +83,7 @@ Plans:
   2. Regression results show specific diffs: changed titles, new or missing pages, status code changes, and timing degradation against threshold
   3. GET /api/test/{testId}/results includes a regressions field alongside the existing issues data when a baseline exists
   4. Webhook payloads for crawl completion include a regression summary when a baseline exists for that site+account
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 21-01-PLAN.md -- RegressionDetector pure comparison module
 - [ ] 21-02-PLAN.md -- Wire regression detection into crawl completion, results, and webhooks
@@ -95,7 +95,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Claude Code can call a single MCP tool to create a baseline from a crawl test ID and receive confirmation with baseline details
   2. Claude Code can call a single MCP tool to list baselines for a site, view a specific baseline's snapshot, or delete a baseline
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 22-01-PLAN.md -- Baseline CRUD MCP tools + documentation updates
 
 ---
 
@@ -120,5 +122,5 @@ Plans:
 | 18. Watches | v1.2 | 3/3 | Complete | 2026-03-10 |
 | 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 20. Baseline Engine | v1.3 | 2/2 | Complete | 2026-03-10 |
-| 21. Regression Detection | 1/2 | In Progress|  | - |
-| 22. MCP Tools | v1.3 | 0/? | Not started | - |
+| 21. Regression Detection | v1.3 | 2/2 | Complete | 2026-03-10 |
+| 22. MCP Tools | v1.3 | 0/1 | Not started | - |
