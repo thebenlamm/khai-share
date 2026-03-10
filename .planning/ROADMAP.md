@@ -69,7 +69,7 @@
   3. User can view the full snapshot data captured in a specific baseline
   4. User can delete a baseline and confirm it no longer appears in listings
   5. User can update a baseline from a new crawl test and the baseline ID and any custom thresholds are preserved
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 20-01-PLAN.md -- Crawler title capture + BaselineManager CRUD module
 - [ ] 20-02-PLAN.md -- Baseline REST API routes + documentation updates
@@ -116,6 +116,6 @@ Plans:
 | 17. Webhooks | v1.2 | 2/2 | Complete | 2026-03-10 |
 | 18. Watches | v1.2 | 3/3 | Complete | 2026-03-10 |
 | 19. HAR Export | v1.2 | 2/2 | Complete | 2026-03-10 |
-| 20. Baseline Engine | v1.3 | 0/2 | Planning | - |
+| 20. Baseline Engine | 1/2 | In Progress|  | - |
 | 21. Regression Detection | v1.3 | 0/? | Not started | - |
 | 22. MCP Tools | v1.3 | 0/? | Not started | - |

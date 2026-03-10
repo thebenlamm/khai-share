@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Integration & Monitoring
-status: completed
-stopped_at: v1.2 milestone archived
-last_updated: "2026-03-10T19:40:00.000Z"
-last_activity: "2026-03-10 -- v1.2 milestone completed and archived"
+milestone: v1.3
+milestone_name: Auto-Assertions
+status: in_progress
+stopped_at: Completed 20-01-PLAN.md (baseline data layer)
+last_updated: "2026-03-10T20:16:00.000Z"
+last_activity: "2026-03-10 -- Phase 20 Plan 01 complete (crawler title capture + BaselineManager)"
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 1
+  percent: 8
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** MCP server giving Claude Code browser automation superpowers -- authenticated testing, screenshots, audits, link checking
-**Current focus:** Planning next milestone
+**Current focus:** v1.3 Auto-Assertions (Phase 20: Baseline Engine)
 
 ## Current Position
 
-Phase: 19 of 19 (all complete)
-Plan: N/A (milestone archived)
-Status: v1.2 shipped, awaiting next milestone
-Last activity: 2026-03-10 -- v1.2 milestone archived
+Phase: 20 — Baseline Engine (in progress)
+Plan: 01 complete (of ~3 in phase)
+Status: In progress
+Last activity: 2026-03-10 — 20-01 complete: crawler title capture + BaselineManager CRUD
 
-Progress: [██████████] 100% (v1.2 shipped)
+Progress: [█░░░░░░░░░] 8%
 
 ## Performance Metrics
 
@@ -44,7 +44,19 @@ Progress: [██████████] 100% (v1.2 shipped)
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
+- One active baseline per site+account enforced at createBaseline() — must update or delete to replace
+- Default thresholds spread-merged: `{ ...DEFAULT_THRESHOLDS, ...custom }` — any field overridable
+- listBaselines() omits snapshot.pages (returns pageCount only) for compact list responses
+- safePath + safeId used on testId to prevent path traversal in report reads
+
+### v1.3 Key Constraints
+
+- One active baseline per site+account combo (no multiple baselines)
+- Thresholds set at baseline creation, stored with baseline JSON
+- Crawl tests capture page titles (DONE in 20-01)
+- Regressions in crawl results AND webhook payloads
+- MCP tools follow 3-tool pattern; REST envelope: {success, data}
+- Baseline persistence in config/ directory (follows existing watches.json pattern)
 
 ### Pending Todos
 
@@ -55,6 +67,7 @@ None.
 - v1.0 shipped 2026-03-04 (9 phases, 18 plans)
 - v1.1 shipped 2026-03-05 (4 phases, 4 plans -- beta feedback)
 - v1.2 shipped 2026-03-10 (3 phases, 7 plans -- integration & monitoring)
+- v1.3 started 2026-03-10 (3 phases, auto-assertions)
 
 ### Blockers/Concerns
 
@@ -63,5 +76,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-10
-Stopped at: v1.2 milestone archived
+Stopped at: Completed 20-01-PLAN.md — baseline data layer done, ready for 20-02 (REST API)
 Resume file: None
