@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Integration & Monitoring
 status: completed
-stopped_at: Completed 17-02-PLAN.md (MCP webhook parameters and docs)
-last_updated: "2026-03-10T16:43:19.470Z"
+stopped_at: Completed 18-01-PLAN.md (WatchManager agent)
+last_updated: "2026-03-10T17:12:24.404Z"
 last_activity: "2026-03-10 -- Completed 17-02: MCP webhook parameters and full documentation sync"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 33
 ---
 
@@ -51,6 +51,8 @@ Recent decisions affecting current work:
 - Webhook utility uses Node.js built-in http/https/crypto only — no new dependencies (Phase 17)
 - Webhook fires on ALL terminal states (completed, error, login-failed); 4xx = permanent, network/5xx/timeout = retry (Phase 17)
 - [Phase 17-webhooks]: webhook_url optional param on all 4 start-operation MCP tools; backward compatible with None default
+- [Phase 18-watches]: pixelmatch v7 CJS import: use .default || fallback for CJS/ESM compatibility
+- [Phase 18-watches]: Visual change threshold: >1% pixel diff to reduce false positives from animations
 
 ### Pending Todos
 
@@ -68,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-10T16:40:07.063Z
-Stopped at: Completed 17-02-PLAN.md (MCP webhook parameters and docs)
+Last session: 2026-03-10T17:12:24.402Z
+Stopped at: Completed 18-01-PLAN.md (WatchManager agent)
 Resume file: None
