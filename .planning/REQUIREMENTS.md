@@ -25,9 +25,9 @@
 
 ### HAR Export
 
-- [ ] **HAR-01**: User can enable HAR recording for any action session via parameter
-- [ ] **HAR-02**: HAR capture records all network requests/responses via CDP during the session
-- [ ] **HAR-03**: HAR files are saved to disk and retrievable via REST API endpoint
+- [x] **HAR-01**: User can enable HAR recording for any action session via parameter
+- [x] **HAR-02**: HAR capture records all network requests/responses via CDP during the session
+- [x] **HAR-03**: HAR files are saved to disk and retrievable via REST API endpoint
 - [ ] **HAR-04**: MCP tool exposes HAR retrieval for completed action sessions
 
 ## Future Requirements (v1.3)
@@ -63,9 +63,9 @@
 | WATCH-05 | Phase 18 | Complete |
 | WATCH-06 | Phase 18 | Complete |
 | WATCH-07 | Phase 18 | Complete |
-| HAR-01 | Phase 19 | Pending |
-| HAR-02 | Phase 19 | Pending |
-| HAR-03 | Phase 19 | Pending |
+| HAR-01 | Phase 19 | Complete |
+| HAR-02 | Phase 19 | Complete |
+| HAR-03 | Phase 19 | Complete |
 | HAR-04 | Phase 19 | Pending |
 
 **Coverage:**
