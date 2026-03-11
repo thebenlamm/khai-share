@@ -1,5 +1,24 @@
 # Milestones
 
+## v1.3 Auto-Assertions (Shipped: 2026-03-11)
+
+**Phases:** 20-23 | **Plans:** 6 | **Requirements:** 13/13
+**Timeline:** 1 day (2026-03-10)
+**Git range:** feat(20-01) -> fix(23-01) | 18 files changed, 1,492 insertions, 16 deletions
+
+**Key accomplishments:**
+- BaselineManager with atomic JSON persistence, one-per-site enforcement, and configurable timing thresholds
+- Baseline CRUD REST API at /api/baselines with full error mapping and documentation
+- Pure regression detection engine with 5 diff types (title, missing, new, status, timing) and threshold-based checks
+- Automatic regression detection on crawl completion — results, reports, and webhooks enriched transparently
+- Five MCP tools for baseline CRUD directly from Claude Code (create/list/get/update/delete)
+- Cross-phase integration fix closing silent regression detection failure from export name mismatch
+
+**Audit:** Passed (13/13 requirements, 13/13 integration, 3/3 E2E flows)
+**Tech debt:** 0 items (1 minor docstring fix applied post-audit)
+
+---
+
 ## v1.2 Integration & Monitoring (Shipped: 2026-03-10)
 
 **Phases:** 17-19 | **Plans:** 7 | **Requirements:** 16/16

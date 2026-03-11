@@ -472,7 +472,7 @@ def khai_baseline_create(
 
     Returns:
         Created baseline object with id, site, account, sourceTestId, createdAt,
-        thresholds, and snapshot summary (pageCount).
+        thresholds, and snapshot with pages array (url, title, status, loadTime).
     """
     try:
         payload: dict = {"testId": test_id}

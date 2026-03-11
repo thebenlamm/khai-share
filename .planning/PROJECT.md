@@ -36,10 +36,13 @@ Give Claude Code the ability to log into websites, take screenshots, run securit
 - Webhook callbacks with HMAC-SHA256 signing and retry on all async operations (v1.2)
 - Authenticated page watches with cron-scheduled change detection (v1.2)
 - HAR network trace recording and retrieval via CDP (v1.2)
+- Baseline snapshot creation from crawl tests with configurable timing thresholds (v1.3)
+- Automatic regression detection on crawl completion with 5 diff types (v1.3)
+- Baseline CRUD REST API and 5 MCP tools for baseline management (v1.3)
 
 ### Active
 
-- [ ] Auto-generated regression assertions from successful runs
+(None -- planning next milestone)
 
 
 
@@ -52,7 +55,7 @@ Give Claude Code the ability to log into websites, take screenshots, run securit
 
 ## Context
 
-Shipped v1.0 MVP (9 phases, 12,010 LOC). Shipped v1.1 Beta Feedback (4 phases, 698 lines). Shipped v1.2 Integration & Monitoring (3 phases, 4,698 lines) — webhooks, watches, and HAR export. Total codebase: 13,236 LOC JavaScript + Python MCP layer.
+Shipped v1.0 MVP (9 phases, 12,010 LOC). Shipped v1.1 Beta Feedback (4 phases, 698 lines). Shipped v1.2 Integration & Monitoring (3 phases, 4,698 lines). Shipped v1.3 Auto-Assertions (4 phases, 1,492 lines) — baseline engine, regression detection, MCP tools. Total codebase: ~14,000 LOC JavaScript + Python MCP layer.
 
 Tech stack: Node.js, Express, Puppeteer, MCP (Python FastMCP), axe-core, pixelmatch, Lighthouse, node-cron.
 
@@ -79,6 +82,10 @@ Tech stack: Node.js, Express, Puppeteer, MCP (Python FastMCP), axe-core, pixelma
 | CDP-based HAR recorder | page.target().createCDPSession() — standard Puppeteer, no extra deps | Good |
 | Response bodies capped at 1MB | Prevents memory exhaustion on large binary responses during HAR capture | Good |
 | HAR endpoint returns raw JSON | Not wrapped in {success,data} envelope; MCP tool checks success:false directly | Good |
+| One baseline per site+account | Simplifies comparison logic; update or delete to replace | Good |
+| Threshold as ceiling for timing regression | currentLoadTime > threshold, not delta from snapshot — threshold is the contract | Good |
+| Regression detection before storage | Single assignment enriches in-memory map, saved report, and webhook payload | Good |
+| Destructuring rename for cross-module imports | `{ manager: baselineManager }` keeps downstream code stable when export names differ | Good |
 
 ---
-*Last updated: 2026-03-10 after v1.2 milestone*
+*Last updated: 2026-03-11 after v1.3 milestone*

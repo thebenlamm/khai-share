@@ -5,7 +5,7 @@
 - v1.0 MVP -- Phases 1, 5-12 (shipped 2026-03-04)
 - v1.1 Beta Feedback -- Phases 13-16 (shipped 2026-03-05)
 - v1.2 Integration & Monitoring -- Phases 17-19 (shipped 2026-03-10)
-- v1.3 Auto-Assertions -- Phases 20-22 (active)
+- v1.3 Auto-Assertions -- Phases 20-23 (shipped 2026-03-11)
 
 ## Phases
 
@@ -49,68 +49,17 @@
 
 </details>
 
-### v1.3 Auto-Assertions (Active)
+<details>
+<summary>v1.3 Auto-Assertions (Phases 20-23) -- SHIPPED 2026-03-11</summary>
 
-- [x] **Phase 20: Baseline Engine** - Crawl captures page metadata; baseline CRUD REST API with threshold config (completed 2026-03-10)
-- [x] **Phase 21: Regression Detection** - Comparison engine diffs current crawl against baseline; regressions surface in results and webhooks (completed 2026-03-10)
-- [x] **Phase 22: MCP Tools** - Claude Code tools for baseline management and regression visibility (completed 2026-03-10)
-- [ ] **Phase 23: Fix Cross-Phase Integration Wiring** - Fix export name mismatch breaking regression detection + docstring correction
+- [x] Phase 20: Baseline Engine (2/2 plans) -- completed 2026-03-10
+- [x] Phase 21: Regression Detection (2/2 plans) -- completed 2026-03-10
+- [x] Phase 22: MCP Tools (1/1 plan) -- completed 2026-03-10
+- [x] Phase 23: Fix Cross-Phase Integration Wiring (1/1 plan) -- completed 2026-03-10
 
----
+**Full details:** `.planning/milestones/v1.3-ROADMAP.md`
 
-## Phase Details
-
-### Phase 20: Baseline Engine
-**Goal**: Users can create, view, update, and delete baselines that capture crawl snapshot data with configurable timing thresholds
-**Depends on**: Phase 19 (existing crawl infrastructure)
-**Requirements**: BASE-01, BASE-02, BASE-03, BASE-04, BASE-05, THRS-01, THRS-02
-**Success Criteria** (what must be TRUE):
-  1. User can create a baseline from a completed crawl test ID and see it stored with page URLs, titles, status codes, and response timing
-  2. User can list all baselines for a site+account and see each baseline's metadata
-  3. User can view the full snapshot data captured in a specific baseline
-  4. User can delete a baseline and confirm it no longer appears in listings
-  5. User can update a baseline from a new crawl test and the baseline ID and any custom thresholds are preserved
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 20-01-PLAN.md -- Crawler title capture + BaselineManager CRUD module
-- [ ] 20-02-PLAN.md -- Baseline REST API routes + documentation updates
-
-### Phase 21: Regression Detection
-**Goal**: Crawl completions automatically compare against the site's active baseline and surface regressions in results and webhooks
-**Depends on**: Phase 20
-**Requirements**: REGR-01, REGR-02, REGR-03, REGR-04
-**Success Criteria** (what must be TRUE):
-  1. When a crawl completes for a site+account with an active baseline, regression detection runs automatically without user action
-  2. Regression results show specific diffs: changed titles, new or missing pages, status code changes, and timing degradation against threshold
-  3. GET /api/test/{testId}/results includes a regressions field alongside the existing issues data when a baseline exists
-  4. Webhook payloads for crawl completion include a regression summary when a baseline exists for that site+account
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 21-01-PLAN.md -- RegressionDetector pure comparison module
-- [ ] 21-02-PLAN.md -- Wire regression detection into crawl completion, results, and webhooks
-
-### Phase 22: MCP Tools
-**Goal**: Claude Code can create baselines and inspect regression results directly through MCP tools without using the REST API
-**Depends on**: Phase 21
-**Requirements**: MCPA-01, MCPA-02
-**Success Criteria** (what must be TRUE):
-  1. Claude Code can call a single MCP tool to create a baseline from a crawl test ID and receive confirmation with baseline details
-  2. Claude Code can call a single MCP tool to list baselines for a site, view a specific baseline's snapshot, or delete a baseline
-**Plans:** 1/1 plans complete
-Plans:
-- [ ] 22-01-PLAN.md -- Baseline CRUD MCP tools + documentation updates
-
-### Phase 23: Fix Cross-Phase Integration Wiring
-**Goal**: Fix export name mismatch that silently disables regression detection, and correct docstring field names
-**Depends on**: Phase 22
-**Requirements**: REGR-01, REGR-02, REGR-03, REGR-04, BASE-03
-**Gap Closure:** Closes gaps from audit (INT-01, INT-02, broken flow)
-**Success Criteria** (what must be TRUE):
-  1. `require('./baselines')` in api.js resolves `baselineManager` to a valid BaselineManager instance
-  2. Crawl completion with an active baseline produces non-null `regressions` field in results
-  3. MCP tool `khai_baseline_get` docstring matches actual snapshot field names (url, title, status, loadTime, pageLoadTime)
-Plans:
-- [ ] 23-01-PLAN.md -- Fix export wiring + docstring correction
+</details>
 
 ---
 
@@ -137,4 +86,4 @@ Plans:
 | 20. Baseline Engine | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 21. Regression Detection | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 22. MCP Tools | v1.3 | 1/1 | Complete | 2026-03-10 |
-| 23. Integration Wiring Fix | v1.3 | 0/1 | Pending | - |
+| 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |

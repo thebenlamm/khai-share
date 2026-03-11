@@ -87,6 +87,52 @@
 
 ---
 
+## Milestone: v1.3 -- Auto-Assertions
+
+**Shipped:** 2026-03-11
+**Phases:** 4 | **Plans:** 6 | **Sessions:** 1
+
+### What Was Built
+- BaselineManager with atomic JSON persistence and one-per-site+account enforcement
+- Baseline CRUD REST API at /api/baselines with 5 endpoints
+- Pure regression detection engine with 5 diff types and threshold-based timing checks
+- Automatic regression detection wired into crawl completion (results + webhooks + reports)
+- Five MCP tools for baseline CRUD from Claude Code
+- Cross-phase integration fix (export name mismatch silently disabled regression detection)
+
+### What Worked
+- Phase dependency chain (20 -> 21 -> 22) built cleanly: each phase consumed exactly what the previous exported
+- TDD on regressionDetector (RED commit -> GREEN commit) caught edge cases early (null titles, threshold semantics)
+- Milestone audit caught critical cross-phase wiring bug (INT-01) that would have gone undetected in production
+- Gap closure phase (23) fixed the audit finding in 5 minutes -- fast turnaround from detection to fix
+- All 13 requirements satisfied with zero scope changes from original plan
+
+### What Was Inefficient
+- Phase 21-02 wired regression detection with wrong import destructuring (`{ baselineManager }` vs actual export `manager`) -- caught only by audit, not by phase verification
+- Phase verifiers passed all truths individually but missed the cross-phase import name mismatch -- integration checking is essential
+- Summary one-liner extraction via gsd-tools still returns null (tooling gap persists from v1.2)
+- Nyquist validation missing for all 4 phases (no VALIDATION.md created)
+
+### Patterns Established
+- BaselineManager follows WatchManager persistence pattern: constructor _load(), mutations _save() with atomic tmp+rename
+- One-per-site+account enforcement at create time (throws, must update or delete)
+- Post-crawl enrichment pattern: run side-effect-free computation on results before storage so all downstream consumers get enriched data
+- Destructuring rename for cross-module imports: `{ exportedName: localName }` keeps downstream code stable
+- Pure comparison modules: no I/O, no side effects, pass data directly from caller
+
+### Key Lessons
+1. Phase-level verification passing doesn't guarantee cross-phase integration works -- always run milestone audit before shipping
+2. Silent try/catch fallbacks (null on error) mask critical bugs -- regression detection was permanently disabled with no error output
+3. Export name mismatches are a class of bug that static analysis within a single phase can't catch -- integration checkers are the safety net
+4. Gap closure phases (fixing audit findings) are cheap and fast -- the audit investment pays for itself
+
+### Cost Observations
+- Model mix: 100% opus (execution), sonnet (verification + integration check)
+- Sessions: 1
+- Notable: 4 phases + audit + gap closure + re-audit all in single session
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -96,11 +142,14 @@
 | v1.0 MVP | ~5 | 9 | 18 | Foundation + platform capabilities |
 | v1.1 Beta Feedback | 1 | 4 | 4 | Feedback-driven targeted fixes |
 | v1.2 Integration & Monitoring | 1 | 3 | 7 | Push integrations + monitoring |
+| v1.3 Auto-Assertions | 1 | 4 | 6 | Baseline engine + regression detection |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Inline auth to avoid nested pool acquisition (established v1.0, continued v1.1)
 2. Post-processing over inline mutation for data shared across consumers (v1.1)
 3. Real user feedback drives the highest-value work (v1.1)
-4. Phase dependency chains produce cleaner architecture than independent features (v1.2)
+4. Phase dependency chains produce cleaner architecture than independent features (v1.2, v1.3)
 5. Reuse existing utilities across phases -- pixelmatch from v1.0 Phase 6 reused in v1.2 Phase 18 (v1.2)
+6. Milestone audit catches cross-phase integration bugs that phase-level verification misses (v1.3)
+7. Silent try/catch fallbacks mask critical bugs -- prefer explicit error surfacing over null defaults (v1.3)
