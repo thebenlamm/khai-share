@@ -243,7 +243,7 @@ router.post('/a11y/:role', async (req, res) => {
     return res.json(ok(results));
   } catch (error) {
     console.error(`[HomeBay] Accessibility audit failed for ${role}:`, error.message);
-    return res.status(500).json(fail(`Accessibility audit failed: ${error.message}`));
+    errorHandler(res, error, 'homebay/a11y');
   }
 });
 
@@ -271,7 +271,7 @@ router.post('/animation/:role', async (req, res) => {
     return res.json(ok(results));
   } catch (error) {
     console.error(`[Khai] Animation test failed for ${role}:`, error.message);
-    return res.status(500).json(fail(`Animation test failed: ${error.message}`));
+    errorHandler(res, error, 'homebay/animation');
   }
 });
 
@@ -295,7 +295,7 @@ router.post('/visual/:role', async (req, res) => {
     res.json(ok(result));
   } catch (err) {
     console.error(`[HomeBay Visual] Capture failed for ${role}:`, err);
-    res.status(500).json(fail(err.message));
+    errorHandler(res, err, 'homebay/visual');
   }
 });
 
@@ -325,7 +325,7 @@ router.post('/visual/:role/compare', async (req, res) => {
     res.json(ok(result));
   } catch (err) {
     console.error(`[HomeBay Visual] Comparison failed for ${role}:`, err);
-    res.status(500).json(fail(err.message));
+    errorHandler(res, err, 'homebay/visual/compare');
   }
 });
 
@@ -374,7 +374,7 @@ router.post('/visual/:role/set-baseline', async (req, res) => {
     res.json(ok({ message: `Baseline set for role ${role}`, files: files.length }));
   } catch (err) {
     console.error(`[HomeBay Visual] Set baseline failed for ${role}:`, err);
-    res.status(500).json(fail(err.message));
+    errorHandler(res, err, 'homebay/visual/set-baseline');
   }
 });
 
@@ -405,7 +405,7 @@ router.get('/visual/:role/baseline', (req, res) => {
     res.json(ok({ exists: true, files, count: files.length }));
   } catch (err) {
     console.error(`[HomeBay Visual] List baseline failed for ${role}:`, err);
-    res.status(500).json(fail(err.message));
+    errorHandler(res, err, 'homebay/visual/baseline');
   }
 });
 
@@ -488,7 +488,7 @@ router.post('/dryrun/:form', async (req, res) => {
 
   } catch (error) {
     console.error('[Khai] Error in /api/homebay/dryrun:', error);
-    return res.status(500).json(fail('Internal server error'));
+    errorHandler(res, error, 'homebay/dryrun');
   }
 });
 

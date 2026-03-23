@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
-const KhaiActions = require('../agent/actions');
+const { KhaiActions } = require('../agent/actions');
 const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
@@ -18,6 +18,10 @@ router.post('/execute', async (req, res) => {
 
   if (!site || !account || !actions) {
     return res.status(400).json(fail('Site, account, and actions are required'));
+  }
+
+  if (!Array.isArray(actions)) {
+    return res.status(400).json(fail('actions must be an array'));
   }
 
   const sessionId = `action-${uuidv4()}`;
@@ -171,6 +175,19 @@ router.post('/execute', async (req, res) => {
         }
 
         session.status = 'completed';
+
+        // Persist results to disk
+        try {
+          const reportsDir = path.join(__dirname, '../../reports/actions');
+          fs.mkdirSync(reportsDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(reportsDir, `${sessionId}.json`),
+            JSON.stringify({ sessionId, ...session.results, completedAt: new Date().toISOString() }, null, 2)
+          );
+        } catch (persistErr) {
+          console.error(`[Khai] Failed to persist action results: ${persistErr.message}`);
+        }
+
         await saveHar();
         try { await khai.close(); } catch (_) {}
         if (session.webhookUrl) {

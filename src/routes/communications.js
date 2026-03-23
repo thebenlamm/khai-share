@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const CommunicationMonitor = require('../agent/communicationMonitor');
+const { CommunicationMonitor } = require('../agent/communicationMonitor');
 const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
 
@@ -118,8 +118,9 @@ router.post('/wait-for-code', async (req, res) => {
   }
 
   const { type = 'sms', timeout = 120000 } = req.body;
+  const cappedTimeout = Math.min(timeout || 120000, 300000); // Max 5 minutes
 
-  const result = await commMonitor.waitForVerificationCode(type, timeout);
+  const result = await commMonitor.waitForVerificationCode(type, cappedTimeout);
 
   if (!result) {
     return res.status(408).json(fail('Timeout waiting for verification code'));

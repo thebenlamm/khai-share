@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const WebsiteCrawler = require('../agent/crawler');
-const PasswordRotator = require('../agent/passwordRotator');
+const { WebsiteCrawler } = require('../agent/crawler');
+const { PasswordRotator } = require('../agent/passwordRotator');
 const fs = require('fs');
 const path = require('path');
 const { loadCredentials } = require('../utils/config');
@@ -41,6 +41,13 @@ router.post('/test/start', async (req, res) => {
 
   if (!site || !account) {
     return res.status(400).json(fail('Site and account are required'));
+  }
+
+  if (maxDepth !== undefined) {
+    const depth = parseInt(maxDepth, 10);
+    if (isNaN(depth) || depth < 1 || depth > 10) {
+      return res.status(400).json(fail('maxDepth must be an integer between 1 and 10'));
+    }
   }
 
   try {
