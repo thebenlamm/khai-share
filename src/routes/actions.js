@@ -7,22 +7,10 @@ const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
 const { v4: uuidv4 } = require('uuid');
+const { JobStore } = require('../utils/jobStore');
 
 // Store active action sessions
-const activeSessions = new Map();
-const MAX_MAP_SIZE = 100;
-const EVICTION_TTL_MS = 60 * 60 * 1000;
-
-function evictStale(map) {
-  if (map.size <= MAX_MAP_SIZE) return;
-  const now = Date.now();
-  for (const [key, val] of map) {
-    if (now - (val._createdAt || 0) > EVICTION_TTL_MS) map.delete(key);
-  }
-  while (map.size > MAX_MAP_SIZE) {
-    map.delete(map.keys().next().value);
-  }
-}
+const activeSessions = new JobStore();
 
 // Execute a sequence of actions
 router.post('/execute', async (req, res) => {
@@ -52,8 +40,7 @@ router.post('/execute', async (req, res) => {
       accountType: account
     });
 
-    evictStale(activeSessions);
-    activeSessions.set(sessionId, {
+    activeSessions.create(sessionId, {
       khai,
       status: 'initializing',
       results: [],
@@ -61,8 +48,7 @@ router.post('/execute', async (req, res) => {
       webhookUrl: webhookUrl || null,
       webhook: null,
       recordHar: !!recordHar,
-      harFile: null,
-      _createdAt: Date.now()
+      harFile: null
     });
 
     // Run actions in background

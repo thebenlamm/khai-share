@@ -6,22 +6,10 @@ const path = require('path');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
+const { JobStore } = require('../utils/jobStore');
 
 // Store active audits
-const activeAudits = new Map();
-const MAX_MAP_SIZE = 100;
-const EVICTION_TTL_MS = 60 * 60 * 1000;
-
-function evictStale(map) {
-  if (map.size <= MAX_MAP_SIZE) return;
-  const now = Date.now();
-  for (const [key, val] of map) {
-    if (now - (val._createdAt || 0) > EVICTION_TTL_MS) map.delete(key);
-  }
-  while (map.size > MAX_MAP_SIZE) {
-    map.delete(map.keys().next().value);
-  }
-}
+const activeAudits = new JobStore();
 
 const PROFILE_DIR = path.join(__dirname, '../../config/audit-profiles');
 const AUDIT_REPORTS_DIR = path.join(__dirname, '../../reports/audits');
@@ -109,15 +97,13 @@ router.post('/start', async (req, res) => {
   });
 
   const auditId = auditor.id;
-  evictStale(activeAudits);
-  activeAudits.set(auditId, {
+  activeAudits.create(auditId, {
     auditor,
     status: 'running',
     site: site || resolvedBaseUrl,
     startTime: new Date().toISOString(),
     webhookUrl: webhookUrl || null,
-    webhook: null,
-    _createdAt: Date.now()
+    webhook: null
   });
 
   (async () => {
@@ -134,7 +120,7 @@ router.post('/start', async (req, res) => {
     } catch (err) {
       console.error('[Audit] Error:', err);
       audit.status = 'error';
-      audit.error = 'Audit failed';
+      audit.error = err.message || 'Audit failed';
       if (audit.webhookUrl) {
         audit.webhook = await deliverWebhook(audit.webhookUrl, { auditId, status: 'error', error: audit.error }, {
           operationType: 'audit', operationId: auditId

@@ -1,10 +1,8 @@
 const fs = require('fs');
 const path = require('path');
-const http = require('http');
-const https = require('https');
-const { URL } = require('url');
 const { v4: uuidv4 } = require('uuid');
 const SiteAuditor = require('./auditor');
+const { deliverWebhook } = require('../utils/webhook');
 
 const SCHEDULES_PATH = path.join(__dirname, '../../config/schedules.json');
 
@@ -181,7 +179,9 @@ class AuditScheduler {
 
     if (schedule.webhookUrl) {
       try {
-        await this._postWebhook(schedule.webhookUrl, payload);
+        await deliverWebhook(schedule.webhookUrl, payload, {
+          operationType: 'scheduled-audit', operationId: record.runId
+        });
         console.log(`[Scheduler] Webhook sent to ${schedule.webhookUrl}`);
       } catch (err) {
         console.error(`[Scheduler] Webhook failed: ${err.message}`);
@@ -199,26 +199,6 @@ class AuditScheduler {
         console.error(`[Scheduler] Email notification failed: ${err.message}`);
       }
     }
-  }
-
-  _postWebhook(webhookUrl, payload) {
-    return new Promise((resolve, reject) => {
-      const mod = new URL(webhookUrl).protocol === 'https:' ? https : http;
-      const body = JSON.stringify(payload);
-      const req = mod.request(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-        timeout: 10000,
-      }, (res) => {
-        let data = '';
-        res.on('data', (chunk) => (data += chunk));
-        res.on('end', () => resolve({ status: res.statusCode, body: data }));
-      });
-      req.on('error', reject);
-      req.on('timeout', () => { req.destroy(); reject(new Error('Webhook timeout')); });
-      req.write(body);
-      req.end();
-    });
   }
 
   // ===========================

@@ -10,30 +10,12 @@ const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
 const { detectRegressions } = require('../agent/regressionDetector');
 const { manager: baselineManager } = require('./baselines');
+const { JobStore } = require('../utils/jobStore');
 
 // Store active tests with TTL-based eviction
-const activeTests = new Map();
-const completedTests = new Map();
-const activeRotations = new Map();
-
-const MAX_MAP_SIZE = 100;
-const EVICTION_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-function evictStale(map) {
-  if (map.size <= MAX_MAP_SIZE) return;
-  const now = Date.now();
-  for (const [key, val] of map) {
-    const ts = val._createdAt || 0;
-    if (now - ts > EVICTION_TTL_MS) {
-      map.delete(key);
-    }
-  }
-  // If still over limit, remove oldest
-  while (map.size > MAX_MAP_SIZE) {
-    const firstKey = map.keys().next().value;
-    map.delete(firstKey);
-  }
-}
+const activeTests = new JobStore();
+const completedTests = new JobStore();
+const activeRotations = new JobStore();
 
 const REPORTS_DIR = path.join(__dirname, '../../reports');
 const SCREENSHOTS_DIR = path.join(__dirname, '../../screenshots');
@@ -83,16 +65,14 @@ router.post('/test/start', async (req, res) => {
     await crawler.init(paymentConfig, viewport);
 
     const testId = crawler.results.id;
-    evictStale(activeTests);
-    activeTests.set(testId, {
+    activeTests.create(testId, {
       crawler,
       status: 'running',
       site,
       account,
       startTime: new Date().toISOString(),
       webhookUrl: webhookUrl || null,
-      webhook: null,
-      _createdAt: Date.now()
+      webhook: null
     });
 
     // Run test asynchronously
@@ -118,8 +98,7 @@ router.post('/test/start', async (req, res) => {
 
           // Still close browser and save results for debugging
           const results = await crawler.close();
-          evictStale(completedTests);
-          completedTests.set(testId, { ...results, _createdAt: Date.now() });
+          completedTests.create(testId, { ...results });
 
           fs.mkdirSync(REPORTS_DIR, { recursive: true });
           const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
@@ -153,8 +132,7 @@ router.post('/test/start', async (req, res) => {
           results.regressions = null;
         }
 
-        evictStale(completedTests);
-        completedTests.set(testId, { ...results, _createdAt: Date.now() });
+        completedTests.create(testId, { ...results });
 
         // Save report
         fs.mkdirSync(REPORTS_DIR, { recursive: true });
@@ -170,7 +148,7 @@ router.post('/test/start', async (req, res) => {
       } catch (error) {
         console.error('[Khai] Test error:', error);
         test.status = 'error';
-        test.error = 'Test failed';
+        test.error = error.message || 'Test failed';
         try { await crawler.close(); } catch (_) {}
         if (test.webhookUrl) {
           test.webhook = await deliverWebhook(test.webhookUrl, { testId, status: 'error', error: test.error }, {
@@ -541,8 +519,7 @@ router.post('/rotate-password', async (req, res) => {
     const rotator = new PasswordRotator();
     const rotationId = Date.now().toString(36);
 
-    evictStale(activeRotations);
-    activeRotations.set(rotationId, { status: 'started', site, _createdAt: Date.now() });
+    activeRotations.create(rotationId, { status: 'started', site });
 
     (async () => {
       try {
@@ -556,14 +533,13 @@ router.post('/rotate-password', async (req, res) => {
           newPassword,
           selectors: accountConfig.passwordRotationSelectors || {}
         });
-        activeRotations.set(rotationId, { ...result, _createdAt: Date.now() });
+        activeRotations.create(rotationId, { ...result });
       } catch (error) {
         console.error('[Khai] Password rotation error:', error);
-        activeRotations.set(rotationId, {
+        activeRotations.create(rotationId, {
           status: 'error',
-          error: 'Password rotation failed',
-          site,
-          _createdAt: Date.now()
+          error: error.message || 'Password rotation failed',
+          site
         });
       }
     })();

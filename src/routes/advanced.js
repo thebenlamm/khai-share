@@ -14,23 +14,11 @@ const LinkChecker = require('../agent/linkChecker');
 const { FormFuzzer } = require('../agent/formFuzzer');
 const AuditScheduler = require('../agent/scheduler');
 
+const { JobStore } = require('../utils/jobStore');
+
 // Shared state
-const activeJobs = new Map();
+const activeJobs = new JobStore();
 const scheduler = new AuditScheduler();
-
-const MAX_MAP_SIZE = 100;
-const EVICTION_TTL_MS = 60 * 60 * 1000;
-
-function evictStale(map) {
-  if (map.size <= MAX_MAP_SIZE) return;
-  const now = Date.now();
-  for (const [key, val] of map) {
-    if (now - (val._createdAt || 0) > EVICTION_TTL_MS) map.delete(key);
-  }
-  while (map.size > MAX_MAP_SIZE) {
-    map.delete(map.keys().next().value);
-  }
-}
 
 const SCREENSHOTS_DIR = path.join(__dirname, '../../screenshots');
 const FLOWS_DIR = path.join(__dirname, '../../config/flows');
@@ -111,8 +99,7 @@ router.post('/flows/run', async (req, res) => {
     const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
-    evictStale(activeJobs);
-    activeJobs.set(jobId, { type: 'flow', status: 'running', site, startTime: new Date().toISOString(), _createdAt: Date.now() });
+    activeJobs.create(jobId, { type: 'flow', status: 'running', site, startTime: new Date().toISOString() });
 
     (async () => {
       const ft = new FlowTester(config);
@@ -132,7 +119,7 @@ router.post('/flows/run', async (req, res) => {
       } catch (err) {
         try { await ft.close(); } catch (_) {}
         activeJobs.get(jobId).status = 'error';
-        activeJobs.get(jobId).error = 'Flow test failed';
+        activeJobs.get(jobId).error = err.message || 'Flow test failed';
       }
     })();
 
@@ -151,8 +138,7 @@ router.post('/fuzz/api', async (req, res) => {
   if (!baseUrl || !endpoints) return res.status(400).json(fail('baseUrl and endpoints are required'));
 
   const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  evictStale(activeJobs);
-  activeJobs.set(jobId, { type: 'api-fuzz', status: 'running', startTime: new Date().toISOString(), _createdAt: Date.now() });
+  activeJobs.create(jobId, { type: 'api-fuzz', status: 'running', startTime: new Date().toISOString() });
 
   (async () => {
     const fuzzer = new APIFuzzer({ baseUrl, endpoints, timeout, concurrency, headers });
@@ -162,7 +148,7 @@ router.post('/fuzz/api', async (req, res) => {
       activeJobs.get(jobId).results = results;
     } catch (err) {
       activeJobs.get(jobId).status = 'error';
-      activeJobs.get(jobId).error = 'API fuzzing failed';
+      activeJobs.get(jobId).error = err.message || 'API fuzzing failed';
     }
   })();
 
@@ -178,8 +164,7 @@ router.post('/fuzz/forms', async (req, res) => {
   if (!baseUrl || !pages) return res.status(400).json(fail('baseUrl and pages are required'));
 
   const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  evictStale(activeJobs);
-  activeJobs.set(jobId, { type: 'form-fuzz', status: 'running', startTime: new Date().toISOString(), _createdAt: Date.now() });
+  activeJobs.create(jobId, { type: 'form-fuzz', status: 'running', startTime: new Date().toISOString() });
 
   (async () => {
     const ff = new FormFuzzer({ baseUrl });
@@ -195,7 +180,7 @@ router.post('/fuzz/forms', async (req, res) => {
     } catch (err) {
       try { await ff.close(); } catch (_) {}
       activeJobs.get(jobId).status = 'error';
-      activeJobs.get(jobId).error = 'Form fuzzing failed';
+      activeJobs.get(jobId).error = err.message || 'Form fuzzing failed';
     }
   })();
 
@@ -211,8 +196,7 @@ router.post('/lighthouse', async (req, res) => {
   if (!pages || !pages.length) return res.status(400).json(fail('pages array is required'));
 
   const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  evictStale(activeJobs);
-  activeJobs.set(jobId, { type: 'lighthouse', status: 'running', startTime: new Date().toISOString(), _createdAt: Date.now() });
+  activeJobs.create(jobId, { type: 'lighthouse', status: 'running', startTime: new Date().toISOString() });
 
   (async () => {
     const lh = new LighthouseAgent({ pages, viewport });
@@ -225,7 +209,7 @@ router.post('/lighthouse', async (req, res) => {
     } catch (err) {
       try { await lh.close(); } catch (_) {}
       activeJobs.get(jobId).status = 'error';
-      activeJobs.get(jobId).error = 'Lighthouse audit failed';
+      activeJobs.get(jobId).error = err.message || 'Lighthouse audit failed';
     }
   })();
 
@@ -241,8 +225,7 @@ router.post('/links/check', async (req, res) => {
   if (!baseUrl) return res.status(400).json(fail('baseUrl is required'));
 
   const jobId = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  evictStale(activeJobs);
-  activeJobs.set(jobId, { type: 'link-check', status: 'running', startTime: new Date().toISOString(), webhookUrl: webhookUrl || null, webhook: null, _createdAt: Date.now() });
+  activeJobs.create(jobId, { type: 'link-check', status: 'running', startTime: new Date().toISOString(), webhookUrl: webhookUrl || null, webhook: null });
 
   (async () => {
     const lc = new LinkChecker({ baseUrl, maxPages, concurrency, timeout });
@@ -262,7 +245,7 @@ router.post('/links/check', async (req, res) => {
       try { await lc.close(); } catch (_) {}
       const job = activeJobs.get(jobId);
       job.status = 'error';
-      job.error = 'Link check failed';
+      job.error = err.message || 'Link check failed';
       if (job.webhookUrl) {
         job.webhook = await deliverWebhook(job.webhookUrl, { jobId, status: 'error', error: job.error }, {
           operationType: 'link-check', operationId: jobId
