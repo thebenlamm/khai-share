@@ -11,7 +11,7 @@ const FlowTester = require('../agent/flowTester');
 const APIFuzzer = require('../agent/apiFuzzer');
 const LighthouseAgent = require('../agent/lighthouse');
 const LinkChecker = require('../agent/linkChecker');
-const FormFuzzer = require('../agent/formFuzzer');
+const { FormFuzzer } = require('../agent/formFuzzer');
 const AuditScheduler = require('../agent/scheduler');
 
 // Shared state

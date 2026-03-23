@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const cors = require('cors');
 const path = require('path');
 const { credentialsExist } = require('./utils/config');
@@ -32,8 +33,10 @@ if (API_KEY) {
     if (req.path === '/health' || !req.path.startsWith('/api')) {
       return next();
     }
-    const provided = req.headers['x-khai-key'];
-    if (provided !== API_KEY) {
+    const provided = req.headers['x-khai-key'] || '';
+    const keyBuf = Buffer.from(API_KEY);
+    const providedBuf = Buffer.from(provided);
+    if (keyBuf.length !== providedBuf.length || !crypto.timingSafeEqual(keyBuf, providedBuf)) {
       return res.status(401).json({ success: false, error: 'Invalid or missing API key' });
     }
     next();
