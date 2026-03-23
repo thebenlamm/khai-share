@@ -6,6 +6,7 @@ const KhaiActions = require('../agent/actions');
 const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
+const { v4: uuidv4 } = require('uuid');
 
 // Store active action sessions
 const activeSessions = new Map();
@@ -31,7 +32,7 @@ router.post('/execute', async (req, res) => {
     return res.status(400).json(fail('Site, account, and actions are required'));
   }
 
-  const sessionId = `action-${Date.now()}`;
+  const sessionId = `action-${uuidv4()}`;
 
   try {
     const credentials = loadCredentials();

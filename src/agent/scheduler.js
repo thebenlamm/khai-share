@@ -17,6 +17,7 @@ class AuditScheduler {
     this.schedules = new Map();  // id -> schedule config
     this.timers = new Map();     // id -> setInterval handle
     this.history = new Map();    // id -> [{ runId, timestamp, summary, regressions }]
+    this._runningAudits = new Set();
     this._load();
   }
 
@@ -92,6 +93,13 @@ class AuditScheduler {
   // ===========================
 
   async _runAudit(schedule) {
+    if (this._runningAudits.has(schedule.id)) {
+      console.log(`[Scheduler] Audit ${schedule.id} still running, skipping`);
+      return;
+    }
+    this._runningAudits.add(schedule.id);
+    try {
+
     const runId = uuidv4();
     const timestamp = new Date().toISOString();
     console.log(`\n[Scheduler] Running audit "${schedule.id}" (run: ${runId})`);
@@ -129,6 +137,10 @@ class AuditScheduler {
       this.history.get(schedule.id).push(record);
       this._save();
       return record;
+    }
+
+    } finally {
+      this._runningAudits.delete(schedule.id);
     }
   }
 
@@ -222,7 +234,9 @@ class AuditScheduler {
       }
       for (const [id, runs] of this.history) data.history[id] = runs;
       fs.mkdirSync(path.dirname(SCHEDULES_PATH), { recursive: true });
-      fs.writeFileSync(SCHEDULES_PATH, JSON.stringify(data, null, 2));
+      const tmp = SCHEDULES_PATH + '.tmp';
+      fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
+      fs.renameSync(tmp, SCHEDULES_PATH);
     } catch (err) {
       console.error('[Scheduler] Save failed:', err.message);
     }

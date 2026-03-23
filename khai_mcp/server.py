@@ -3,7 +3,6 @@
 import logging
 import os
 import sys
-import time
 
 from mcp.server.fastmcp import FastMCP
 
@@ -352,20 +351,7 @@ def khai_check_links(
     }
     if webhook_url:
         payload["webhookUrl"] = webhook_url
-    resp = _unwrap(client.post("/api/advanced/links/check", payload))
-
-    # Poll for completion (link checks are usually fast)
-    job_id = resp.get("jobId")
-    if job_id:
-        for _ in range(60):  # Up to 2 minutes
-            time.sleep(2)
-            job = _unwrap(client.get(f"/api/advanced/jobs/{job_id}"))
-            if job.get("status") in ("completed", "error"):
-                if job.get("status") == "completed":
-                    return _unwrap(client.get(f"/api/advanced/jobs/{job_id}/results"))
-                return job
-        return {"status": "timeout", "jobId": job_id, "message": "Still running after 2 minutes"}
-    return resp
+    return _unwrap(client.post("/api/advanced/links/check", payload))
 
 
 @mcp.tool(annotations={"destructiveHint": True})

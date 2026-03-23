@@ -19,6 +19,7 @@ class WatchManager {
     this.watches = new Map();
     this.history = new Map();
     this.cronJobs = new Map();
+    this._running = new Set();
     this._load();
   }
 
@@ -204,6 +205,13 @@ class WatchManager {
   }
 
   async _runWatch(watchId) {
+    if (this._running.has(watchId)) {
+      console.log(`[WatchManager] Watch ${watchId} still running, skipping overlapping execution`);
+      return;
+    }
+    this._running.add(watchId);
+    try {
+
     const watch = this.watches.get(watchId);
     if (!watch) return;
 
@@ -457,6 +465,10 @@ class WatchManager {
       };
       this._appendRecord(watchId, record);
       this._save();
+    }
+
+    } finally {
+      this._running.delete(watchId);
     }
   }
 
