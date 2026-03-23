@@ -161,7 +161,7 @@ class KhaiActions {
       if (emailInput) {
         await emailInput.click();
         await emailInput.type(accountConfig.username, { delay: 50 });
-        console.log(`[Khai Action] Entered email: ${accountConfig.username}`);
+        console.log(`[Khai Action] Entered email: ${(accountConfig.username || '').replace(/(.{2}).*(@.*)/, '$1***$2')}`);
       } else {
         console.log('[Khai Action] Could not find email input');
         return false;
@@ -253,6 +253,22 @@ class KhaiActions {
   }
 
   async navigateTo(target) {
+    // Validate URL safety
+    if (target) {
+      const lowerUrl = target.toLowerCase().trim();
+      const blockedSchemes = ['file:', 'javascript:', 'data:', 'vbscript:'];
+      if (blockedSchemes.some(scheme => lowerUrl.startsWith(scheme))) {
+        throw new Error(`Blocked URL scheme: ${lowerUrl.split(':')[0]}. Only http/https and relative paths allowed.`);
+      }
+      if (lowerUrl.startsWith('http://') || lowerUrl.startsWith('https://')) {
+        const targetHost = new URL(target).hostname;
+        const siteHost = this.config?.baseUrl ? new URL(this.config.baseUrl).hostname : null;
+        if (siteHost && targetHost !== siteHost && !process.env.KHAI_ALLOW_EXTERNAL_NAV) {
+          throw new Error(`Navigate target ${targetHost} does not match site ${siteHost}. Set KHAI_ALLOW_EXTERNAL_NAV=true to allow.`);
+        }
+      }
+    }
+
     // Support both full URLs and relative paths
     const url = (target && (target.startsWith('http://') || target.startsWith('https://')))
       ? target
@@ -611,6 +627,10 @@ class KhaiActions {
    * Execute arbitrary JavaScript on the page and return the result
    */
   async evaluate(script, waitAfter = 3000) {
+    if (!process.env.KHAI_ALLOW_EVAL) {
+      throw new Error('evaluate action is disabled. Set KHAI_ALLOW_EVAL=true to enable.');
+    }
+    console.warn(`[Khai SECURITY] evaluate action invoked. Script length: ${script?.length || 0} chars`);
     console.log(`[Khai Action] Evaluating script`);
     try {
       const result = await this.page.evaluate((code) => {

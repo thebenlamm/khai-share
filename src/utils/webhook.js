@@ -3,6 +3,29 @@
 const http = require('http');
 const https = require('https');
 const crypto = require('crypto');
+const dns = require('dns').promises;
+const { URL } = require('url');
+
+const PRIVATE_IP_PATTERNS = [
+  /^127\./, /^10\./, /^172\.(1[6-9]|2\d|3[01])\./, /^192\.168\./,
+  /^169\.254\./, /^0\./, /^fc00:/i, /^fd/i, /^fe80:/i, /^::1$/
+];
+
+async function validateWebhookUrl(webhookUrl) {
+  const parsed = new URL(webhookUrl);
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`Webhook URL must use http or https protocol, got: ${parsed.protocol}`);
+  }
+  try {
+    const { address } = await dns.lookup(parsed.hostname);
+    if (PRIVATE_IP_PATTERNS.some(re => re.test(address))) {
+      throw new Error('Webhook URL resolves to private/reserved IP range');
+    }
+  } catch (err) {
+    if (err.message.includes('private') || err.message.includes('protocol')) throw err;
+    throw new Error(`Cannot resolve webhook hostname: ${parsed.hostname}`);
+  }
+}
 
 /**
  * Deliver a webhook POST with HMAC-SHA256 signing and exponential-backoff retry.
@@ -18,6 +41,8 @@ const crypto = require('crypto');
 async function deliverWebhook(webhookUrl, payload, options = {}) {
   const { operationType = 'operation', operationId = '' } = options;
   const secret = options.secret || process.env.KHAI_WEBHOOK_SECRET || null;
+
+  await validateWebhookUrl(webhookUrl);
 
   const bodyString = JSON.stringify(payload);
 
@@ -138,4 +163,4 @@ function _postOnce(webhookUrl, bodyString, headers) {
   });
 }
 
-module.exports = { deliverWebhook };
+module.exports = { deliverWebhook, validateWebhookUrl };

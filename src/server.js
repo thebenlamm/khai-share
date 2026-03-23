@@ -99,6 +99,9 @@ const server = app.listen(PORT, '127.0.0.1', () => {
   ║                                                       ║
   ╚═══════════════════════════════════════════════════════╝
   `);
+  if (!API_KEY) {
+    console.warn('[Khai] WARNING: No KHAI_API_KEY set — all /api/* endpoints are unauthenticated');
+  }
   // Start scheduled watches
   watchManager.startAll();
   console.log('[Khai] Watch scheduler started');
