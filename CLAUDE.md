@@ -12,8 +12,10 @@ When adding, changing, or removing features, routes, or MCP tools, update ALL of
 ## Architecture
 
 Khai has two layers:
-1. **Express server** (`src/server.js`) — Puppeteer browser automation on `localhost:3001`
+1. **Express server** (`src/app.js` + `src/server.js`) — Puppeteer browser automation on `localhost:3001`
 2. **MCP server** (`khai_mcp/server.py`) — Python MCP wrapper exposing Express API as Claude Code tools
+
+`src/app.js` contains all middleware, routes, and configuration (exported for testing). `src/server.js` is a thin entry point that starts the server and handles graceful shutdown.
 
 ## Setup (first time)
 
@@ -39,7 +41,18 @@ khai-mcp --sse
 
 Or configure in Claude Code's MCP settings for stdio mode.
 
-Optionally set `KHAI_API_KEY` env var to require API key authentication on all `/api/*` endpoints (checked via `X-Khai-Key` header).
+## Environment Variables
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `KHAI_API_KEY` | API key for authenticating `/api/*` requests (via `X-Khai-Key` header) | None (auth disabled) |
+| `KHAI_WEBHOOK_SECRET` | HMAC-SHA256 shared secret for signing outbound webhook payloads | None (unsigned) |
+| `KHAI_ALLOW_EVAL` | Enable the `evaluate` action type (arbitrary JS in browser context) | Disabled |
+| `KHAI_ALLOW_EXTERNAL_NAV` | Allow `navigate` action to target URLs outside the configured site domain | Disabled |
+| `PORT` | Express server port | 3001 |
+| `MCP_SSE_PORT` | MCP SSE transport port | 8808 |
+
+See `.env.example` for a documented template.
 
 ## MCP Tools
 
@@ -68,7 +81,7 @@ These are the tools available when Khai is connected as an MCP server:
 | `khai_baseline_update` | Update a baseline from a new crawl test |
 | `khai_baseline_delete` | Delete a baseline |
 
-**Action types:** `navigate`, `wait`, `screenshot`, `evaluate`, `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
+**Action types:** `navigate`, `wait`, `screenshot`, `evaluate` (requires `KHAI_ALLOW_EVAL=true`), `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
 
 ## Async Polling Pattern
 
@@ -339,7 +352,8 @@ All API endpoints return a consistent envelope:
 | `config/audit-profiles/*.json` | Audit profiles defining what to test per site |
 | `config/flows/*.json` | Multi-step test flows (login, checkout, etc.) |
 | `config/schedules.json` | Scheduled recurring tests |
-| `KHAI_WEBHOOK_SECRET` env var | Shared secret for HMAC-SHA256 webhook signatures |
+| `config/suites/*.json` | Test suite definitions with schema validation |
+| `.env.example` | Documented template for all environment variables |
 
 ### Quick Actions
 

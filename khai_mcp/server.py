@@ -53,6 +53,11 @@ Workflow:
 
 All operations are async — they return an ID immediately, then you poll for completion.
 
+Security controls (env vars):
+- KHAI_API_KEY: When set, all /api/* endpoints require X-Khai-Key header (MCP client forwards automatically)
+- KHAI_ALLOW_EVAL: The 'evaluate' action type (arbitrary JS in browser) is disabled unless this is set to 'true'
+- KHAI_ALLOW_EXTERNAL_NAV: The 'navigate' action blocks cross-domain URLs unless this is set to 'true'
+
 Webhooks: Any start operation accepts an optional webhook_url parameter. When provided,
 Khai will POST the full results to that URL when the operation completes. Payloads are
 signed with HMAC-SHA256 if KHAI_WEBHOOK_SECRET is set. Delivery retries up to 3 times

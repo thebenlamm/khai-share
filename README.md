@@ -8,7 +8,7 @@ Khai is an MCP (Model Context Protocol) server that gives Claude Code browser au
 
 Khai has two layers:
 
-1. **Express server** (`src/server.js`) — Puppeteer-powered browser automation on `localhost:3001`
+1. **Express server** (`src/app.js` + `src/server.js`) — Puppeteer-powered browser automation on `localhost:3001`
 2. **MCP server** (`khai_mcp/server.py`) — Python MCP wrapper that exposes the Express API as Claude Code tools
 
 Claude Code talks to the MCP server, which forwards requests to the Express server.
@@ -301,11 +301,12 @@ khai-share/
 │   ├── flows/                      # Multi-step test flows
 │   └── schedules.json              # Scheduled tests
 ├── src/
-│   ├── server.js                   # Express server (port 3001)
+│   ├── app.js                      # Express app (middleware, routes, config)
+│   ├── server.js                   # Entry point (listen, shutdown)
 │   ├── agent/                      # Core automation modules
 │   │   ├── crawler.js              # Web crawling with auth, issue dedup, login detection
-│   │   ├── actions.js              # Custom action executor
-│   │   ├── suiteRunner.js          # Test suite execution, replay, history
+│   │   ├── actions.js              # Custom action executor (evaluate gated by KHAI_ALLOW_EVAL)
+│   │   ├── suiteRunner.js          # Test suite execution with pluggable test type registry
 │   │   ├── accessibility.js        # axe-core accessibility audits
 │   │   ├── animationCapture.js     # Animation/transition screenshot capture
 │   │   ├── purchaseTester.js       # Payment form testing
@@ -318,6 +319,9 @@ khai-share/
 │   │   ├── lighthouse.js           # Performance auditing
 │   │   ├── visualRegression.js     # Visual diff testing
 │   │   ├── passwordRotator.js      # Password rotation
+│   │   ├── watchManager.js         # Cron-based page monitoring
+│   │   ├── baselineManager.js      # Crawl baseline CRUD
+│   │   ├── regressionDetector.js   # Baseline comparison logic
 │   │   └── scheduler.js            # Scheduled test execution
 │   ├── routes/
 │   │   ├── api.js                  # Core test/site/purchase/rotation routes
@@ -325,21 +329,49 @@ khai-share/
 │   │   ├── audit.js                # Security audit routes
 │   │   ├── advanced.js             # Lighthouse, visual, fuzzing, links, flows
 │   │   ├── suites.js               # Test suite management routes
+│   │   ├── watches.js              # Watch management routes
+│   │   ├── baselines.js            # Baseline management routes
 │   │   └── communications.js       # Email/SMS/fax monitoring routes
+│   ├── utils/
+│   │   ├── browser.js              # Puppeteer launcher with browser registry
+│   │   ├── config.js               # Credential loader with caching
+│   │   ├── har-recorder.js         # HAR 1.2 capture with sensitive header redaction
+│   │   ├── jobStore.js             # Shared in-memory job store with TTL eviction
+│   │   ├── response.js             # API response envelope helpers
+│   │   ├── safePath.js             # Path traversal protection
+│   │   └── webhook.js              # Webhook delivery with SSRF validation and HMAC signing
 │   └── public/                     # Web UI
 ├── screenshots/                    # Test screenshots (auto-generated)
 ├── reports/                        # Test reports (auto-generated)
 └── pyproject.toml                  # Python package config
 ```
 
+## Environment Variables
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `KHAI_API_KEY` | Require API key on `/api/*` endpoints (via `X-Khai-Key` header) | None (auth disabled) |
+| `KHAI_WEBHOOK_SECRET` | HMAC-SHA256 signing for outbound webhooks | None (unsigned) |
+| `KHAI_ALLOW_EVAL` | Enable `evaluate` action (arbitrary JS in browser) | Disabled |
+| `KHAI_ALLOW_EXTERNAL_NAV` | Allow `navigate` to URLs outside the site domain | Disabled |
+| `PORT` | Express server port | 3001 |
+| `MCP_SSE_PORT` | MCP SSE transport port | 8808 |
+
+See `.env.example` for a documented template.
+
 ## Security
 
-- **Local only** — Khai runs on localhost, never exposed to the internet
-- **Credentials protected** — stored locally in gitignored file, never logged
+- **Local only** — binds to 127.0.0.1, never exposed to the network
+- **Credentials protected** — stored locally in gitignored file, never logged (usernames masked in logs)
+- **API key auth** — timing-safe comparison when `KHAI_API_KEY` is set; startup warning when disabled
+- **Eval gated** — arbitrary JS execution disabled by default, requires `KHAI_ALLOW_EVAL=true`
+- **Navigate restricted** — blocks `file:`, `javascript:`, `data:` schemes; cross-domain requires opt-in
+- **SSRF protection** — webhook URLs validated against private/reserved IP ranges via DNS lookup
+- **HAR redaction** — sensitive headers (Authorization, Cookie, etc.) redacted in HAR recordings
+- **Graceful shutdown** — all active browser instances closed on SIGTERM/SIGINT
 - **Confirmation required** — all purchases need explicit approval
-- **API key support** — set `KHAI_API_KEY` env var to require authentication on `/api/*` endpoints
-- **Webhook signing** — set `KHAI_WEBHOOK_SECRET` env var for HMAC-SHA256 signatures on outbound webhook payloads
-- **Audit trail** — all actions logged
+- **Webhook signing** — HMAC-SHA256 signatures with retry and exponential backoff
+- **Path traversal protection** — all filesystem operations validated via safePath/safeId
 
 ## Legal
 
