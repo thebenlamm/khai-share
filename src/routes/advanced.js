@@ -6,13 +6,13 @@ const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
 
-const VisualRegression = require('../agent/visualRegression');
-const FlowTester = require('../agent/flowTester');
-const APIFuzzer = require('../agent/apiFuzzer');
-const LighthouseAgent = require('../agent/lighthouse');
-const LinkChecker = require('../agent/linkChecker');
+const { VisualRegression } = require('../agent/visualRegression');
+const { FlowTester } = require('../agent/flowTester');
+const { APIFuzzer } = require('../agent/apiFuzzer');
+const { LighthouseAgent } = require('../agent/lighthouse');
+const { LinkChecker } = require('../agent/linkChecker');
 const { FormFuzzer } = require('../agent/formFuzzer');
-const AuditScheduler = require('../agent/scheduler');
+const { AuditScheduler } = require('../agent/scheduler');
 
 const { JobStore } = require('../utils/jobStore');
 

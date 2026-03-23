@@ -174,4 +174,4 @@ class LinkChecker {
   }
 }
 
-module.exports = LinkChecker;
+module.exports = { LinkChecker };

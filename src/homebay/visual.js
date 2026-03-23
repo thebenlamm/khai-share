@@ -3,7 +3,7 @@
 const { pool } = require('./pool');
 const { getHomeBayConfig } = require('./config');
 const { fillReactInput, navigateTo, waitForHydration } = require('./navigate');
-const VisualRegression = require('../agent/visualRegression');
+const { VisualRegression } = require('../agent/visualRegression');
 const fs = require('fs');
 const path = require('path');
 

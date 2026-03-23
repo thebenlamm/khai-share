@@ -773,4 +773,4 @@ class KhaiActions {
   }
 }
 
-module.exports = KhaiActions;
+module.exports = { KhaiActions };

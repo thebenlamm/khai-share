@@ -254,4 +254,4 @@ class VisualRegression {
   }
 }
 
-module.exports = VisualRegression;
+module.exports = { VisualRegression };

@@ -224,4 +224,4 @@ class PasswordRotator {
   }
 }
 
-module.exports = PasswordRotator;
+module.exports = { PasswordRotator };

@@ -2,7 +2,7 @@ const { createBrowser } = require('../utils/browser');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
-const PurchaseTester = require('./purchaseTester');
+const { PurchaseTester } = require('./purchaseTester');
 
 // Issue types that are errors (fail the page). Everything else is a warning.
 const ERROR_SEVERITY_TYPES = new Set([
@@ -730,4 +730,4 @@ class WebsiteCrawler {
   }
 }
 
-module.exports = WebsiteCrawler;
+module.exports = { WebsiteCrawler };

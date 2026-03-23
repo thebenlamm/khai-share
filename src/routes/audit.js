@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const SiteAuditor = require('../agent/auditor');
+const { SiteAuditor } = require('../agent/auditor');
 const fs = require('fs');
 const path = require('path');
 const { safePath, safeId } = require('../utils/safePath');

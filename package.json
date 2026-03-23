@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Khai (חי) - AI Agent that brings life to projects with automation, credentials, payments & communications",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",

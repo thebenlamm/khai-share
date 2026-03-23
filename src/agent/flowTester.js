@@ -403,4 +403,4 @@ class FlowTester {
   }
 }
 
-module.exports = FlowTester;
+module.exports = { FlowTester };

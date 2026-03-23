@@ -2,7 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
-const BaselineManager = require('../agent/baselineManager');
+const { BaselineManager } = require('../agent/baselineManager');
 const { safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
 

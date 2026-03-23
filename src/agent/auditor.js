@@ -1236,4 +1236,4 @@ class SiteAuditor {
   }
 }
 
-module.exports = SiteAuditor;
+module.exports = { SiteAuditor };

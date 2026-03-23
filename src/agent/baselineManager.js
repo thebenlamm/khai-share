@@ -237,4 +237,4 @@ class BaselineManager {
   }
 }
 
-module.exports = BaselineManager;
+module.exports = { BaselineManager };

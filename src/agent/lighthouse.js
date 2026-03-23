@@ -246,4 +246,4 @@ class LighthouseAgent {
   }
 }
 
-module.exports = LighthouseAgent;
+module.exports = { LighthouseAgent };

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const SiteAuditor = require('./auditor');
+const { SiteAuditor } = require('./auditor');
 const { deliverWebhook } = require('../utils/webhook');
 
 const SCHEDULES_PATH = path.join(__dirname, '../../config/schedules.json');
@@ -250,4 +250,4 @@ class AuditScheduler {
   }
 }
 
-module.exports = AuditScheduler;
+module.exports = { AuditScheduler };

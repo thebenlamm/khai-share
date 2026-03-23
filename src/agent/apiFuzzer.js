@@ -433,4 +433,4 @@ class APIFuzzer {
   }
 }
 
-module.exports = APIFuzzer;
+module.exports = { APIFuzzer };

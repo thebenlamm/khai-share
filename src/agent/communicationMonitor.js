@@ -357,4 +357,4 @@ class CommunicationMonitor {
   }
 }
 
-module.exports = CommunicationMonitor;
+module.exports = { CommunicationMonitor };

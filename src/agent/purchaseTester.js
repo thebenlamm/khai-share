@@ -203,4 +203,4 @@ class PurchaseTester {
   }
 }
 
-module.exports = PurchaseTester;
+module.exports = { PurchaseTester };
