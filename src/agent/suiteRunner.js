@@ -16,13 +16,8 @@ const addFormats = require('ajv-formats');
 const fs = require('fs');
 const path = require('path');
 
-// Test modules
-const { loginHomeBay, registerHomeBay } = require('../homebay/auth');
-const { auditHomeBayRole } = require('../homebay/performance');
-const { captureHomeBayRole, compareAgainstBaseline } = require('../homebay/visual');
-const { testHomeBayAnimations } = require('../homebay/animationTest');
-const { auditHomeBayRole: auditAccessibility } = require('../homebay/accessibility');
-const { DryRunTester } = require('../homebay/dryrun');
+// Test type registry — register handlers for site-specific test types
+const testRegistry = new Map();
 
 const SUITES_REPORTS_DIR = path.join(__dirname, '../../reports/suites');
 const SCHEMA_PATH = path.join(__dirname, '../../config/suites/suite.schema.json');
@@ -199,80 +194,25 @@ class SuiteRunner {
   }
 
   /**
-   * Execute a single test by dispatching to the appropriate module based on test.type.
+   * Register a test type handler.
+   * @param {string} type - Test type name
+   * @param {Function} handler - async (test) => result
+   */
+  static registerTestType(type, handler) {
+    testRegistry.set(type, handler);
+  }
+
+  /**
+   * Execute a single test by dispatching to the registered handler for test.type.
    * @private
    */
   async _executeTest(test) {
-    const { type, role, config = {} } = test;
-
-    switch (type) {
-      case 'auth':
-        // Auth test - login or register based on config.flow
-        if (config.flow === 'register') {
-          const result = await registerHomeBay(
-            config.email || `test-${Date.now()}@example.com`,
-            config.password || 'Test1234!',
-            config.dateOfBirth
-          );
-          return { ...test, success: result.success, data: result };
-        } else {
-          // Default to login
-          const result = await loginHomeBay(role);
-          return { ...test, success: result.success, data: result };
-        }
-
-      case 'performance':
-        // Performance audit - run Lighthouse audit on role's critical pages
-        const perfResult = await auditHomeBayRole(role);
-        return { ...test, success: true, data: perfResult };
-
-      case 'visual':
-        // Visual test - capture screenshots and optionally compare against baseline
-        if (config.compare) {
-          const compareResult = await compareAgainstBaseline(role);
-          return {
-            ...test,
-            success: compareResult.matched === compareResult.totalCompared,
-            data: compareResult
-          };
-        } else {
-          const captureResult = await captureHomeBayRole(role);
-          return { ...test, success: true, data: captureResult };
-        }
-
-      case 'animation':
-        // Animation test - test animations on role's pages
-        const animResult = await testHomeBayAnimations(role, config);
-        return { ...test, success: true, data: animResult };
-
-      case 'accessibility':
-        // Accessibility audit - runs axe-core on role's critical pages
-        const a11yResult = await auditAccessibility(role);
-        return { ...test, success: true, data: a11yResult };
-
-      case 'dry-run':
-        // Dry-run test - validate form without submitting
-        if (!config.formUrl || !config.formData) {
-          throw new Error('dry-run test requires config.formUrl and config.formData');
-        }
-
-        const tester = new DryRunTester();
-        const dryrunResult = await tester.testFormValidation(
-          role || null,  // null for unauthenticated forms
-          config.formUrl,
-          config.formData,
-          config.expectedErrors || []
-        );
-
-        return {
-          ...test,
-          success: dryrunResult.passed,
-          data: dryrunResult
-        };
-
-      default:
-        throw new Error(`Unknown test type: ${type}`);
+    const { type } = test;
+    const handler = testRegistry.get(type);
+    if (!handler) {
+      throw new Error(`Unknown test type: ${type}. No handler registered.`);
     }
+    return handler(test);
   }
 
   /**

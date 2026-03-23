@@ -31,7 +31,7 @@ class AccessibilityAgent {
    *
    * CRITICAL: This method calls page.setBypassCSP(true) before navigation.
    * This is required for sites with strict Content Security Policy headers
-   * (like HomeBay) that would otherwise block axe-core's injected scripts.
+   * (e.g. strict CSP sites) that would otherwise block axe-core's injected scripts.
    *
    * @param {Object} page - Puppeteer page instance
    * @param {string} url - URL to audit
@@ -41,7 +41,7 @@ class AccessibilityAgent {
   async auditPage(page, url, name) {
     try {
       // CRITICAL: Bypass CSP to allow axe-core script injection
-      // Required for sites with strict Content Security Policy headers (like HomeBay)
+      // Required for sites with strict Content Security Policy headers (e.g. strict CSP sites)
       await page.setBypassCSP(true);
 
       // Navigate to the URL and wait for network idle
