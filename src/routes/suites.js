@@ -8,20 +8,11 @@ const readline = require('readline');
 const { SuiteRunner } = require('../agent/suiteRunner');
 const { ok, fail } = require('../utils/response');
 const { safePath, safeId } = require('../utils/safePath');
+const { JobStore } = require('../utils/jobStore');
 
 const SUITES_DIR = path.join(__dirname, '../../config/suites');
 const REPORTS_DIR = path.join(__dirname, '../../reports/suites');
-const activeJobs = new Map(); // In-memory job tracking
-
-/**
- * Helper: evict jobs older than 1 hour
- */
-function evictStale(jobs) {
-  const cutoff = Date.now() - 3600000;
-  for (const [id, job] of jobs.entries()) {
-    if (job._createdAt < cutoff) jobs.delete(id);
-  }
-}
+const activeJobs = new JobStore();
 
 /**
  * Analyze suite history from history.jsonl
@@ -173,13 +164,11 @@ router.post('/:suiteId/run', async (req, res) => {
     const runId = new Date().toISOString().replace(/[:.]/g, '-');
 
     // Create job entry
-    evictStale(activeJobs);
-    activeJobs.set(runId, {
+    activeJobs.create(runId, {
       type: 'suite',
       suiteId,
       status: 'running',
-      startTime: new Date().toISOString(),
-      _createdAt: Date.now()
+      startTime: new Date().toISOString()
     });
 
     console.log(`[Suites] Starting suite execution: ${suiteId}, runId: ${runId}`);
@@ -270,14 +259,12 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
 
     // Create new job for replay
     const newRunId = new Date().toISOString().replace(/[:.]/g, '-');
-    evictStale(activeJobs);
-    activeJobs.set(newRunId, {
+    activeJobs.create(newRunId, {
       type: 'suite-replay',
       suiteId,
       originalRunId: runId,
       status: 'running',
-      startTime: new Date().toISOString(),
-      _createdAt: Date.now()
+      startTime: new Date().toISOString()
     });
 
     // Async replay execution (IIFE pattern from existing routes)
