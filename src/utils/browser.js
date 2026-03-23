@@ -7,6 +7,8 @@ const DEFAULT_ARGS = [
 
 const DEFAULT_VIEWPORT = { width: 1920, height: 1080 };
 
+const _activeBrowsers = new Set();
+
 /**
  * Create a Puppeteer browser instance with consistent, secure defaults.
  *
@@ -31,6 +33,9 @@ async function createBrowser(options = {}) {
     defaultViewport: viewport === null ? null : undefined,
   });
 
+  _activeBrowsers.add(browser);
+  browser.on('disconnected', () => _activeBrowsers.delete(browser));
+
   const page = await browser.newPage();
   if (viewport) {
     await page.setViewport(viewport);
@@ -39,4 +44,13 @@ async function createBrowser(options = {}) {
   return { browser, page };
 }
 
-module.exports = { createBrowser, DEFAULT_ARGS, DEFAULT_VIEWPORT };
+async function closeAllBrowsers() {
+  const promises = [];
+  for (const browser of _activeBrowsers) {
+    promises.push(browser.close().catch(() => {}));
+  }
+  await Promise.all(promises);
+  _activeBrowsers.clear();
+}
+
+module.exports = { createBrowser, closeAllBrowsers, DEFAULT_ARGS, DEFAULT_VIEWPORT };

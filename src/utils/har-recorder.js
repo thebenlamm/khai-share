@@ -178,12 +178,21 @@ function _emptyHar() {
   };
 }
 
+const SENSITIVE_HEADERS = new Set([
+  'authorization', 'cookie', 'set-cookie', 'x-khai-key',
+  'x-auth-token', 'x-api-key', 'proxy-authorization',
+]);
+
 /**
  * Convert CDP header objects (key: value) to HAR format [{name, value}].
+ * Sensitive headers (auth, cookies, tokens) are redacted.
  */
 function _objectToHarHeaders(headers) {
   if (!headers || typeof headers !== 'object') return [];
-  return Object.entries(headers).map(([name, value]) => ({ name, value: String(value) }));
+  return Object.entries(headers).map(([name, value]) => ({
+    name,
+    value: SENSITIVE_HEADERS.has(name.toLowerCase()) ? '[REDACTED]' : String(value),
+  }));
 }
 
 /**
