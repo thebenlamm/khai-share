@@ -6,6 +6,7 @@
 - v1.1 Beta Feedback -- Phases 13-16 (shipped 2026-03-05)
 - v1.2 Integration & Monitoring -- Phases 17-19 (shipped 2026-03-10)
 - v1.3 Auto-Assertions -- Phases 20-23 (shipped 2026-03-11)
+- v1.4 Internal Quality -- Phases 24-28 (in progress)
 
 ## Phases
 
@@ -61,12 +62,83 @@
 
 </details>
 
+### v1.4 Internal Quality (Phases 24-28)
+
+- [ ] **Phase 24: Quick Wins** - Zero-risk, independent fixes across safePath, error format, webhooks, and naming
+- [ ] **Phase 25: Login Extraction** - Extract shared login utility from 6 duplicated agent implementations
+- [ ] **Phase 26: Async Job Helper** - Extract runAsyncJob helper to eliminate inline IIFE pattern across routes
+- [ ] **Phase 27: Auditor Split** - Split auditor.js god module into orchestrator and check category modules
+- [ ] **Phase 28: MCP Parameter Transform** - Centralize snake_case to camelCase in Python client layer
+
+---
+
+## Phase Details
+
+### Phase 24: Quick Wins
+**Goal**: The codebase has no remaining path injection risks, error fields contain only messages, suites fire webhooks, and route files use consistent JobStore variable names
+**Depends on**: Nothing (independent fixes)
+**Requirements**: QW-01, QW-02, QW-03, QW-04, QW-05
+**Success Criteria** (what must be TRUE):
+  1. actions.js disk writes pass every path through safePath validation before writing
+  2. All route job error fields store err.message only, never a stack trace
+  3. Suites run endpoint accepts webhookUrl and delivers a webhook on completion
+  4. JobStore variable names follow the same naming pattern across every route file
+  5. MCP server.py builds URLs using httpx params= rather than f-string interpolation
+**Plans:** 2 plans
+Plans:
+- [ ] 24-01-PLAN.md -- safePath in actions.js, httpx params= in server.py, verify error fields
+- [ ] 24-02-PLAN.md -- webhook support on suites, JobStore naming consistency
+
+### Phase 25: Login Extraction
+**Goal**: A single shared login utility handles all auth variants, and every agent delegates to it instead of reimplementing inline
+**Depends on**: Phase 24
+**Requirements**: LOGIN-01, LOGIN-02, LOGIN-03, LOGIN-04, LOGIN-05, LOGIN-06
+**Success Criteria** (what must be TRUE):
+  1. src/utils/login.js exists and handles standard email/password auth end to end
+  2. The same utility handles magic link, loginTrigger button, Twilio two-step, and skipLogin paths without duplication
+  3. All 6 agents (crawler, auditor, actions, flows, fuzz, watch) call the shared utility instead of inline login code
+  4. Deleting inline login code from any agent does not break its authentication behavior
+**Plans**: TBD
+
+### Phase 26: Async Job Helper
+**Goal**: Every async route operation is managed by a single runAsyncJob helper so lifecycle behavior (endTime, error format, webhook) is consistent everywhere
+**Depends on**: Phase 24
+**Requirements**: ASYNC-01, ASYNC-02, ASYNC-03
+**Success Criteria** (what must be TRUE):
+  1. runAsyncJob helper exists in jobStore.js and handles create, start, complete, error, and webhook in one call
+  2. No route file contains an inline IIFE that manually sets job state; all use runAsyncJob
+  3. Completed jobs across all operation types have identical endTime and error field shape
+  4. Webhook delivery on job completion is triggered by runAsyncJob, not by individual route handlers
+**Plans**: TBD
+
+### Phase 27: Auditor Split
+**Goal**: auditor.js is an orchestrator under 200 lines; audit logic lives in focused check modules that can be tested and extended independently
+**Depends on**: Phase 25
+**Requirements**: AUDIT-01, AUDIT-02, AUDIT-03
+**Success Criteria** (what must be TRUE):
+  1. src/agent/audit-checks/ directory exists with one module per audit category
+  2. SiteAuditor class loads check modules dynamically and delegates execution to them
+  3. Each check module can be required and called in isolation with a shared context object without importing SiteAuditor
+  4. All existing audit categories produce identical output before and after the split
+**Plans**: TBD
+
+### Phase 28: MCP Parameter Transform
+**Goal**: The Python MCP client has one place where snake_case parameters become camelCase, and every tool uses a shared build_payload helper instead of hand-rolling dicts
+**Depends on**: Phase 26
+**Requirements**: MCP-01, MCP-02, MCP-03
+**Success Criteria** (what must be TRUE):
+  1. A single transformer function in client.py converts all snake_case keys to camelCase
+  2. Every MCP tool function calls build_payload and passes through the transformer rather than constructing request dicts manually
+  3. All query string parameters across MCP tools use httpx params= and are correctly percent-encoded
+  4. Adding a new MCP tool requires no new snake_case handling code -- the helper covers it automatically
+**Plans**: TBD
+
 ---
 
 ## Progress
 
-| Phase | Milestone | Plans | Status | Completed |
-|-------|-----------|-------|--------|-----------|
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
 | 1. Foundation & Auth | v1.0 | 2/2 | Complete | 2026-02-16 |
 | 5. Lighthouse Performance | v1.0 | 2/2 | Complete | 2026-02-25 |
 | 6. Visual Diff | v1.0 | 2/2 | Complete | 2026-02-26 |
@@ -87,3 +159,8 @@
 | 21. Regression Detection | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 22. MCP Tools | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
+| 24. Quick Wins | v1.4 | 0/2 | Not started | - |
+| 25. Login Extraction | v1.4 | 0/? | Not started | - |
+| 26. Async Job Helper | v1.4 | 0/? | Not started | - |
+| 27. Auditor Split | v1.4 | 0/? | Not started | - |
+| 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |

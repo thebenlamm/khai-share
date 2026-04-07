@@ -8,6 +8,7 @@ const { ok, fail, errorHandler } = require('../utils/response');
 const { deliverWebhook } = require('../utils/webhook');
 const { v4: uuidv4 } = require('uuid');
 const { JobStore } = require('../utils/jobStore');
+const { safePath, PROJECT_ROOT } = require('../utils/safePath');
 
 // Store active action sessions
 const activeSessions = new JobStore();
@@ -65,9 +66,9 @@ router.post('/execute', async (req, res) => {
         if (!harRecorder) return;
         try {
           const har = await harRecorder.stop();
-          const harDir = path.join(__dirname, '../../reports/har');
+          const harDir = safePath(PROJECT_ROOT, 'reports', 'har');
           fs.mkdirSync(harDir, { recursive: true });
-          const harPath = path.join(harDir, sessionId + '.har');
+          const harPath = safePath(harDir, sessionId + '.har');
           fs.writeFileSync(harPath, JSON.stringify(har, null, 2));
           session.harFile = harPath;
           console.log(`[Khai] HAR saved to ${harPath}`);
@@ -178,10 +179,10 @@ router.post('/execute', async (req, res) => {
 
         // Persist results to disk
         try {
-          const reportsDir = path.join(__dirname, '../../reports/actions');
+          const reportsDir = safePath(PROJECT_ROOT, 'reports', 'actions');
           fs.mkdirSync(reportsDir, { recursive: true });
           fs.writeFileSync(
-            path.join(reportsDir, `${sessionId}.json`),
+            safePath(reportsDir, `${sessionId}.json`),
             JSON.stringify({ sessionId, ...session.results, completedAt: new Date().toISOString() }, null, 2)
           );
         } catch (persistErr) {
