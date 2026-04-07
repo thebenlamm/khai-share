@@ -128,8 +128,8 @@ Plans:
   4. All existing audit categories produce identical output before and after the split
 **Plans:** 2 plans
 Plans:
-- [x] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
-- [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
+- [ ] 27-01-PLAN.md -- Extract 14 check modules to src/agent/audit-checks/ with AuditContext and tests
+- [ ] 27-02-PLAN.md -- Rewrite SiteAuditor as thin orchestrator delegating to check modules
 
 ### Phase 28: MCP Parameter Transform
 **Goal**: The Python MCP client has one place where snake_case parameters become camelCase, and every tool uses a shared build_payload helper instead of hand-rolling dicts
@@ -173,6 +173,6 @@ Plans:
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 26. Async Job Helper | v1.4 | 2/2 | Complete   | 2026-04-07 |
-| 27. Auditor Split | v1.4 | 0/? | Not started | - |
+| 26. Async Job Helper | v1.4 | 2/2 | Complete    | 2026-04-07 |
+| 27. Auditor Split | v1.4 | 0/2 | Not started | - |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |
