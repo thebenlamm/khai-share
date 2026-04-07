@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Internal Quality
 status: unknown
-stopped_at: Completed 27-02-PLAN.md
-last_updated: "2026-04-07T02:10:25.911Z"
+stopped_at: Completed 28-01-PLAN.md
+last_updated: "2026-04-07T02:22:47.344Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** MCP server giving Claude Code browser automation superpowers -- authenticated testing, screenshots, audits, link checking
-**Current focus:** Phase 27 — auditor-split
+**Current focus:** Phase 28 — mcp-parameter-transform
 
 ## Current Position
 
-Phase: 27 (auditor-split) — EXECUTING
+Phase: 28 (mcp-parameter-transform) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -57,6 +57,8 @@ Plan: 2 of 2
 - [Phase 27]: AuditContext carries all shared HTTP helpers and result state; check modules receive ctx parameter — zero coupling to SiteAuditor
 - [Phase 27]: Pass this.results reference into AuditContext constructor so check modules accumulate directly into auditor.results without a copy step
 - [Phase 27]: AuditContext results param is optional — backward compatible; standalone ctx still creates its own results object
+- [Phase 28-mcp-parameter-transform]: build_payload drops False but keeps 0 and empty string — matches Python falsy-but-valid semantics for MCP tool parameters
+- [Phase 28-mcp-parameter-transform]: Only top-level keys transformed by build_payload; nested dicts/lists pass through as-is since Express API owns nested schemas
 
 ### Pending Todos
 
@@ -84,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T02:10:25.909Z
-Stopped at: Completed 27-02-PLAN.md
+Last session: 2026-04-07T02:22:47.342Z
+Stopped at: Completed 28-01-PLAN.md
 Resume file: None

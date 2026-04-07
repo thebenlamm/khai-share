@@ -140,9 +140,9 @@ Plans:
   2. Every MCP tool function calls build_payload and passes through the transformer rather than constructing request dicts manually
   3. All query string parameters across MCP tools use httpx params= and are correctly percent-encoded
   4. Adding a new MCP tool requires no new snake_case handling code -- the helper covers it automatically
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 28-01-PLAN.md -- TDD: Create snake_to_camel transformer and build_payload helper in client.py
+- [x] 28-01-PLAN.md -- TDD: Create snake_to_camel transformer and build_payload helper in client.py
 - [ ] 28-02-PLAN.md -- Refactor all server.py tool functions to use build_payload
 
 ---
@@ -175,4 +175,4 @@ Plans:
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 26. Async Job Helper | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 27. Auditor Split | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 28. MCP Parameter Transform | v1.4 | 0/2 | Not started | - |
+| 28. MCP Parameter Transform | v1.4 | 1/2 | In Progress|  |
