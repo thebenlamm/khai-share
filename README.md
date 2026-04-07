@@ -2,6 +2,8 @@
 
 Browser automation and authenticated website testing for Claude Code via MCP.
 
+Original concept and early code inspiration came from [Dr Ben Sofer](https://drbensoffer.com/).
+
 Khai has two parts:
 
 1. A local Express server on `127.0.0.1:3001` that drives Puppeteer.
