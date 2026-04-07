@@ -65,7 +65,7 @@
 ### v1.4 Internal Quality (Phases 24-28)
 
 - [x] **Phase 24: Quick Wins** - Zero-risk, independent fixes across safePath, error format, webhooks, and naming (completed 2026-04-07)
-- [ ] **Phase 25: Login Extraction** - Extract shared login utility from 6 duplicated agent implementations
+- [x] **Phase 25: Login Extraction** - Extract shared login utility from 6 duplicated agent implementations (completed 2026-04-07)
 - [ ] **Phase 26: Async Job Helper** - Extract runAsyncJob helper to eliminate inline IIFE pattern across routes
 - [ ] **Phase 27: Auditor Split** - Split auditor.js god module into orchestrator and check category modules
 - [ ] **Phase 28: MCP Parameter Transform** - Centralize snake_case to camelCase in Python client layer
@@ -98,10 +98,10 @@ Plans:
   2. The same utility handles magic link, loginTrigger button, Twilio two-step, and skipLogin paths without duplication
   3. All 6 agents (crawler, auditor, actions, flows, fuzz, watch) call the shared utility instead of inline login code
   4. Deleting inline login code from any agent does not break its authentication behavior
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 25-01-PLAN.md -- Create shared login utility with all 5 auth variants (magic link, skipLogin, loginTrigger, Twilio, standard)
-- [ ] 25-02-PLAN.md -- Replace inline login in 5 agents (crawler, actions, flowTester, formFuzzer, watchManager) with shared utility
+- [x] 25-02-PLAN.md -- Replace inline login in 5 agents (crawler, actions, flowTester, formFuzzer, watchManager) with shared utility
 
 ### Phase 26: Async Job Helper
 **Goal**: Every async route operation is managed by a single runAsyncJob helper so lifecycle behavior (endTime, error format, webhook) is consistent everywhere
@@ -163,7 +163,7 @@ Plans:
 | 22. MCP Tools | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 25. Login Extraction | v1.4 | 1/2 | In Progress|  |
+| 25. Login Extraction | v1.4 | 2/2 | Complete   | 2026-04-07 |
 | 26. Async Job Helper | v1.4 | 0/? | Not started | - |
 | 27. Auditor Split | v1.4 | 0/? | Not started | - |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |

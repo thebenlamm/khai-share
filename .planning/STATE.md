@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Internal Quality
 status: unknown
-stopped_at: Completed 25-01-PLAN.md
-last_updated: "2026-04-07T01:21:09.128Z"
+stopped_at: Completed 25-02-PLAN.md
+last_updated: "2026-04-07T01:25:26.790Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -48,6 +48,8 @@ Plan: 2 of 2
 - [Phase 24-quick-wins]: webhookUrl accepted from request body on suite run/replay endpoints
 - [Phase 25]: performLogin returns { success, error? } not boolean for structured failure context
 - [Phase 25]: screenshotFn/logger/addIssueFn as options let agents customize login utility without coupling
+- [Phase 25]: formFuzzer login() throws on failure to preserve caller contract (not returns false)
+- [Phase 25]: actions.js loginTwilio() deleted — Twilio auth consolidated in shared _loginTwilio inside utils/login.js
 
 ### Pending Todos
 
@@ -75,6 +77,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T01:21:09.126Z
-Stopped at: Completed 25-01-PLAN.md
+Last session: 2026-04-07T01:25:26.788Z
+Stopped at: Completed 25-02-PLAN.md
 Resume file: None

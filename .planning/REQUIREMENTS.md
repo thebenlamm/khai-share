@@ -17,12 +17,12 @@ Requirements for internal quality milestone. Each maps to roadmap phases.
 
 ### Login Extraction
 
-- [ ] **LOGIN-01**: Shared login utility in src/utils/login.js handles standard email/password flow
-- [ ] **LOGIN-02**: Shared login utility supports magic link auth path
-- [ ] **LOGIN-03**: Shared login utility supports loginTrigger (button click before form)
-- [ ] **LOGIN-04**: Shared login utility supports Twilio two-step login
-- [ ] **LOGIN-05**: Shared login utility supports skipLogin for public crawls
-- [ ] **LOGIN-06**: All 6 agents use shared login utility instead of inline implementation
+- [x] **LOGIN-01**: Shared login utility in src/utils/login.js handles standard email/password flow
+- [x] **LOGIN-02**: Shared login utility supports magic link auth path
+- [x] **LOGIN-03**: Shared login utility supports loginTrigger (button click before form)
+- [x] **LOGIN-04**: Shared login utility supports Twilio two-step login
+- [x] **LOGIN-05**: Shared login utility supports skipLogin for public crawls
+- [x] **LOGIN-06**: All 6 agents use shared login utility instead of inline implementation
 
 ### Async Job Helper
 
@@ -64,12 +64,12 @@ None -- this is a cleanup milestone.
 | QW-03 | Phase 24 | Complete |
 | QW-04 | Phase 24 | Complete |
 | QW-05 | Phase 24 | Complete |
-| LOGIN-01 | Phase 25 | Pending |
-| LOGIN-02 | Phase 25 | Pending |
-| LOGIN-03 | Phase 25 | Pending |
-| LOGIN-04 | Phase 25 | Pending |
-| LOGIN-05 | Phase 25 | Pending |
-| LOGIN-06 | Phase 25 | Pending |
+| LOGIN-01 | Phase 25 | Complete |
+| LOGIN-02 | Phase 25 | Complete |
+| LOGIN-03 | Phase 25 | Complete |
+| LOGIN-04 | Phase 25 | Complete |
+| LOGIN-05 | Phase 25 | Complete |
+| LOGIN-06 | Phase 25 | Complete |
 | ASYNC-01 | Phase 26 | Pending |
 | ASYNC-02 | Phase 26 | Pending |
 | ASYNC-03 | Phase 26 | Pending |
