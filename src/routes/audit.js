@@ -5,8 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
-const { deliverWebhook } = require('../utils/webhook');
-const { JobStore } = require('../utils/jobStore');
+const { JobStore, runAsyncJob } = require('../utils/jobStore');
 
 // Store active audits
 const activeJobs = new JobStore();
@@ -97,37 +96,12 @@ router.post('/start', async (req, res) => {
   });
 
   const auditId = auditor.id;
-  activeJobs.create(auditId, {
-    auditor,
-    status: 'running',
-    site: site || resolvedBaseUrl,
-    startTime: new Date().toISOString(),
-    webhookUrl: webhookUrl || null,
-    webhook: null
-  });
 
-  (async () => {
-    const audit = activeJobs.get(auditId);
-    try {
-      const results = await auditor.run();
-      audit.status = 'completed';
-      audit.results = results;
-      if (audit.webhookUrl) {
-        audit.webhook = await deliverWebhook(audit.webhookUrl, audit.results || {}, {
-          operationType: 'audit', operationId: auditId
-        });
-      }
-    } catch (err) {
-      console.error('[Audit] Error:', err);
-      audit.status = 'error';
-      audit.error = err.message || 'Audit failed';
-      if (audit.webhookUrl) {
-        audit.webhook = await deliverWebhook(audit.webhookUrl, { auditId, status: 'error', error: audit.error }, {
-          operationType: 'audit', operationId: auditId
-        });
-      }
-    }
-  })();
+  runAsyncJob(activeJobs, auditId, {
+    auditor, site: site || resolvedBaseUrl, startTime: new Date().toISOString()
+  }, async () => {
+    return await auditor.run();
+  }, { operationType: 'audit', operationId: auditId, webhookUrl });
 
   const startResponse = { auditId, message: 'Audit started', site: site || resolvedBaseUrl, useKhai, categories: categories || 'all' };
   if (webhookUrl) startResponse.webhookUrl = webhookUrl;

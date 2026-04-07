@@ -8,8 +8,7 @@ const readline = require('readline');
 const { SuiteRunner } = require('../agent/suiteRunner');
 const { ok, fail } = require('../utils/response');
 const { safePath, safeId } = require('../utils/safePath');
-const { JobStore } = require('../utils/jobStore');
-const { deliverWebhook } = require('../utils/webhook');
+const { JobStore, runAsyncJob } = require('../utils/jobStore');
 
 const SUITES_DIR = path.join(__dirname, '../../config/suites');
 const REPORTS_DIR = path.join(__dirname, '../../reports/suites');
@@ -165,53 +164,20 @@ router.post('/:suiteId/run', async (req, res) => {
     const suite = JSON.parse(fs.readFileSync(suitePath, 'utf8'));
     const runId = new Date().toISOString().replace(/[:.]/g, '-');
 
-    // Create job entry
-    activeJobs.create(runId, {
-      type: 'suite',
-      suiteId,
-      status: 'running',
-      startTime: new Date().toISOString(),
-      webhookUrl: webhookUrl || null,
-      webhook: null
-    });
-
     console.log(`[Suites] Starting suite execution: ${suiteId}, runId: ${runId}`);
 
-    // Async execution
-    (async () => {
+    runAsyncJob(activeJobs, runId, {
+      type: 'suite', suiteId, startTime: new Date().toISOString()
+    }, async (job) => {
       const runner = new SuiteRunner(suite, {
         runId,
         tags: tags ? tags.split(',') : [],
         dryRun: dryRun === 'true'
       });
-
-      try {
-        const results = await runner.execute();
-        const job = activeJobs.get(runId);
-        if (job) {  // Guard against eviction
-          job.status = 'completed';
-          job.results = results;
-          console.log(`[Suites] Suite execution completed: ${suiteId}, status: ${results.status}`);
-          if (job.webhookUrl) {
-            job.webhook = await deliverWebhook(job.webhookUrl, {
-              runId, suiteId, status: 'completed', results
-            }, { operationType: 'suite', operationId: runId });
-          }
-        }
-      } catch (err) {
-        console.error(`[Suites] Suite execution failed: ${suiteId}`, err);
-        const job = activeJobs.get(runId);
-        if (job) {  // Guard against eviction
-          job.status = 'error';
-          job.error = err.message;
-          if (job.webhookUrl) {
-            job.webhook = await deliverWebhook(job.webhookUrl, {
-              runId, suiteId, status: 'error', error: job.error
-            }, { operationType: 'suite', operationId: runId });
-          }
-        }
-      }
-    })();
+      const results = await runner.execute();
+      console.log(`[Suites] Suite execution completed: ${suiteId}, status: ${results.status}`);
+      return results;
+    }, { operationType: 'suite', operationId: runId, webhookUrl });
 
     const startResponse = { runId, suiteId, message: 'Suite execution started' };
     if (webhookUrl) startResponse.webhookUrl = webhookUrl;
@@ -277,45 +243,14 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
 
     // Create new job for replay
     const newRunId = new Date().toISOString().replace(/[:.]/g, '-');
-    activeJobs.create(newRunId, {
-      type: 'suite-replay',
-      suiteId,
-      originalRunId: runId,
-      status: 'running',
-      startTime: new Date().toISOString(),
-      webhookUrl: webhookUrl || null,
-      webhook: null
-    });
 
-    // Async replay execution (IIFE pattern from existing routes)
-    (async () => {
-      try {
-        const results = await SuiteRunner.replayRun(suiteId, runId, newRunId);
-        const job = activeJobs.get(newRunId);
-        if (job) {  // Guard against eviction
-          job.status = 'completed';
-          job.results = results;
-          console.log(`[Suites] Replay completed: ${newRunId}`);
-          if (job.webhookUrl) {
-            job.webhook = await deliverWebhook(job.webhookUrl, {
-              runId: newRunId, suiteId, status: 'completed', results
-            }, { operationType: 'suite', operationId: newRunId });
-          }
-        }
-      } catch (err) {
-        console.error(`[Suites] Replay failed:`, err);
-        const job = activeJobs.get(newRunId);
-        if (job) {  // Guard against eviction
-          job.status = 'error';
-          job.error = err.message;
-          if (job.webhookUrl) {
-            job.webhook = await deliverWebhook(job.webhookUrl, {
-              runId: newRunId, suiteId, status: 'error', error: job.error
-            }, { operationType: 'suite', operationId: newRunId });
-          }
-        }
-      }
-    })();
+    runAsyncJob(activeJobs, newRunId, {
+      type: 'suite-replay', suiteId, originalRunId: runId, startTime: new Date().toISOString()
+    }, async () => {
+      const results = await SuiteRunner.replayRun(suiteId, runId, newRunId);
+      console.log(`[Suites] Replay completed: ${newRunId}`);
+      return results;
+    }, { operationType: 'suite', operationId: newRunId, webhookUrl });
 
     const startResponse = { newRunId, suiteId, originalRunId: runId, message: 'Suite replay started' };
     if (webhookUrl) startResponse.webhookUrl = webhookUrl;
