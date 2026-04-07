@@ -16,10 +16,10 @@ def _client() -> httpx.Client:
     return httpx.Client(base_url=KHAI_BASE, timeout=TIMEOUT, headers=headers)
 
 
-def get(path: str) -> dict:
+def get(path: str, params: dict | None = None) -> dict:
     """GET request to Khai API. Returns parsed JSON."""
     with _client() as c:
-        r = c.get(path)
+        r = c.get(path, params=params)
         r.raise_for_status()
         return r.json()
 

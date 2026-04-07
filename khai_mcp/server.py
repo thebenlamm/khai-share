@@ -441,7 +441,7 @@ def khai_watch_history(watch_id: str, limit: int = 20) -> dict:
     Returns:
         List of run records with status, changed, diff, timestamp, and webhook fields.
     """
-    return _unwrap(client.get(f"/api/watches/{watch_id}/history?limit={limit}"))
+    return _unwrap(client.get(f"/api/watches/{watch_id}/history", params={"limit": limit}))
 
 
 @mcp.tool(annotations={"destructiveHint": True})
@@ -489,10 +489,8 @@ def khai_baseline_list(site: str | None = None) -> dict:
         updatedAt, thresholds, and pageCount.
     """
     try:
-        path = "/api/baselines"
-        if site:
-            path = f"/api/baselines?site={site}"
-        return _unwrap(client.get(path))
+        params = {"site": site} if site else None
+        return _unwrap(client.get("/api/baselines", params=params))
     except Exception as e:
         return {"error": str(e)}
 
