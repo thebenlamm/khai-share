@@ -142,8 +142,8 @@ Plans:
   4. Adding a new MCP tool requires no new snake_case handling code -- the helper covers it automatically
 **Plans:** 2 plans
 Plans:
-- [ ] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
-- [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
+- [ ] 28-01-PLAN.md -- TDD: Create snake_to_camel transformer and build_payload helper in client.py
+- [ ] 28-02-PLAN.md -- Refactor all server.py tool functions to use build_payload
 
 ---
 
@@ -174,5 +174,5 @@ Plans:
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 26. Async Job Helper | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 27. Auditor Split | v1.4 | 2/2 | Complete   | 2026-04-07 |
-| 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |
+| 27. Auditor Split | v1.4 | 2/2 | Complete    | 2026-04-07 |
+| 28. MCP Parameter Transform | v1.4 | 0/2 | Not started | - |
