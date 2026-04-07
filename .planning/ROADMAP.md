@@ -112,7 +112,10 @@ Plans:
   2. No route file contains an inline IIFE that manually sets job state; all use runAsyncJob
   3. Completed jobs across all operation types have identical endTime and error field shape
   4. Webhook delivery on job completion is triggered by runAsyncJob, not by individual route handlers
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
+- [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
 
 ### Phase 27: Auditor Split
 **Goal**: auditor.js is an orchestrator under 200 lines; audit logic lives in focused check modules that can be tested and extended independently
@@ -123,7 +126,10 @@ Plans:
   2. SiteAuditor class loads check modules dynamically and delegates execution to them
   3. Each check module can be required and called in isolation with a shared context object without importing SiteAuditor
   4. All existing audit categories produce identical output before and after the split
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
+- [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
 
 ### Phase 28: MCP Parameter Transform
 **Goal**: The Python MCP client has one place where snake_case parameters become camelCase, and every tool uses a shared build_payload helper instead of hand-rolling dicts
@@ -134,7 +140,10 @@ Plans:
   2. Every MCP tool function calls build_payload and passes through the transformer rather than constructing request dicts manually
   3. All query string parameters across MCP tools use httpx params= and are correctly percent-encoded
   4. Adding a new MCP tool requires no new snake_case handling code -- the helper covers it automatically
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
+- [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
 
 ---
 
@@ -163,7 +172,7 @@ Plans:
 | 22. MCP Tools | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 25. Login Extraction | v1.4 | 2/2 | Complete   | 2026-04-07 |
-| 26. Async Job Helper | v1.4 | 0/? | Not started | - |
+| 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
+| 26. Async Job Helper | v1.4 | 0/2 | Planned | - |
 | 27. Auditor Split | v1.4 | 0/? | Not started | - |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |
