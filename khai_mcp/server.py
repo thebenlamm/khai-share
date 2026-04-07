@@ -7,6 +7,7 @@ import sys
 from mcp.server.fastmcp import FastMCP
 
 from . import client
+from .client import build_payload
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -128,16 +129,10 @@ def khai_start_test(
     Returns:
         testId for polling with khai_test_status
     """
-    payload = {
-        "site": site,
-        "account": account,
-        "maxDepth": max_depth,
-        "viewport": viewport,
-    }
-    if start_path:
-        payload["startPath"] = start_path
-    if webhook_url:
-        payload["webhookUrl"] = webhook_url
+    payload = build_payload(
+        site=site, account=account, max_depth=max_depth,
+        viewport=viewport, start_path=start_path, webhook_url=webhook_url,
+    )
     return _unwrap(client.post("/api/test/start", payload))
 
 
@@ -201,15 +196,10 @@ def khai_execute_actions(
         sessionId for polling with khai_action_status. If record_har=True, use khai_action_har
         to get the network trace after completion.
     """
-    payload = {
-        "site": site,
-        "account": account,
-        "actions": actions,
-    }
-    if webhook_url:
-        payload["webhookUrl"] = webhook_url
-    if record_har:
-        payload["recordHar"] = True
+    payload = build_payload(
+        site=site, account=account, actions=actions,
+        webhook_url=webhook_url, record_har=record_har,
+    )
     return _unwrap(client.post("/api/actions/execute", payload))
 
 
@@ -293,15 +283,10 @@ def khai_run_audit(
     Returns:
         auditId for polling with khai_audit_results
     """
-    payload = {}
-    if site:
-        payload["site"] = site
-    if base_url:
-        payload["baseUrl"] = base_url
-    if categories:
-        payload["categories"] = categories
-    if webhook_url:
-        payload["webhookUrl"] = webhook_url
+    payload = build_payload(
+        site=site, base_url=base_url, categories=categories,
+        webhook_url=webhook_url,
+    )
     return _unwrap(client.post("/api/audit/start", payload))
 
 
@@ -348,14 +333,10 @@ def khai_check_links(
     Returns:
         jobId for polling. Use GET /api/advanced/jobs/{jobId}/results to get results.
     """
-    payload = {
-        "baseUrl": base_url,
-        "maxPages": max_pages,
-        "concurrency": concurrency,
-        "timeout": timeout,
-    }
-    if webhook_url:
-        payload["webhookUrl"] = webhook_url
+    payload = build_payload(
+        base_url=base_url, max_pages=max_pages,
+        concurrency=concurrency, timeout=timeout, webhook_url=webhook_url,
+    )
     return _unwrap(client.post("/api/advanced/links/check", payload))
 
 
@@ -386,16 +367,10 @@ def khai_watch_create(
     Returns:
         Watch object with id for use in khai_watch_history and khai_watch_delete
     """
-    payload = {
-        "site": site,
-        "account": account,
-        "url": url,
-        "schedule": schedule,
-    }
-    if selector:
-        payload["selector"] = selector
-    if webhook_url:
-        payload["webhookUrl"] = webhook_url
+    payload = build_payload(
+        site=site, account=account, url=url,
+        schedule=schedule, selector=selector, webhook_url=webhook_url,
+    )
     return _unwrap(client.post("/api/watches", payload))
 
 
@@ -466,9 +441,7 @@ def khai_baseline_create(
         thresholds, and snapshot with pages array (url, title, status, loadTime).
     """
     try:
-        payload: dict = {"testId": test_id}
-        if thresholds:
-            payload["thresholds"] = thresholds
+        payload = build_payload(test_id=test_id, thresholds=thresholds)
         return _unwrap(client.post("/api/baselines", payload))
     except Exception as e:
         return {"error": str(e)}
@@ -527,7 +500,7 @@ def khai_baseline_update(baseline_id: str, test_id: str) -> dict:
         Updated baseline object with new snapshot data and updatedAt timestamp.
     """
     try:
-        return _unwrap(client.put(f"/api/baselines/{baseline_id}", {"testId": test_id}))
+        return _unwrap(client.put(f"/api/baselines/{baseline_id}", build_payload(test_id=test_id)))
     except Exception as e:
         return {"error": str(e)}
 
