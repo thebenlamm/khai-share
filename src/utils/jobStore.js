@@ -104,6 +104,10 @@ async function runAsyncJob(store, id, initialData, workFn, options = {}) {
       current.status = 'error';
       current.error = err.message || String(err);
       current.endTime = new Date().toISOString();
+      // Preserve login-failed status if workFn flagged it
+      if (current.loginError) {
+        current.status = 'login-failed';
+      }
       if (current.webhookUrl) {
         current.webhook = await _deliverWebhook(current.webhookUrl, {
           jobId: id,

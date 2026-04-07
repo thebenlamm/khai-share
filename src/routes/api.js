@@ -7,10 +7,9 @@ const path = require('path');
 const { loadCredentials } = require('../utils/config');
 const { safePath, safeId } = require('../utils/safePath');
 const { ok, fail, errorHandler } = require('../utils/response');
-const { deliverWebhook } = require('../utils/webhook');
 const { detectRegressions } = require('../agent/regressionDetector');
 const { manager: baselineManager } = require('./baselines');
-const { JobStore } = require('../utils/jobStore');
+const { JobStore, runAsyncJob } = require('../utils/jobStore');
 
 // Store active tests with TTL-based eviction
 const activeJobs = new JobStore();
@@ -72,98 +71,67 @@ router.post('/test/start', async (req, res) => {
     await crawler.init(paymentConfig, viewport);
 
     const testId = crawler.results.id;
-    activeJobs.create(testId, {
-      crawler,
-      status: 'running',
-      site,
-      account,
-      startTime: new Date().toISOString(),
-      webhookUrl: webhookUrl || null,
-      webhook: null
-    });
 
     // Run test asynchronously
-    (async () => {
-      const test = activeJobs.get(testId);
-      try {
-        test.status = 'logging-in';
-        test.phase = 'login';
-        const loginSuccess = await crawler.login(accountConfig);
+    runAsyncJob(activeJobs, testId, {
+      crawler, site, account, startTime: new Date().toISOString()
+    }, async (job) => {
+      job.status = 'logging-in';
+      job.phase = 'login';
+      const loginSuccess = await crawler.login(accountConfig);
 
-        if (!loginSuccess) {
-          // Extract specific login error from crawler issues
-          const loginIssues = crawler.results.issues.filter(
-            i => i.type === 'login-failed' || i.type === 'login-error'
-          );
-          const errorDetail = loginIssues.length > 0
-            ? loginIssues[0].message
-            : 'Login failed (unknown reason)';
+      if (!loginSuccess) {
+        // Extract specific login error from crawler issues
+        const loginIssues = crawler.results.issues.filter(
+          i => i.type === 'login-failed' || i.type === 'login-error'
+        );
+        const errorDetail = loginIssues.length > 0
+          ? loginIssues[0].message
+          : 'Login failed (unknown reason)';
 
-          test.status = 'login-failed';
-          test.error = errorDetail;
-          test.loginError = errorDetail;
+        // Flag for login-failed status override in runAsyncJob catch block
+        job.loginError = errorDetail;
 
-          // Still close browser and save results for debugging
-          const results = await crawler.close();
-          completedJobs.create(testId, { ...results });
-
-          fs.mkdirSync(REPORTS_DIR, { recursive: true });
-          const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
-          fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
-
-          if (test.webhookUrl) {
-            test.webhook = await deliverWebhook(test.webhookUrl, results, {
-              operationType: 'test', operationId: testId
-            });
-          }
-          return;
-        }
-
-        test.status = 'crawling';
-        test.phase = 'crawl';
-        const startUrl = startPath ? siteConfig.baseUrl + startPath : null;
-        await crawler.crawl(startUrl, maxDepth);
-
+        // Still close browser and save results for debugging
         const results = await crawler.close();
-        test.status = 'completed';
-        test.phase = 'complete';
-
-        // Regression detection — runs automatically when a baseline exists for this site+account
-        try {
-          const baseline = baselineManager.getBaselineForSite(results.site, results.account);
-          results.regressions = baseline
-            ? detectRegressions(baseline, results.pages)
-            : null;
-        } catch (err) {
-          console.error('[Khai] Regression detection error:', err);
-          results.regressions = null;
-        }
-
         completedJobs.create(testId, { ...results });
 
-        // Save report
         fs.mkdirSync(REPORTS_DIR, { recursive: true });
         const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
         fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
 
-        if (test.webhookUrl) {
-          test.webhook = await deliverWebhook(test.webhookUrl, results, {
-            operationType: 'test', operationId: testId
-          });
-        }
-
-      } catch (error) {
-        console.error('[Khai] Test error:', error);
-        test.status = 'error';
-        test.error = error.message || 'Test failed';
-        try { await crawler.close(); } catch (_) {}
-        if (test.webhookUrl) {
-          test.webhook = await deliverWebhook(test.webhookUrl, { testId, status: 'error', error: test.error }, {
-            operationType: 'test', operationId: testId
-          });
-        }
+        // Throw so runAsyncJob sets endTime + webhook; loginError flag overrides status to 'login-failed'
+        throw new Error(errorDetail);
       }
-    })();
+
+      job.status = 'crawling';
+      job.phase = 'crawl';
+      const startUrl = startPath ? siteConfig.baseUrl + startPath : null;
+      await crawler.crawl(startUrl, maxDepth);
+
+      const results = await crawler.close();
+      job.phase = 'complete';
+
+      // Regression detection — runs automatically when a baseline exists for this site+account
+      try {
+        const baseline = baselineManager.getBaselineForSite(results.site, results.account);
+        results.regressions = baseline
+          ? detectRegressions(baseline, results.pages)
+          : null;
+      } catch (regErr) {
+        console.error('[Khai] Regression detection error:', regErr);
+        results.regressions = null;
+      }
+
+      completedJobs.create(testId, { ...results });
+
+      // Save report
+      fs.mkdirSync(REPORTS_DIR, { recursive: true });
+      const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
+      fs.writeFileSync(reportPath, JSON.stringify(results, null, 2));
+
+      return results;
+    }, { operationType: 'test', operationId: testId, webhookUrl });
 
     const startResponse = { testId, message: 'Khai test started', site, account };
     if (webhookUrl) startResponse.webhookUrl = webhookUrl;
@@ -526,30 +494,19 @@ router.post('/rotate-password', async (req, res) => {
     const rotator = new PasswordRotator();
     const rotationId = Date.now().toString(36);
 
-    rotationJobs.create(rotationId, { status: 'started', site });
-
-    (async () => {
-      try {
-        rotationJobs.get(rotationId).status = 'running';
-        const result = await rotator.rotatePassword({
-          site,
-          loginUrl: siteConfig.baseUrl + accountConfig.loginUrl,
-          changePasswordUrl: siteConfig.baseUrl + accountConfig.changePasswordUrl,
-          username: accountConfig.username,
-          currentPassword: accountConfig.password,
-          newPassword,
-          selectors: accountConfig.passwordRotationSelectors || {}
-        });
-        rotationJobs.create(rotationId, { ...result });
-      } catch (error) {
-        console.error('[Khai] Password rotation error:', error);
-        rotationJobs.create(rotationId, {
-          status: 'error',
-          error: error.message || 'Password rotation failed',
-          site
-        });
-      }
-    })();
+    runAsyncJob(rotationJobs, rotationId, {
+      site, startTime: new Date().toISOString()
+    }, async () => {
+      return await rotator.rotatePassword({
+        site,
+        loginUrl: siteConfig.baseUrl + accountConfig.loginUrl,
+        changePasswordUrl: siteConfig.baseUrl + accountConfig.changePasswordUrl,
+        username: accountConfig.username,
+        currentPassword: accountConfig.password,
+        newPassword,
+        selectors: accountConfig.passwordRotationSelectors || {}
+      });
+    }, { operationType: 'rotation', operationId: rotationId });
 
     res.json(ok({
       rotationId,
@@ -570,8 +527,9 @@ router.get('/rotation/:rotationId/status', (req, res) => {
     return res.status(404).json(fail('Rotation not found'));
   }
 
-  const { _createdAt, ...data } = rotation;
-  res.json(ok(data));
+  // Flatten results into the response for backward compatibility
+  const { _createdAt, results, ...meta } = rotation;
+  res.json(ok({ ...meta, ...(results || {}) }));
 });
 
 router.get('/rotations', (req, res) => {

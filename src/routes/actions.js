@@ -5,9 +5,8 @@ const path = require('path');
 const { KhaiActions } = require('../agent/actions');
 const { loadCredentials } = require('../utils/config');
 const { ok, fail, errorHandler } = require('../utils/response');
-const { deliverWebhook } = require('../utils/webhook');
 const { v4: uuidv4 } = require('uuid');
-const { JobStore } = require('../utils/jobStore');
+const { JobStore, runAsyncJob } = require('../utils/jobStore');
 const { safePath, PROJECT_ROOT } = require('../utils/safePath');
 
 // Store active action sessions
@@ -45,20 +44,13 @@ router.post('/execute', async (req, res) => {
       accountType: account
     });
 
-    activeJobs.create(sessionId, {
-      khai,
-      status: 'initializing',
-      results: [],
-      startTime: new Date().toISOString(),
-      webhookUrl: webhookUrl || null,
-      webhook: null,
-      recordHar: !!recordHar,
-      harFile: null
-    });
-
     // Run actions in background
-    (async () => {
-      const session = activeJobs.get(sessionId);
+    // Note: job._actionResults is used for per-action accumulation during execution.
+    // The status/results endpoints read _actionResults for in-progress and completed sessions.
+    runAsyncJob(activeJobs, sessionId, {
+      khai, _actionResults: [], startTime: new Date().toISOString(),
+      recordHar: !!recordHar, harFile: null
+    }, async (job) => {
       let harRecorder = null;
 
       // Helper: stop HAR recorder and save to disk (partial traces are valuable)
@@ -70,7 +62,7 @@ router.post('/execute', async (req, res) => {
           fs.mkdirSync(harDir, { recursive: true });
           const harPath = safePath(harDir, sessionId + '.har');
           fs.writeFileSync(harPath, JSON.stringify(har, null, 2));
-          session.harFile = harPath;
+          job.harFile = harPath;
           console.log(`[Khai] HAR saved to ${harPath}`);
         } catch (harError) {
           console.error('[Khai] Failed to save HAR:', harError.message);
@@ -80,10 +72,10 @@ router.post('/execute', async (req, res) => {
 
       try {
         await khai.init();
-        session.status = 'logging-in';
+        job.status = 'logging-in';
 
         // Start HAR recording after browser is initialized
-        if (session.recordHar) {
+        if (job.recordHar) {
           const { HarRecorder } = require('../utils/har-recorder');
           harRecorder = new HarRecorder(khai.page);
           await harRecorder.start();
@@ -96,22 +88,16 @@ router.post('/execute', async (req, res) => {
         } else {
           loginSuccess = await khai.login(accountConfig);
           if (!loginSuccess) {
-            session.status = 'login-failed';
-            session.error = 'Login failed';
+            // Flag for login-failed status override in runAsyncJob catch block
+            job.loginError = 'Login failed';
             await saveHar();
             try { await khai.close(); } catch (_) {}
-            if (session.webhookUrl) {
-              session.webhook = await deliverWebhook(session.webhookUrl, {
-                sessionId, status: session.status, results: session.results,
-                startTime: session.startTime, error: session.error,
-                harFile: session.harFile || null
-              }, { operationType: 'action', operationId: sessionId });
-            }
-            return;
+            // Throw so runAsyncJob sets endTime + webhook; loginError flag overrides status to 'login-failed'
+            throw new Error('Login failed');
           }
         }
 
-        session.status = 'executing';
+        job.status = 'executing';
 
         for (const action of actions) {
           console.log(`[Khai] Executing action: ${action.type}`);
@@ -168,14 +154,12 @@ router.post('/execute', async (req, res) => {
             result = { success: false, error: actionError.message };
           }
 
-          session.results.push({
+          job._actionResults.push({
             action: action.type,
             ...result,
             timestamp: new Date().toISOString()
           });
         }
-
-        session.status = 'completed';
 
         // Persist results to disk
         try {
@@ -183,7 +167,7 @@ router.post('/execute', async (req, res) => {
           fs.mkdirSync(reportsDir, { recursive: true });
           fs.writeFileSync(
             safePath(reportsDir, `${sessionId}.json`),
-            JSON.stringify({ sessionId, ...session.results, completedAt: new Date().toISOString() }, null, 2)
+            JSON.stringify({ sessionId, results: job._actionResults, completedAt: new Date().toISOString() }, null, 2)
           );
         } catch (persistErr) {
           console.error(`[Khai] Failed to persist action results: ${persistErr.message}`);
@@ -191,29 +175,15 @@ router.post('/execute', async (req, res) => {
 
         await saveHar();
         try { await khai.close(); } catch (_) {}
-        if (session.webhookUrl) {
-          session.webhook = await deliverWebhook(session.webhookUrl, {
-            sessionId, status: session.status, results: session.results,
-            startTime: session.startTime, error: null,
-            harFile: session.harFile || null
-          }, { operationType: 'action', operationId: sessionId });
-        }
 
-      } catch (error) {
-        console.error('[Khai] Action error:', error);
-        session.status = 'error';
-        session.error = error.message || 'Action execution failed';
+        // Return full payload for webhook; status/results endpoints read _actionResults directly
+        return { sessionId, status: 'completed', results: job._actionResults, startTime: job.startTime, harFile: job.harFile || null };
+      } catch (err) {
         await saveHar();
         try { await khai.close(); } catch (_) {}
-        if (session.webhookUrl) {
-          session.webhook = await deliverWebhook(session.webhookUrl, {
-            sessionId, status: session.status, results: session.results,
-            startTime: session.startTime, error: session.error,
-            harFile: session.harFile || null
-          }, { operationType: 'action', operationId: sessionId });
-        }
+        throw err; // runAsyncJob handles error status + endTime + webhook; loginError flag overrides to 'login-failed'
       }
-    })();
+    }, { operationType: 'action', operationId: sessionId, webhookUrl });
 
     const startResponse = { sessionId, message: 'Action execution started', site, account, actionCount: actions.length };
     if (webhookUrl) startResponse.webhookUrl = webhookUrl;
@@ -234,10 +204,11 @@ router.get('/status/:sessionId', (req, res) => {
     return res.status(404).json(fail('Session not found'));
   }
 
+  const actionResults = session._actionResults || [];
   res.json(ok({
     sessionId,
     status: session.status,
-    actionsCompleted: session.results.length,
+    actionsCompleted: actionResults.length,
     error: session.error || null,
     startTime: session.startTime,
     webhook: session.webhook || null,
@@ -257,7 +228,7 @@ router.get('/results/:sessionId', (req, res) => {
   res.json(ok({
     sessionId,
     status: session.status,
-    results: session.results,
+    results: session._actionResults || [],
     startTime: session.startTime,
     error: session.error || null,
     webhook: session.webhook || null,
