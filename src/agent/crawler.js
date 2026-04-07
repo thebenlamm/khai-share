@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
 const { PurchaseTester } = require('./purchaseTester');
+const { performLogin } = require('../utils/login');
 
 // Issue types that are errors (fail the page). Everything else is a warning.
 const ERROR_SEVERITY_TYPES = new Set([
@@ -103,150 +104,11 @@ class WebsiteCrawler {
   }
 
   async login(accountConfig) {
-    const loginUrl = this.config.baseUrl + accountConfig.loginUrl;
-    console.log(`[Khai] Logging in at ${loginUrl}`);
-
-    try {
-      // Magic link auth: fetch token from API, navigate to login URL
-      if (accountConfig.magicLinkAuth) {
-        console.log(`[Khai] Using magic link auth: ${accountConfig.magicLinkAuth}`);
-        const fetch = (await import('node-fetch')).default;
-        const resp = await fetch(accountConfig.magicLinkAuth);
-        const data = await resp.json();
-        if (!data.loginUrl) {
-          throw new Error('Magic link API did not return loginUrl');
-        }
-        console.log(`[Khai] Got magic link, navigating...`);
-        await this.page.goto(data.loginUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        await new Promise(resolve => setTimeout(resolve, 4000));
-        await this.takeScreenshot('magic-link-login');
-        const currentUrl = this.page.url();
-        console.log(`[Khai] After magic link URL: ${currentUrl}`);
-        if (currentUrl.includes('/login') && !currentUrl.includes('token')) {
-          this.addIssue('login-failed', 'Magic link login may have failed - still on login page', loginUrl, 'error');
-          return false;
-        }
-        console.log(`[Khai] Magic link login successful!`);
-        return true;
-      }
-
-      // Skip login if configured (public/unauthenticated crawl)
-      if (accountConfig.skipLogin) {
-        console.log(`[Khai] Skipping login (public crawl)`);
-        await this.page.goto(this.config.baseUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        await this.takeScreenshot('public-start');
-        return true;
-      }
-
-      await this.page.goto(loginUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-
-      // Wait extra time for SPA hydration
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      await this.takeScreenshot('login-page');
-
-      // Try multiple selectors for email field
-      const emailSelectors = accountConfig.usernameField.split(',').map(s => s.trim());
-      let emailInput = null;
-
-      for (const selector of emailSelectors) {
-        try {
-          await this.page.waitForSelector(selector, { timeout: 5000 });
-          emailInput = selector;
-          console.log(`[Khai] Found email input: ${selector}`);
-          break;
-        } catch (e) {
-          continue;
-        }
-      }
-
-      if (!emailInput) {
-        // Fallback: find any email or text input
-        emailInput = await this.page.evaluate(() => {
-          const inputs = document.querySelectorAll('input[type="email"], input[type="text"]');
-          for (const input of inputs) {
-            if (input.offsetParent !== null) { // is visible
-              return `input[type="${input.type}"]`;
-            }
-          }
-          return null;
-        });
-      }
-
-      if (!emailInput) {
-        throw new Error('Could not find email input field');
-      }
-
-      // Try multiple selectors for password field
-      const passwordSelectors = accountConfig.passwordField.split(',').map(s => s.trim());
-      let passwordInput = null;
-
-      for (const selector of passwordSelectors) {
-        try {
-          await this.page.waitForSelector(selector, { timeout: 3000 });
-          passwordInput = selector;
-          console.log(`[Khai] Found password input: ${selector}`);
-          break;
-        } catch (e) {
-          continue;
-        }
-      }
-
-      if (!passwordInput) {
-        passwordInput = 'input[type="password"]';
-      }
-
-      // Type credentials
-      await this.page.type(emailInput, accountConfig.username, { delay: 50 });
-      await this.page.type(passwordInput, accountConfig.password, { delay: 50 });
-
-      await this.takeScreenshot('credentials-entered');
-
-      // Find and click submit button
-      const submitSelectors = accountConfig.submitButton.split(',').map(s => s.trim());
-      let clicked = false;
-
-      for (const selector of submitSelectors) {
-        try {
-          const btn = await this.page.$(selector);
-          if (btn) {
-            await Promise.all([
-              btn.click(),
-              this.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {})
-            ]);
-            clicked = true;
-            break;
-          }
-        } catch (e) {
-          continue;
-        }
-      }
-
-      if (!clicked) {
-        // Try pressing Enter
-        await this.page.keyboard.press('Enter');
-        await this.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {});
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      await this.takeScreenshot('after-login');
-
-      // Check if login was successful
-      const currentUrl = this.page.url();
-      console.log(`[Khai] After login URL: ${currentUrl}`);
-
-      if (currentUrl.includes('/login') && !currentUrl.includes('callback')) {
-        this.addIssue('login-failed', 'Login may have failed - still on login page', loginUrl, 'error');
-        return false;
-      }
-
-      console.log(`[Khai] Login successful!`);
-      return true;
-    } catch (error) {
-      this.addIssue('login-error', error.message, loginUrl, 'error');
-      await this.takeScreenshot('login-error');
-      return false;
-    }
+    const result = await performLogin(this.page, this.config.baseUrl, accountConfig, {
+      screenshotFn: (name) => this.takeScreenshot(name),
+      addIssueFn: (type, message, url, severity) => this.addIssue(type, message, url, severity),
+    });
+    return result.success;
   }
 
   async detectLoginRedirect(requestedUrl) {

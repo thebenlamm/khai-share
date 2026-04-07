@@ -7,6 +7,7 @@
 const { createBrowser } = require('../utils/browser');
 const path = require('path');
 const fs = require('fs');
+const { performLogin } = require('../utils/login');
 
 class KhaiActions {
   constructor(config) {
@@ -25,101 +26,10 @@ class KhaiActions {
   }
 
   async login(accountConfig) {
-    const loginUrl = this.config.baseUrl + accountConfig.loginUrl;
-    console.log(`[Khai Action] Logging in at ${loginUrl}`);
-
-    await this.page.goto(loginUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Check if this is Twilio's two-step login
-    const isTwilioLogin = this.page.url().includes('twilio.com');
-
-    if (isTwilioLogin) {
-      console.log('[Khai Action] Detected Twilio two-step login');
-      return await this.loginTwilio(accountConfig);
-    }
-
-    // Handle loginTrigger if present (e.g., "Admin Portal Login" button)
-    if (accountConfig.loginTrigger) {
-      console.log(`[Khai Action] Looking for login trigger: ${accountConfig.loginTrigger}`);
-      try {
-        // Try to find and click the trigger button
-        const triggerClicked = await this.page.evaluate((triggerText) => {
-          // Extract text from selector like "button:has-text('Admin')"
-          const textMatch = triggerText.match(/has-text\(['"](.+?)['"]\)/);
-          if (textMatch) {
-            const searchText = textMatch[1].toLowerCase();
-            const buttons = Array.from(document.querySelectorAll('button, a'));
-            const trigger = buttons.find(b => b.textContent.toLowerCase().includes(searchText));
-            if (trigger) {
-              trigger.click();
-              return true;
-            }
-          }
-          return false;
-        }, accountConfig.loginTrigger);
-
-        if (triggerClicked) {
-          console.log('[Khai Action] Clicked login trigger');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        }
-      } catch (e) {
-        console.log('[Khai Action] Login trigger error:', e.message);
-      }
-    }
-
-    // Find and fill email
-    const emailSelectors = accountConfig.usernameField.split(',').map(s => s.trim());
-    for (const selector of emailSelectors) {
-      try {
-        await this.page.waitForSelector(selector, { timeout: 3000 });
-        await this.page.type(selector, accountConfig.username, { delay: 50 });
-        break;
-      } catch (e) { continue; }
-    }
-
-    // Find and fill password
-    const passwordSelectors = accountConfig.passwordField.split(',').map(s => s.trim());
-    for (const selector of passwordSelectors) {
-      try {
-        await this.page.waitForSelector(selector, { timeout: 3000 });
-        await this.page.type(selector, accountConfig.password, { delay: 50 });
-        break;
-      } catch (e) { continue; }
-    }
-
-    // Click submit
-    const submitSelectors = accountConfig.submitButton.split(',').map(s => s.trim());
-    for (const selector of submitSelectors) {
-      try {
-        const btn = await this.page.$(selector);
-        if (btn) {
-          await Promise.all([
-            btn.click(),
-            this.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {})
-          ]);
-          break;
-        }
-      } catch (e) { continue; }
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 3000));
-
-    // Check if login actually succeeded by verifying we're not still on the login page
-    const finalUrl = this.page.url();
-    const loginPath = accountConfig.loginUrl || '/login';
-    const stillOnLogin = finalUrl.endsWith(loginPath) || finalUrl.includes('/login');
-
-    await this.screenshot('login-complete');
-    console.log(`[Khai Action] Login complete, URL: ${finalUrl}, success: ${!stillOnLogin}`);
-
-    if (stillOnLogin) {
-      console.log('[Khai Action] WARNING: Still on login page after submit — login may have failed');
-      // Still return true to allow actions to proceed (they may handle their own auth redirects)
-      // but log the warning so it's visible in server output
-    }
-
-    return true;
+    const result = await performLogin(this.page, this.config.baseUrl, accountConfig, {
+      screenshotFn: (name) => this.screenshot(name),
+    });
+    return result.success;
   }
 
   async screenshot(name) {
@@ -127,129 +37,6 @@ class KhaiActions {
     await this.page.screenshot({ path: filepath, fullPage: false });
     console.log(`[Khai Action] Screenshot: ${filepath}`);
     return filepath;
-  }
-
-  /**
-   * Twilio two-step login handler
-   */
-  async loginTwilio(accountConfig) {
-    console.log('[Khai Action] Starting Twilio login flow');
-
-    await this.screenshot('twilio-before-login');
-
-    // Step 1: Enter email - Twilio uses placeholder "Email address"
-    try {
-      // Wait for any input field
-      await this.page.waitForSelector('input', { timeout: 15000 });
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Find the email input by various selectors
-      const emailInput = await this.page.evaluateHandle(() => {
-        // Try multiple ways to find the email field
-        let input = document.querySelector('input[placeholder*="Email"]');
-        if (!input) input = document.querySelector('input[type="email"]');
-        if (!input) input = document.querySelector('input[name="email"]');
-        if (!input) input = document.querySelector('input[autocomplete="email"]');
-        if (!input) {
-          // Fallback: find first visible input
-          const inputs = document.querySelectorAll('input:not([type="hidden"])');
-          input = inputs[0];
-        }
-        return input;
-      });
-
-      if (emailInput) {
-        await emailInput.click();
-        await emailInput.type(accountConfig.username, { delay: 50 });
-        console.log(`[Khai Action] Entered email: ${(accountConfig.username || '').replace(/(.{2}).*(@.*)/, '$1***$2')}`);
-      } else {
-        console.log('[Khai Action] Could not find email input');
-        return false;
-      }
-    } catch (e) {
-      console.log('[Khai Action] Email input error:', e.message);
-      await this.screenshot('twilio-email-error');
-      return false;
-    }
-
-    await this.screenshot('twilio-email-entered');
-
-    // Click Continue
-    try {
-      const continueClicked = await this.page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        const continueBtn = buttons.find(b =>
-          b.textContent.toLowerCase().includes('continue') ||
-          b.textContent.toLowerCase().includes('next')
-        );
-        if (continueBtn) {
-          continueBtn.click();
-          return true;
-        }
-        return false;
-      });
-
-      if (continueClicked) {
-        console.log('[Khai Action] Clicked Continue');
-        await new Promise(resolve => setTimeout(resolve, 3000));
-      }
-    } catch (e) {
-      console.log('[Khai Action] Continue button error:', e.message);
-    }
-
-    await this.screenshot('twilio-after-email');
-
-    // Step 2: Enter password
-    try {
-      await this.page.waitForSelector('input[type="password"]', { timeout: 10000 });
-      const passwordInput = await this.page.$('input[type="password"]');
-      if (passwordInput) {
-        await passwordInput.click();
-        await passwordInput.type(accountConfig.password, { delay: 50 });
-        console.log('[Khai Action] Entered password');
-      }
-    } catch (e) {
-      console.log('[Khai Action] Password input error:', e.message);
-      return false;
-    }
-
-    await this.screenshot('twilio-password-entered');
-
-    // Click Login/Sign In
-    try {
-      const loginClicked = await this.page.evaluate(() => {
-        const buttons = Array.from(document.querySelectorAll('button'));
-        const loginBtn = buttons.find(b =>
-          b.textContent.toLowerCase().includes('log in') ||
-          b.textContent.toLowerCase().includes('login') ||
-          b.textContent.toLowerCase().includes('sign in') ||
-          b.textContent.toLowerCase().includes('continue')
-        );
-        if (loginBtn) {
-          loginBtn.click();
-          return true;
-        }
-        return false;
-      });
-
-      if (loginClicked) {
-        console.log('[Khai Action] Clicked Login');
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      }
-    } catch (e) {
-      console.log('[Khai Action] Login button error:', e.message);
-    }
-
-    await this.screenshot('twilio-login-complete');
-    console.log(`[Khai Action] Twilio login complete, URL: ${this.page.url()}`);
-
-    // Check if we're logged in (URL should be console, not login)
-    const finalUrl = this.page.url();
-    if (finalUrl.includes('console.twilio.com') && !finalUrl.includes('login')) {
-      return true;
-    }
-
-    return true; // Continue even if URL check fails
   }
 
   async navigateTo(target) {
