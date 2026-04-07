@@ -9,6 +9,7 @@ const { SuiteRunner } = require('../agent/suiteRunner');
 const { ok, fail } = require('../utils/response');
 const { safePath, safeId } = require('../utils/safePath');
 const { JobStore } = require('../utils/jobStore');
+const { deliverWebhook } = require('../utils/webhook');
 
 const SUITES_DIR = path.join(__dirname, '../../config/suites');
 const REPORTS_DIR = path.join(__dirname, '../../reports/suites');
@@ -152,6 +153,7 @@ router.post('/:suiteId/run', async (req, res) => {
   try {
     const { suiteId } = req.params;
     const { tags, dryRun } = req.query;
+    const { webhookUrl = null } = req.body || {};
 
     // Validate suite exists
     const suitePath = safePath(SUITES_DIR, `${safeId(suiteId)}.json`);
@@ -168,7 +170,9 @@ router.post('/:suiteId/run', async (req, res) => {
       type: 'suite',
       suiteId,
       status: 'running',
-      startTime: new Date().toISOString()
+      startTime: new Date().toISOString(),
+      webhookUrl: webhookUrl || null,
+      webhook: null
     });
 
     console.log(`[Suites] Starting suite execution: ${suiteId}, runId: ${runId}`);
@@ -188,6 +192,11 @@ router.post('/:suiteId/run', async (req, res) => {
           job.status = 'completed';
           job.results = results;
           console.log(`[Suites] Suite execution completed: ${suiteId}, status: ${results.status}`);
+          if (job.webhookUrl) {
+            job.webhook = await deliverWebhook(job.webhookUrl, {
+              runId, suiteId, status: 'completed', results
+            }, { operationType: 'suite', operationId: runId });
+          }
         }
       } catch (err) {
         console.error(`[Suites] Suite execution failed: ${suiteId}`, err);
@@ -195,11 +204,18 @@ router.post('/:suiteId/run', async (req, res) => {
         if (job) {  // Guard against eviction
           job.status = 'error';
           job.error = err.message;
+          if (job.webhookUrl) {
+            job.webhook = await deliverWebhook(job.webhookUrl, {
+              runId, suiteId, status: 'error', error: job.error
+            }, { operationType: 'suite', operationId: runId });
+          }
         }
       }
     })();
 
-    res.json(ok({ runId, suiteId, message: 'Suite execution started' }));
+    const startResponse = { runId, suiteId, message: 'Suite execution started' };
+    if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+    res.json(ok(startResponse));
   } catch (err) {
     console.error('[Suites] Error starting suite:', err);
     res.status(500).json(fail('Failed to start suite'));
@@ -255,6 +271,8 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
     safeId(suiteId);
     safeId(runId);
 
+    const { webhookUrl = null } = req.body || {};
+
     console.log(`[Suites] Starting replay: ${suiteId}/${runId}`);
 
     // Create new job for replay
@@ -264,7 +282,9 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
       suiteId,
       originalRunId: runId,
       status: 'running',
-      startTime: new Date().toISOString()
+      startTime: new Date().toISOString(),
+      webhookUrl: webhookUrl || null,
+      webhook: null
     });
 
     // Async replay execution (IIFE pattern from existing routes)
@@ -276,6 +296,11 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
           job.status = 'completed';
           job.results = results;
           console.log(`[Suites] Replay completed: ${newRunId}`);
+          if (job.webhookUrl) {
+            job.webhook = await deliverWebhook(job.webhookUrl, {
+              runId: newRunId, suiteId, status: 'completed', results
+            }, { operationType: 'suite', operationId: newRunId });
+          }
         }
       } catch (err) {
         console.error(`[Suites] Replay failed:`, err);
@@ -283,16 +308,18 @@ router.post('/:suiteId/runs/:runId/replay', async (req, res) => {
         if (job) {  // Guard against eviction
           job.status = 'error';
           job.error = err.message;
+          if (job.webhookUrl) {
+            job.webhook = await deliverWebhook(job.webhookUrl, {
+              runId: newRunId, suiteId, status: 'error', error: job.error
+            }, { operationType: 'suite', operationId: newRunId });
+          }
         }
       }
     })();
 
-    res.json(ok({
-      newRunId,
-      suiteId,
-      originalRunId: runId,
-      message: 'Suite replay started'
-    }));
+    const startResponse = { newRunId, suiteId, originalRunId: runId, message: 'Suite replay started' };
+    if (webhookUrl) startResponse.webhookUrl = webhookUrl;
+    res.json(ok(startResponse));
   } catch (err) {
     console.error('[Suites] Error starting replay:', err);
     res.status(500).json(fail('Failed to start replay'));
