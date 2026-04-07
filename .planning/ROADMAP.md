@@ -67,7 +67,7 @@
 - [x] **Phase 24: Quick Wins** - Zero-risk, independent fixes across safePath, error format, webhooks, and naming (completed 2026-04-07)
 - [x] **Phase 25: Login Extraction** - Extract shared login utility from 6 duplicated agent implementations (completed 2026-04-07)
 - [x] **Phase 26: Async Job Helper** - Extract runAsyncJob helper to eliminate inline IIFE pattern across routes (completed 2026-04-07)
-- [ ] **Phase 27: Auditor Split** - Split auditor.js god module into orchestrator and check category modules
+- [x] **Phase 27: Auditor Split** - Split auditor.js god module into orchestrator and check category modules (completed 2026-04-07)
 - [ ] **Phase 28: MCP Parameter Transform** - Centralize snake_case to camelCase in Python client layer
 
 ---
@@ -126,10 +126,10 @@ Plans:
   2. SiteAuditor class loads check modules dynamically and delegates execution to them
   3. Each check module can be required and called in isolation with a shared context object without importing SiteAuditor
   4. All existing audit categories produce identical output before and after the split
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 27-01-PLAN.md -- Extract 14 check modules to src/agent/audit-checks/ with AuditContext and tests
-- [ ] 27-02-PLAN.md -- Rewrite SiteAuditor as thin orchestrator delegating to check modules
+- [x] 27-02-PLAN.md -- Rewrite SiteAuditor as thin orchestrator delegating to check modules
 
 ### Phase 28: MCP Parameter Transform
 **Goal**: The Python MCP client has one place where snake_case parameters become camelCase, and every tool uses a shared build_payload helper instead of hand-rolling dicts
@@ -174,5 +174,5 @@ Plans:
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 26. Async Job Helper | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 27. Auditor Split | v1.4 | 1/2 | In Progress|  |
+| 27. Auditor Split | v1.4 | 2/2 | Complete   | 2026-04-07 |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |

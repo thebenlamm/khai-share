@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Internal Quality
 status: unknown
-stopped_at: Completed 27-01-PLAN.md
-last_updated: "2026-04-07T02:07:28.693Z"
+stopped_at: Completed 27-02-PLAN.md
+last_updated: "2026-04-07T02:10:25.911Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -55,6 +55,8 @@ Plan: 2 of 2
 - [Phase 26]: loginError convention in runAsyncJob: workFn sets job.loginError before throwing so catch block overrides status to 'login-failed' — distinct from 'error' across all consumers
 - [Phase 26]: _actionResults field in actions.js: in-flight accumulation uses separate field to avoid collision with runAsyncJob's job.results assignment
 - [Phase 27]: AuditContext carries all shared HTTP helpers and result state; check modules receive ctx parameter — zero coupling to SiteAuditor
+- [Phase 27]: Pass this.results reference into AuditContext constructor so check modules accumulate directly into auditor.results without a copy step
+- [Phase 27]: AuditContext results param is optional — backward compatible; standalone ctx still creates its own results object
 
 ### Pending Todos
 
@@ -82,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T02:07:28.691Z
-Stopped at: Completed 27-01-PLAN.md
+Last session: 2026-04-07T02:10:25.909Z
+Stopped at: Completed 27-02-PLAN.md
 Resume file: None
