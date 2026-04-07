@@ -112,9 +112,9 @@ Plans:
   2. No route file contains an inline IIFE that manually sets job state; all use runAsyncJob
   3. Completed jobs across all operation types have identical endTime and error field shape
   4. Webhook delivery on job completion is triggered by runAsyncJob, not by individual route handlers
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
+- [x] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
 - [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
 
 ### Phase 27: Auditor Split
@@ -173,6 +173,6 @@ Plans:
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 26. Async Job Helper | v1.4 | 0/2 | Planned | - |
+| 26. Async Job Helper | v1.4 | 1/2 | In Progress|  |
 | 27. Auditor Split | v1.4 | 0/? | Not started | - |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |

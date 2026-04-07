@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Internal Quality
 status: unknown
-stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-04-07T01:25:26.790Z"
+stopped_at: Completed 26-01-PLAN.md
+last_updated: "2026-04-07T01:43:46.926Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** MCP server giving Claude Code browser automation superpowers -- authenticated testing, screenshots, audits, link checking
-**Current focus:** Phase 25 — login-extraction
+**Current focus:** Phase 26 — async-job-helper
 
 ## Current Position
 
-Phase: 25 (login-extraction) — EXECUTING
+Phase: 26 (async-job-helper) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -50,6 +50,8 @@ Plan: 2 of 2
 - [Phase 25]: screenshotFn/logger/addIssueFn as options let agents customize login utility without coupling
 - [Phase 25]: formFuzzer login() throws on failure to preserve caller contract (not returns false)
 - [Phase 25]: actions.js loginTwilio() deleted — Twilio auth consolidated in shared _loginTwilio inside utils/login.js
+- [Phase 26]: _deliverWebhook injectable option in runAsyncJob for testability — node:test v22.14 lacks mock.module
+- [Phase 26]: runAsyncJob as standalone function (not class method) — operates on any JobStore instance
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T01:25:26.788Z
-Stopped at: Completed 25-02-PLAN.md
+Last session: 2026-04-07T01:43:46.924Z
+Stopped at: Completed 26-01-PLAN.md
 Resume file: None
