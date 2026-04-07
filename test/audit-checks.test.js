@@ -228,3 +228,76 @@ describe('securityHeaders check', () => {
       `Expected at least 3 passes, got ${ctx.results.categories.securityHeaders.passed}`);
   });
 });
+
+// ===========================
+// SiteAuditor orchestrator
+// ===========================
+
+const { SiteAuditor } = require('../src/agent/auditor');
+const fs = require('fs');
+const path = require('path');
+
+describe('SiteAuditor orchestrator', () => {
+  test('empty categories run produces zero results and sets endTime', async () => {
+    const auditor = new SiteAuditor({
+      baseUrl: 'https://example.com',
+      siteName: 'test',
+      categories: [],
+    });
+
+    await auditor.run();
+
+    // No checks ran — categories filter excluded everything
+    assert.equal(auditor.results.summary.total, 0, 'No results expected when categories=[]');
+    assert.ok(auditor.results.endTime, 'endTime should be set after run()');
+
+    // Clean up report file
+    const reportPath = path.join(__dirname, '../reports/audits', `${auditor.id}.json`);
+    if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+  });
+
+  test('results have correct shape after run', async () => {
+    const auditor = new SiteAuditor({
+      baseUrl: 'https://example.com',
+      siteName: 'shape-test',
+      categories: [],
+    });
+
+    await auditor.run();
+
+    const r = auditor.results;
+    assert.ok(typeof r.id === 'string', 'results.id should be a string');
+    assert.ok(typeof r.site === 'string', 'results.site should be a string');
+    assert.ok(typeof r.siteName === 'string', 'results.siteName should be a string');
+    assert.ok(typeof r.startTime === 'string', 'results.startTime should be a string');
+    assert.ok(typeof r.endTime === 'string', 'results.endTime should be a string');
+    assert.ok(typeof r.categories === 'object', 'results.categories should be an object');
+    assert.ok(typeof r.summary === 'object', 'results.summary should be an object');
+    assert.ok('total' in r.summary, 'summary.total missing');
+    assert.ok('passed' in r.summary, 'summary.passed missing');
+    assert.ok('failed' in r.summary, 'summary.failed missing');
+    assert.ok('warnings' in r.summary, 'summary.warnings missing');
+    assert.ok('skipped' in r.summary, 'summary.skipped missing');
+    assert.ok(typeof r.duration === 'number', 'results.duration should be a number');
+
+    const reportPath = path.join(__dirname, '../reports/audits', `${auditor.id}.json`);
+    if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+  });
+
+  test('category filter respected — nonexistent category produces no results', async () => {
+    const auditor = new SiteAuditor({
+      baseUrl: 'https://example.com',
+      siteName: 'filter-test',
+      categories: ['nonexistent'],
+    });
+
+    await auditor.run();
+
+    // 'nonexistent' is not a real check module name; _shouldRun returns false for all real modules
+    assert.equal(auditor.results.summary.total, 0,
+      'No real modules should match a nonexistent category');
+
+    const reportPath = path.join(__dirname, '../reports/audits', `${auditor.id}.json`);
+    if (fs.existsSync(reportPath)) fs.unlinkSync(reportPath);
+  });
+});
