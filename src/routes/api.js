@@ -13,9 +13,9 @@ const { manager: baselineManager } = require('./baselines');
 const { JobStore } = require('../utils/jobStore');
 
 // Store active tests with TTL-based eviction
-const activeTests = new JobStore();
-const completedTests = new JobStore();
-const activeRotations = new JobStore();
+const activeJobs = new JobStore();
+const completedJobs = new JobStore();
+const rotationJobs = new JobStore();
 
 const REPORTS_DIR = path.join(__dirname, '../../reports');
 const SCREENSHOTS_DIR = path.join(__dirname, '../../screenshots');
@@ -72,7 +72,7 @@ router.post('/test/start', async (req, res) => {
     await crawler.init(paymentConfig, viewport);
 
     const testId = crawler.results.id;
-    activeTests.create(testId, {
+    activeJobs.create(testId, {
       crawler,
       status: 'running',
       site,
@@ -84,7 +84,7 @@ router.post('/test/start', async (req, res) => {
 
     // Run test asynchronously
     (async () => {
-      const test = activeTests.get(testId);
+      const test = activeJobs.get(testId);
       try {
         test.status = 'logging-in';
         test.phase = 'login';
@@ -105,7 +105,7 @@ router.post('/test/start', async (req, res) => {
 
           // Still close browser and save results for debugging
           const results = await crawler.close();
-          completedTests.create(testId, { ...results });
+          completedJobs.create(testId, { ...results });
 
           fs.mkdirSync(REPORTS_DIR, { recursive: true });
           const reportPath = path.join(REPORTS_DIR, `${testId}.json`);
@@ -139,7 +139,7 @@ router.post('/test/start', async (req, res) => {
           results.regressions = null;
         }
 
-        completedTests.create(testId, { ...results });
+        completedJobs.create(testId, { ...results });
 
         // Save report
         fs.mkdirSync(REPORTS_DIR, { recursive: true });
@@ -177,15 +177,15 @@ router.post('/test/start', async (req, res) => {
 // Get test status
 router.get('/test/:testId/status', (req, res) => {
   const { testId } = req.params;
-  const test = activeTests.get(testId);
+  const test = activeJobs.get(testId);
 
   if (!test) {
     return res.status(404).json(fail('Test not found'));
   }
 
-  // For terminal states, crawler may be closed -- use completedTests data
+  // For terminal states, crawler may be closed -- use completedJobs data
   if (test.status === 'login-failed' || test.status === 'error' || test.status === 'completed') {
-    const completed = completedTests.get(testId);
+    const completed = completedJobs.get(testId);
     return res.json(ok({
       testId,
       status: test.status,
@@ -240,12 +240,12 @@ router.get('/test/:testId/status', (req, res) => {
 router.get('/test/:testId/results', (req, res) => {
   const { testId } = req.params;
 
-  if (completedTests.has(testId)) {
-    const { _createdAt, ...data } = completedTests.get(testId);
+  if (completedJobs.has(testId)) {
+    const { _createdAt, ...data } = completedJobs.get(testId);
     return res.json(ok(data));
   }
 
-  const test = activeTests.get(testId);
+  const test = activeJobs.get(testId);
   if (test) {
     return res.json(ok(test.crawler.results));
   }
@@ -284,7 +284,7 @@ router.get('/screenshot/:testId/:filename', (req, res) => {
 router.get('/tests', (req, res) => {
   const tests = [];
 
-  activeTests.forEach((test, id) => {
+  activeJobs.forEach((test, id) => {
     tests.push({
       id,
       status: test.status,
@@ -299,7 +299,7 @@ router.get('/tests', (req, res) => {
     fs.readdirSync(REPORTS_DIR).forEach(file => {
       if (file.endsWith('.json')) {
         const id = file.replace('.json', '');
-        if (!activeTests.has(id)) {
+        if (!activeJobs.has(id)) {
           try {
             const report = JSON.parse(fs.readFileSync(path.join(REPORTS_DIR, file), 'utf8'));
             tests.push({
@@ -324,7 +324,7 @@ router.get('/tests', (req, res) => {
 // Stop a test
 router.post('/test/:testId/stop', async (req, res) => {
   const { testId } = req.params;
-  const test = activeTests.get(testId);
+  const test = activeJobs.get(testId);
 
   if (!test) {
     return res.status(404).json(fail('Test not found'));
@@ -344,8 +344,8 @@ router.delete('/test/:testId', (req, res) => {
   try {
     const testId = safeId(req.params.testId);
 
-    activeTests.delete(testId);
-    completedTests.delete(testId);
+    activeJobs.delete(testId);
+    completedJobs.delete(testId);
 
     const reportPath = safePath(REPORTS_DIR, `${testId}.json`);
     if (fs.existsSync(reportPath)) {
@@ -368,7 +368,7 @@ router.post('/test/:testId/issue/:issueId/note', (req, res) => {
   const { testId, issueId } = req.params;
   const { note } = req.body;
 
-  const results = completedTests.get(testId);
+  const results = completedJobs.get(testId);
   if (!results) {
     return res.status(404).json(fail('Test not found'));
   }
@@ -404,7 +404,7 @@ router.post('/test/:testId/issue/:issueId/note', (req, res) => {
 router.get('/purchases/pending', (req, res) => {
   const allPending = [];
 
-  activeTests.forEach((test, testId) => {
+  activeJobs.forEach((test, testId) => {
     const pending = test.crawler.getPendingPurchases();
     pending.forEach(p => {
       allPending.push({ ...p, testId });
@@ -421,7 +421,7 @@ router.post('/purchases/:purchaseId/confirm', async (req, res) => {
   let foundTest = null;
   let foundTestId = null;
 
-  activeTests.forEach((test, testId) => {
+  activeJobs.forEach((test, testId) => {
     const pending = test.crawler.getPendingPurchases();
     if (pending.some(p => p.id === purchaseId)) {
       foundTest = test;
@@ -449,7 +449,7 @@ router.post('/test/:testId/fill-payment', async (req, res) => {
   const { testId } = req.params;
   const { cardKey = 'primary' } = req.body;
 
-  const test = activeTests.get(testId);
+  const test = activeJobs.get(testId);
   if (!test) {
     return res.status(404).json(fail('Test not found'));
   }
@@ -473,12 +473,12 @@ router.post('/test/:testId/fill-payment', async (req, res) => {
 router.get('/test/:testId/purchases', (req, res) => {
   const { testId } = req.params;
 
-  const test = activeTests.get(testId);
+  const test = activeJobs.get(testId);
   if (test) {
     return res.json(ok({ purchases: test.crawler.results.purchases || [] }));
   }
 
-  const completed = completedTests.get(testId);
+  const completed = completedJobs.get(testId);
   if (completed) {
     return res.json(ok({ purchases: completed.purchases || [] }));
   }
@@ -526,11 +526,11 @@ router.post('/rotate-password', async (req, res) => {
     const rotator = new PasswordRotator();
     const rotationId = Date.now().toString(36);
 
-    activeRotations.create(rotationId, { status: 'started', site });
+    rotationJobs.create(rotationId, { status: 'started', site });
 
     (async () => {
       try {
-        activeRotations.get(rotationId).status = 'running';
+        rotationJobs.get(rotationId).status = 'running';
         const result = await rotator.rotatePassword({
           site,
           loginUrl: siteConfig.baseUrl + accountConfig.loginUrl,
@@ -540,10 +540,10 @@ router.post('/rotate-password', async (req, res) => {
           newPassword,
           selectors: accountConfig.passwordRotationSelectors || {}
         });
-        activeRotations.create(rotationId, { ...result });
+        rotationJobs.create(rotationId, { ...result });
       } catch (error) {
         console.error('[Khai] Password rotation error:', error);
-        activeRotations.create(rotationId, {
+        rotationJobs.create(rotationId, {
           status: 'error',
           error: error.message || 'Password rotation failed',
           site
@@ -564,7 +564,7 @@ router.post('/rotate-password', async (req, res) => {
 
 router.get('/rotation/:rotationId/status', (req, res) => {
   const { rotationId } = req.params;
-  const rotation = activeRotations.get(rotationId);
+  const rotation = rotationJobs.get(rotationId);
 
   if (!rotation) {
     return res.status(404).json(fail('Rotation not found'));
@@ -576,7 +576,7 @@ router.get('/rotation/:rotationId/status', (req, res) => {
 
 router.get('/rotations', (req, res) => {
   const rotations = [];
-  activeRotations.forEach((rotation, id) => {
+  rotationJobs.forEach((rotation, id) => {
     const { _createdAt, ...data } = rotation;
     rotations.push({ id, ...data });
   });

@@ -9,7 +9,7 @@ const { deliverWebhook } = require('../utils/webhook');
 const { JobStore } = require('../utils/jobStore');
 
 // Store active audits
-const activeAudits = new JobStore();
+const activeJobs = new JobStore();
 
 const PROFILE_DIR = path.join(__dirname, '../../config/audit-profiles');
 const AUDIT_REPORTS_DIR = path.join(__dirname, '../../reports/audits');
@@ -97,7 +97,7 @@ router.post('/start', async (req, res) => {
   });
 
   const auditId = auditor.id;
-  activeAudits.create(auditId, {
+  activeJobs.create(auditId, {
     auditor,
     status: 'running',
     site: site || resolvedBaseUrl,
@@ -107,7 +107,7 @@ router.post('/start', async (req, res) => {
   });
 
   (async () => {
-    const audit = activeAudits.get(auditId);
+    const audit = activeJobs.get(auditId);
     try {
       const results = await auditor.run();
       audit.status = 'completed';
@@ -137,7 +137,7 @@ router.post('/start', async (req, res) => {
 // Get audit status
 router.get('/:auditId/status', (req, res) => {
   const { auditId } = req.params;
-  const audit = activeAudits.get(auditId);
+  const audit = activeJobs.get(auditId);
 
   if (!audit) {
     try {
@@ -167,7 +167,7 @@ router.get('/:auditId/status', (req, res) => {
 router.get('/:auditId/results', (req, res) => {
   const { auditId } = req.params;
 
-  const audit = activeAudits.get(auditId);
+  const audit = activeJobs.get(auditId);
   if (audit?.results) {
     return res.json(ok(audit.results));
   }
@@ -191,7 +191,7 @@ router.get('/:auditId/results', (req, res) => {
 router.get('/', (req, res) => {
   const audits = [];
 
-  activeAudits.forEach((audit, id) => {
+  activeJobs.forEach((audit, id) => {
     audits.push({
       id,
       status: audit.status,
@@ -205,7 +205,7 @@ router.get('/', (req, res) => {
     fs.readdirSync(AUDIT_REPORTS_DIR).forEach(file => {
       if (file.endsWith('.json')) {
         const id = file.replace('.json', '');
-        if (!activeAudits.has(id)) {
+        if (!activeJobs.has(id)) {
           try {
             const report = JSON.parse(fs.readFileSync(path.join(AUDIT_REPORTS_DIR, file), 'utf8'));
             audits.push({
@@ -232,7 +232,7 @@ router.get('/', (req, res) => {
 router.delete('/:auditId', (req, res) => {
   try {
     const auditId = safeId(req.params.auditId);
-    activeAudits.delete(auditId);
+    activeJobs.delete(auditId);
 
     const reportPath = safePath(AUDIT_REPORTS_DIR, `${auditId}.json`);
     if (fs.existsSync(reportPath)) {

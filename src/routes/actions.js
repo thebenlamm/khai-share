@@ -11,7 +11,7 @@ const { JobStore } = require('../utils/jobStore');
 const { safePath, PROJECT_ROOT } = require('../utils/safePath');
 
 // Store active action sessions
-const activeSessions = new JobStore();
+const activeJobs = new JobStore();
 
 // Execute a sequence of actions
 router.post('/execute', async (req, res) => {
@@ -45,7 +45,7 @@ router.post('/execute', async (req, res) => {
       accountType: account
     });
 
-    activeSessions.create(sessionId, {
+    activeJobs.create(sessionId, {
       khai,
       status: 'initializing',
       results: [],
@@ -58,7 +58,7 @@ router.post('/execute', async (req, res) => {
 
     // Run actions in background
     (async () => {
-      const session = activeSessions.get(sessionId);
+      const session = activeJobs.get(sessionId);
       let harRecorder = null;
 
       // Helper: stop HAR recorder and save to disk (partial traces are valuable)
@@ -228,7 +228,7 @@ router.post('/execute', async (req, res) => {
 // Get action session status
 router.get('/status/:sessionId', (req, res) => {
   const { sessionId } = req.params;
-  const session = activeSessions.get(sessionId);
+  const session = activeJobs.get(sessionId);
 
   if (!session) {
     return res.status(404).json(fail('Session not found'));
@@ -248,7 +248,7 @@ router.get('/status/:sessionId', (req, res) => {
 // Get full action session results
 router.get('/results/:sessionId', (req, res) => {
   const { sessionId } = req.params;
-  const session = activeSessions.get(sessionId);
+  const session = activeJobs.get(sessionId);
 
   if (!session) {
     return res.status(404).json(fail('Session not found'));
@@ -268,7 +268,7 @@ router.get('/results/:sessionId', (req, res) => {
 // Download HAR file for a completed session
 router.get('/har/:sessionId', (req, res) => {
   const { sessionId } = req.params;
-  const session = activeSessions.get(sessionId);
+  const session = activeJobs.get(sessionId);
 
   if (!session) {
     return res.status(404).json(fail('Session not found'));
