@@ -77,3 +77,67 @@ def test_build_payload_nested_dict_keys_not_transformed():
     # Top-level key is transformed, but nested dict structure passes through as-is
     result = build_payload(actions=[{"type": "navigate", "some_key": "value"}])
     assert result == {"actions": [{"type": "navigate", "some_key": "value"}]}
+
+
+# --- Integration tests: verify tool functions send correct camelCase payloads ---
+
+from unittest.mock import patch
+
+
+def test_start_test_payload():
+    """khai_start_test sends full camelCase payload for all params."""
+    with patch("khai_mcp.client.post", return_value={"success": True, "data": {"testId": "t1"}}) as mock_post:
+        from khai_mcp.server import khai_start_test
+        khai_start_test(site="example.com", account="admin", max_depth=2, viewport="mobile", start_path="/dashboard", webhook_url="http://hook")
+        mock_post.assert_called_once()
+        payload = mock_post.call_args[0][1]  # second positional arg
+        assert payload == {
+            "site": "example.com",
+            "account": "admin",
+            "maxDepth": 2,
+            "viewport": "mobile",
+            "startPath": "/dashboard",
+            "webhookUrl": "http://hook",
+        }
+
+
+def test_start_test_payload_minimal():
+    """khai_start_test omits None optional params and keeps non-None defaults."""
+    with patch("khai_mcp.client.post", return_value={"success": True, "data": {"testId": "t1"}}) as mock_post:
+        from khai_mcp.server import khai_start_test
+        khai_start_test(site="example.com", account="admin")
+        payload = mock_post.call_args[0][1]
+        assert "startPath" not in payload
+        assert "webhookUrl" not in payload
+        # Defaults from khai_start_test signature: max_depth=3, viewport="desktop"
+        assert payload["maxDepth"] == 3
+        assert payload["viewport"] == "desktop"
+
+
+def test_execute_actions_payload():
+    """khai_execute_actions omits recordHar when record_har=False (default)."""
+    with patch("khai_mcp.client.post", return_value={"success": True, "data": {"sessionId": "s1"}}) as mock_post:
+        from khai_mcp.server import khai_execute_actions
+        khai_execute_actions(site="example.com", account="admin", actions=[{"type": "screenshot", "name": "test"}])
+        payload = mock_post.call_args[0][1]
+        assert payload == {
+            "site": "example.com",
+            "account": "admin",
+            "actions": [{"type": "screenshot", "name": "test"}],
+        }
+        # recordHar should NOT be present (record_har defaults to False, dropped by build_payload)
+        assert "recordHar" not in payload
+
+
+def test_check_links_payload():
+    """khai_check_links sends all params as camelCase."""
+    with patch("khai_mcp.client.post", return_value={"success": True, "data": {"jobId": "j1"}}) as mock_post:
+        from khai_mcp.server import khai_check_links
+        khai_check_links(base_url="https://example.com", max_pages=100, concurrency=10, timeout=5000)
+        payload = mock_post.call_args[0][1]
+        assert payload == {
+            "baseUrl": "https://example.com",
+            "maxPages": 100,
+            "concurrency": 10,
+            "timeout": 5000,
+        }
