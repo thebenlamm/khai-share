@@ -32,9 +32,9 @@ Requirements for internal quality milestone. Each maps to roadmap phases.
 
 ### Auditor Split
 
-- [ ] **AUDIT-01**: Audit check functions extracted to src/agent/audit-checks/ modules
+- [x] **AUDIT-01**: Audit check functions extracted to src/agent/audit-checks/ modules
 - [ ] **AUDIT-02**: SiteAuditor becomes orchestrator that loads and runs check modules
-- [ ] **AUDIT-03**: Each check module is independently testable with shared context
+- [x] **AUDIT-03**: Each check module is independently testable with shared context
 
 ### MCP Transform
 
@@ -73,9 +73,9 @@ None -- this is a cleanup milestone.
 | ASYNC-01 | Phase 26 | Complete |
 | ASYNC-02 | Phase 26 | Complete |
 | ASYNC-03 | Phase 26 | Complete |
-| AUDIT-01 | Phase 27 | Pending |
+| AUDIT-01 | Phase 27 | Complete |
 | AUDIT-02 | Phase 27 | Pending |
-| AUDIT-03 | Phase 27 | Pending |
+| AUDIT-03 | Phase 27 | Complete |
 | MCP-01 | Phase 28 | Pending |
 | MCP-02 | Phase 28 | Pending |
 | MCP-03 | Phase 28 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Internal Quality
 status: unknown
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-04-07T01:50:21.725Z"
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-04-07T02:07:28.693Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-06)
 
 **Core value:** MCP server giving Claude Code browser automation superpowers -- authenticated testing, screenshots, audits, link checking
-**Current focus:** Phase 26 — async-job-helper
+**Current focus:** Phase 27 — auditor-split
 
 ## Current Position
 
-Phase: 26 (async-job-helper) — EXECUTING
+Phase: 27 (auditor-split) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -54,6 +54,7 @@ Plan: 2 of 2
 - [Phase 26]: runAsyncJob as standalone function (not class method) — operates on any JobStore instance
 - [Phase 26]: loginError convention in runAsyncJob: workFn sets job.loginError before throwing so catch block overrides status to 'login-failed' — distinct from 'error' across all consumers
 - [Phase 26]: _actionResults field in actions.js: in-flight accumulation uses separate field to avoid collision with runAsyncJob's job.results assignment
+- [Phase 27]: AuditContext carries all shared HTTP helpers and result state; check modules receive ctx parameter — zero coupling to SiteAuditor
 
 ### Pending Todos
 
@@ -81,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T01:50:21.722Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-04-07T02:07:28.691Z
+Stopped at: Completed 27-01-PLAN.md
 Resume file: None

@@ -126,9 +126,9 @@ Plans:
   2. SiteAuditor class loads check modules dynamically and delegates execution to them
   3. Each check module can be required and called in isolation with a shared context object without importing SiteAuditor
   4. All existing audit categories produce identical output before and after the split
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 27-01-PLAN.md -- Extract 14 check modules to src/agent/audit-checks/ with AuditContext and tests
+- [x] 27-01-PLAN.md -- Extract 14 check modules to src/agent/audit-checks/ with AuditContext and tests
 - [ ] 27-02-PLAN.md -- Rewrite SiteAuditor as thin orchestrator delegating to check modules
 
 ### Phase 28: MCP Parameter Transform
@@ -174,5 +174,5 @@ Plans:
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 26. Async Job Helper | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 27. Auditor Split | v1.4 | 0/2 | Not started | - |
+| 27. Auditor Split | v1.4 | 1/2 | In Progress|  |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |
