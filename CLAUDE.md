@@ -1,23 +1,33 @@
-# Khai (חי) - Browser Automation MCP Server
+# Khai Contributor Notes
 
-> **When Claude can't do something that requires credentials, payments, or live site testing - summon Khai.**
+Khai is a local browser-automation stack with:
 
-## Doc Update Rule
+1. An Express server on `127.0.0.1:3001`
+2. A Python MCP server that exposes selected Express functionality to Claude Code
 
-When adding, changing, or removing features, routes, or MCP tools, update ALL of these before considering work complete:
-1. **README.md** — features list, REST API reference, file structure
-2. **CLAUDE.md** — MCP tools table, REST API examples, "When to Suggest Khai" list
-3. **khai_mcp/server.py** — MCP `instructions` string (what Claude Code sees on connect)
+This file is the short maintenance reference for people changing the product.
+
+## Update Rule
+
+When a feature, route, tool, action type, or operator workflow changes, update all relevant docs before considering the work done:
+
+1. [README.md](/Users/benlamm/Workspace/khai-share/README.md)
+2. [CLAUDE.md](/Users/benlamm/Workspace/khai-share/CLAUDE.md)
+3. [khai_mcp/server.py](/Users/benlamm/Workspace/khai-share/khai_mcp/server.py)
+4. [src/public/guide.html](/Users/benlamm/Workspace/khai-share/src/public/guide.html)
+5. [src/public/about.html](/Users/benlamm/Workspace/khai-share/src/public/about.html)
 
 ## Architecture
 
-Khai has two layers:
-1. **Express server** (`src/app.js` + `src/server.js`) — Puppeteer browser automation on `localhost:3001`
-2. **MCP server** (`khai_mcp/server.py`) — Python MCP wrapper exposing Express API as Claude Code tools
+- Express app and middleware: [src/app.js](/Users/benlamm/Workspace/khai-share/src/app.js)
+- Express entrypoint: [src/server.js](/Users/benlamm/Workspace/khai-share/src/server.js)
+- MCP server: [khai_mcp/server.py](/Users/benlamm/Workspace/khai-share/khai_mcp/server.py)
+- MCP HTTP client wrapper: [khai_mcp/client.py](/Users/benlamm/Workspace/khai-share/khai_mcp/client.py)
+- Static docs/UI: [src/public](/Users/benlamm/Workspace/khai-share/src/public)
 
-`src/app.js` contains all middleware, routes, and configuration (exported for testing). `src/server.js` is a thin entry point that starts the server and handles graceful shutdown.
+The MCP server is not authoritative for product behavior. The Express routes and agents are.
 
-## Setup (first time)
+## Setup
 
 ```bash
 npm install
@@ -25,380 +35,142 @@ pip install -e .
 cp config/credentials.example.json config/credentials.json
 ```
 
-Then edit `config/credentials.json` with your site's credentials.
-
-## Running Khai
-
 Start the Express server:
+
 ```bash
 npm start
 ```
 
-Start the MCP server (SSE mode):
+Start the MCP server:
+
 ```bash
+khai-mcp
+# or
 khai-mcp --sse
 ```
 
-Or configure in Claude Code's MCP settings for stdio mode.
-
 ## Environment Variables
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `KHAI_API_KEY` | API key for authenticating `/api/*` requests (via `X-Khai-Key` header) | None (auth disabled) |
-| `KHAI_WEBHOOK_SECRET` | HMAC-SHA256 shared secret for signing outbound webhook payloads | None (unsigned) |
-| `KHAI_ALLOW_EVAL` | Enable the `evaluate` action type (arbitrary JS in browser context) | Disabled |
-| `KHAI_ALLOW_EXTERNAL_NAV` | Allow `navigate` action to target URLs outside the configured site domain | Disabled |
-| `PORT` | Express server port | 3001 |
-| `MCP_SSE_PORT` | MCP SSE transport port | 8808 |
+| Variable | Effect | Default |
+| --- | --- | --- |
+| `KHAI_API_KEY` | Requires `X-Khai-Key` on `/api/*` requests | unset |
+| `KHAI_WEBHOOK_SECRET` | Signs outbound webhooks | unset |
+| `KHAI_ALLOW_EVAL` | Enables `evaluate` action | disabled |
+| `KHAI_ALLOW_EXTERNAL_NAV` | Lets `navigate` leave the configured site host | disabled |
+| `PORT` | Express port | `3001` |
+| `MCP_SSE_PORT` | MCP SSE port | `3105` |
 
-See `.env.example` for a documented template.
+## Naming Conventions
+
+The docs need to stay explicit about this:
+
+- MCP tools use snake_case parameters such as `webhook_url`, `record_har`, `max_depth`, `start_path`.
+- The REST API uses camelCase fields such as `webhookUrl`, `recordHar`, `maxDepth`, `startPath`.
+
+Do not silently mix them in examples.
 
 ## MCP Tools
 
-These are the tools available when Khai is connected as an MCP server:
+These are the currently exposed tools:
 
-| Tool | Description |
-|------|-------------|
+| Tool | Purpose |
+| --- | --- |
 | `khai_list_sites` | List configured sites and accounts |
-| `khai_start_test` | Start an authenticated crawl test (supports webhookUrl) |
-| `khai_test_status` | Check crawl test progress |
-| `khai_test_results` | Get full crawl test results |
-| `khai_execute_actions` | Run browser action sequences (supports webhookUrl) |
-| `khai_action_status` | Check action session status |
-| `khai_action_results` | Get full action session results |
-| `khai_run_audit` | Start a security/configuration audit (supports webhookUrl) |
-| `khai_audit_results` | Get audit status and results |
-| `khai_check_links` | Check a site for broken links (supports webhookUrl) |
-| `khai_watch_create` | Create a scheduled watch to monitor an authenticated page for changes |
-| `khai_watch_list` | List all configured watches and their status |
-| `khai_watch_delete` | Delete a watch by id |
-| `khai_watch_history` | Get recent run history for a watch |
-| `khai_action_har` | Get HAR network trace from a completed action session |
-| `khai_baseline_create` | Create a baseline from a completed crawl test |
-| `khai_baseline_list` | List baselines, optionally filtered by site |
-| `khai_baseline_get` | Get full baseline details including snapshot pages |
-| `khai_baseline_update` | Update a baseline from a new crawl test |
+| `khai_start_test` | Start an authenticated crawl |
+| `khai_test_status` | Poll crawl status |
+| `khai_test_results` | Fetch crawl results |
+| `khai_execute_actions` | Start an action session |
+| `khai_action_status` | Poll action status |
+| `khai_action_results` | Fetch action results |
+| `khai_action_har` | Fetch captured HAR output |
+| `khai_run_audit` | Start an audit |
+| `khai_audit_results` | Poll/fetch audit results |
+| `khai_check_links` | Start a broken-link job |
+| `khai_watch_create` | Create a scheduled watch |
+| `khai_watch_list` | List watches |
+| `khai_watch_delete` | Delete a watch |
+| `khai_watch_history` | Fetch watch history |
+| `khai_baseline_create` | Create a baseline from a completed crawl |
+| `khai_baseline_list` | List baselines |
+| `khai_baseline_get` | Fetch a baseline |
+| `khai_baseline_update` | Update a baseline |
 | `khai_baseline_delete` | Delete a baseline |
 
-**Action types:** `navigate`, `wait`, `screenshot`, `evaluate` (requires `KHAI_ALLOW_EVAL=true`), `create-note`, `send-fax`, `send-sms`, `twilio-a2p`
+Supported action types in `khai_execute_actions`:
 
-## Async Polling Pattern
+- `navigate`
+- `wait`
+- `screenshot`
+- `evaluate`
+- `create-note`
+- `send-fax`
+- `send-sms`
+- `twilio-a2p`
 
-All operations are async:
-1. **Start** — returns an ID (`testId`, `auditId`, `sessionId`, `jobId`)
-2. **Poll** — check status until `completed` or `error`
-3. **Results** — get full data
+If action support changes, update:
 
-## Webhooks
+- [khai_mcp/server.py](/Users/benlamm/Workspace/khai-share/khai_mcp/server.py)
+- [README.md](/Users/benlamm/Workspace/khai-share/README.md)
+- [src/public/guide.html](/Users/benlamm/Workspace/khai-share/src/public/guide.html)
 
-Any async start operation accepts an optional `webhookUrl` parameter. When provided, Khai POSTs the full operation results to that URL on completion.
+## REST Surface
 
-- **Signing**: Set `KHAI_WEBHOOK_SECRET` env var. Khai computes HMAC-SHA256 of the JSON body and sends it as `X-Khai-Signature: sha256=<hex>`.
-- **Retry**: Up to 3 attempts with exponential backoff (1s, 4s, 16s). No retry on 4xx.
-- **Status**: Results include a `webhook` field: `{status: "delivered"|"failed", attempts, ...}`.
-- **Headers**: `X-Khai-Event: operation.completed`, `X-Khai-Operation: test|audit|action|link-check`, `X-Khai-Operation-Id: <id>`.
+Primary route modules:
 
-## REST API Quick Reference
+- Core crawl routes: [src/routes/api.js](/Users/benlamm/Workspace/khai-share/src/routes/api.js)
+- Actions: [src/routes/actions.js](/Users/benlamm/Workspace/khai-share/src/routes/actions.js)
+- Audits: [src/routes/audit.js](/Users/benlamm/Workspace/khai-share/src/routes/audit.js)
+- Advanced jobs: [src/routes/advanced.js](/Users/benlamm/Workspace/khai-share/src/routes/advanced.js)
+- Suites: [src/routes/suites.js](/Users/benlamm/Workspace/khai-share/src/routes/suites.js)
+- Watches: [src/routes/watches.js](/Users/benlamm/Workspace/khai-share/src/routes/watches.js)
+- Baselines: [src/routes/baselines.js](/Users/benlamm/Workspace/khai-share/src/routes/baselines.js)
+- Communications: [src/routes/communications.js](/Users/benlamm/Workspace/khai-share/src/routes/communications.js)
 
-The Express server exposes a REST API on `localhost:3001`. The MCP tools call this under the hood.
+If you add a route, confirm whether it should also appear in:
 
-### Health & Configuration
+- the README REST reference
+- the public guide
+- the MCP server instructions string
 
-```bash
-# Health check (no auth required)
-curl http://localhost:3001/health
+## Operational Notes
 
-# Check configured sites
-curl http://localhost:3001/api/sites
-```
+- The Express server binds to `127.0.0.1`, not all interfaces.
+- `/health` and static files do not require `KHAI_API_KEY`; `/api/*` does when the key is set.
+- Crawl viewports currently support `desktop`, `tablet`, and `mobile`.
+- MCP docs currently advertise `desktop` and `mobile`; if you decide to expose `tablet` intentionally through MCP docs, update examples everywhere.
+- Watch schedules are cron expressions interpreted in UTC.
+- Webhook delivery rejects private/reserved IP targets and retries `1s`, `4s`, `16s`.
+- Action-session status/results are stored in an in-memory `JobStore`; persisted action JSON is written to `reports/actions`, but the REST session endpoints themselves are memory-backed.
 
-### Baselines
+## Tests
 
-```bash
-# Create a baseline from a completed crawl test
-curl -X POST http://localhost:3001/api/baselines \
-  -H "Content-Type: application/json" \
-  -d '{"testId": "uuid-from-crawl", "thresholds": {"responseTime": 5000, "pageLoadTime": 10000}}'
-
-# List all baselines (optional site filter)
-curl http://localhost:3001/api/baselines
-curl http://localhost:3001/api/baselines?site=yoursite.com
-
-# Get full baseline with snapshot data
-curl http://localhost:3001/api/baselines/{baselineId}
-
-# Update baseline from new crawl test
-curl -X PUT http://localhost:3001/api/baselines/{baselineId} \
-  -H "Content-Type: application/json" \
-  -d '{"testId": "new-crawl-test-uuid"}'
-
-# Delete a baseline
-curl -X DELETE http://localhost:3001/api/baselines/{baselineId}
-```
-
-### Crawl Testing
+Run the Node test suite with:
 
 ```bash
-# Start a crawl test
-curl -X POST http://localhost:3001/api/test/start \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "maxDepth": 2}'
-
-# Start a crawl test with webhook notification
-curl -X POST http://localhost:3001/api/test/start \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "webhookUrl": "https://example.com/webhook"}'
-
-# Get test status (async polling)
-curl http://localhost:3001/api/test/{testId}/status
-
-# Get test results
-curl http://localhost:3001/api/test/{testId}/results
-
-# List all tests
-curl http://localhost:3001/api/tests
-
-# Stop a running test
-curl -X POST http://localhost:3001/api/test/{testId}/stop
-
-# Delete a test
-curl -X DELETE http://localhost:3001/api/test/{testId}
+npm test
 ```
 
-### Actions (Browser Automation)
+Useful focused checks:
 
 ```bash
-# Execute custom actions (navigate, click, screenshot, etc.)
-curl -X POST http://localhost:3001/api/actions/execute \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "actions": [
-    {"type": "navigate", "url": "/admin"},
-    {"type": "wait", "duration": 2000},
-    {"type": "screenshot", "name": "admin-panel"}
-  ]}'
-
-# Execute actions with HAR recording (captures all network traffic)
-curl -X POST http://localhost:3001/api/actions/execute \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "recordHar": true, "actions": [
-    {"type": "navigate", "url": "/admin"},
-    {"type": "screenshot", "name": "admin-panel"}
-  ]}'
-
-# Get action session status (summary only)
-curl http://localhost:3001/api/actions/status/{sessionId}
-
-# Get action session results (full output)
-curl http://localhost:3001/api/actions/results/{sessionId}
-
-# Get HAR file (session must be started with recordHar: true)
-curl http://localhost:3001/api/actions/har/{sessionId} -o session.har
+node --test test/webhook.test.js
+node --test test/jobStore.test.js
+node --test test/response.test.js
 ```
 
-### Audit
+For the Python wrapper:
 
 ```bash
-# List audit profiles
-curl http://localhost:3001/api/audit/profiles
-
-# Start an audit
-curl -X POST http://localhost:3001/api/audit/start \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com"}'
-
-# Get audit status
-curl http://localhost:3001/api/audit/{auditId}/status
-
-# Get audit results
-curl http://localhost:3001/api/audit/{auditId}/results
-
-# List all audits
-curl http://localhost:3001/api/audit
-
-# Delete an audit
-curl -X DELETE http://localhost:3001/api/audit/{auditId}
+pytest
 ```
 
-### Test Suites
+## Documentation Standard
 
-```bash
-# List saved suites
-curl http://localhost:3001/api/suites
+Prefer documentation that is:
 
-# Run a suite (optional tag filter and dry run)
-curl -X POST "http://localhost:3001/api/suites/{suiteId}/run?tags=smoke,critical&dryRun=false"
+- explicit about what is available through MCP versus REST-only
+- explicit about async start/poll/results flows
+- explicit about parameter names and defaults
+- short enough to scan without losing accuracy
 
-# Get run results
-curl http://localhost:3001/api/suites/{suiteId}/runs/{runId}/results
-
-# Replay a historical run
-curl -X POST http://localhost:3001/api/suites/{suiteId}/runs/{runId}/replay
-
-# List all runs for a suite
-curl http://localhost:3001/api/suites/{suiteId}/runs
-
-# Get trend analysis / history
-curl "http://localhost:3001/api/suites/{suiteId}/history?days=30&limit=100"
-```
-
-### Advanced Testing
-
-All advanced tests return a `jobId` for async polling via `/api/advanced/jobs/{jobId}` and `/api/advanced/jobs/{jobId}/results`.
-
-```bash
-# Link checking
-curl -X POST http://localhost:3001/api/advanced/links/check \
-  -H "Content-Type: application/json" \
-  -d '{"baseUrl": "https://yoursite.com", "maxPages": 50}'
-
-# Flow testing
-curl -X POST http://localhost:3001/api/advanced/flows/run \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com"}'
-
-# API fuzzing
-curl -X POST http://localhost:3001/api/advanced/fuzz/api \
-  -H "Content-Type: application/json" \
-  -d '{"baseUrl": "https://api.yoursite.com", "endpoints": [{"path": "/users", "method": "GET"}]}'
-
-# Form fuzzing
-curl -X POST http://localhost:3001/api/advanced/fuzz/forms \
-  -H "Content-Type: application/json" \
-  -d '{"baseUrl": "https://yoursite.com", "pages": ["/contact", "/signup"]}'
-
-# Lighthouse performance audit
-curl -X POST http://localhost:3001/api/advanced/lighthouse \
-  -H "Content-Type: application/json" \
-  -d '{"pages": ["https://yoursite.com", "https://yoursite.com/about"]}'
-
-# Visual regression
-curl -X POST http://localhost:3001/api/advanced/visual/compare \
-  -H "Content-Type: application/json" \
-  -d '{"baselineDir": "baseline", "currentDir": "current"}'
-
-# Job status (for all advanced tests)
-curl http://localhost:3001/api/advanced/jobs/{jobId}
-curl http://localhost:3001/api/advanced/jobs/{jobId}/results
-```
-
-### Purchase Testing
-
-```bash
-# Get pending purchases
-curl http://localhost:3001/api/purchases/pending
-
-# Confirm/cancel a purchase
-curl -X POST http://localhost:3001/api/purchases/{purchaseId}/confirm \
-  -H "Content-Type: application/json" \
-  -d '{"confirm": true}'
-```
-
-### Password Rotation
-
-```bash
-# Rotate a password
-curl -X POST http://localhost:3001/api/rotate-password \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "newPassword": "newpass123"}'
-
-# Check rotation status
-curl http://localhost:3001/api/rotation/{rotationId}/status
-```
-
-### Communications Monitoring
-
-```bash
-# Initialize monitor
-curl -X POST http://localhost:3001/api/comms/init
-
-# Get messages
-curl http://localhost:3001/api/comms/messages
-curl http://localhost:3001/api/comms/messages?unread=true
-
-# Get unread count
-curl http://localhost:3001/api/comms/unread
-
-# Wait for verification code
-curl -X POST http://localhost:3001/api/comms/wait-for-code \
-  -H "Content-Type: application/json" \
-  -d '{"type": "sms", "timeout": 120000}'
-
-# Check for new messages now
-curl -X POST http://localhost:3001/api/comms/check
-
-# Monitor status
-curl http://localhost:3001/api/comms/status
-
-# Stop monitor
-curl -X POST http://localhost:3001/api/comms/stop
-```
-
-## API Response Format
-
-All API endpoints return a consistent envelope:
-
-```json
-{ "success": true, "data": { ... } }
-{ "success": false, "error": "Error message" }
-```
-
-## Configuration Files
-
-| File | Purpose |
-|------|---------|
-| `config/credentials.json` | Your site credentials (gitignored, never shared) |
-| `config/credentials.example.json` | Template - copy this to get started |
-| `config/audit-profiles/*.json` | Audit profiles defining what to test per site |
-| `config/flows/*.json` | Multi-step test flows (login, checkout, etc.) |
-| `config/schedules.json` | Scheduled recurring tests |
-| `config/suites/*.json` | Test suite definitions with schema validation |
-| `.env.example` | Documented template for all environment variables |
-
-### Quick Actions
-
-```bash
-# Shorthand endpoints that delegate to /actions/execute
-curl -X POST http://localhost:3001/api/actions/create-note \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "patientId": "123", "content": {}}'
-
-curl -X POST http://localhost:3001/api/actions/send-fax \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "faxNumber": "+15551234567", "content": "..."}'
-
-curl -X POST http://localhost:3001/api/actions/send-sms \
-  -H "Content-Type: application/json" \
-  -d '{"site": "yoursite.com", "account": "admin", "phoneNumber": "+15551234567", "message": "..."}'
-```
-
-## When to Suggest Khai
-
-Suggest **"Should I summon Khai?"** when the user needs:
-- Screenshots of logged-in areas
-- Checkout/payment flow testing
-- Running saved test suites with trend tracking
-- Accessibility audits (axe-core WCAG)
-- Email/SMS verification code capture
-- Comprehensive site crawling with auth
-- Any task requiring stored credentials
-- Security auditing of a website
-- Broken link checking
-- Webhook notifications on operation completion
-- Monitoring authenticated pages for content or visual changes on a schedule
-- Network traffic analysis and HAR recording during browser sessions
-- Creating and managing crawl baselines for regression detection
-
-## Output
-
-- Screenshots: `screenshots/`
-- Reports: `reports/`
-- Logs: server stdout
-
-## Development Status
-
-See `.planning/ROADMAP.md` for full status.
-
-## Legal
-
-Only test websites you own or have explicit permission to test.
+Avoid aspirational or speculative feature lists. If the code does not expose it today, do not document it as available.

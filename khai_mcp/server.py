@@ -33,6 +33,11 @@ Available tools:
 - khai_watch_delete: Delete a watch by id
 - khai_watch_history: Get recent run records for a watch showing what changed and when
 - khai_action_har: Get the HAR network trace from a completed action session (must start with record_har=True)
+- khai_baseline_create: Create a baseline from a completed crawl test
+- khai_baseline_list: List baselines, optionally filtered by site
+- khai_baseline_get: Get full baseline details including snapshot pages
+- khai_baseline_update: Update a baseline from a new crawl test
+- khai_baseline_delete: Delete a baseline
 
 Features beyond MCP tools (available via REST API on localhost:3001):
 - Test suites: saved test definitions with tag filtering, replay, run history, and trend analysis (/api/suites/*)
@@ -79,6 +84,10 @@ from a new crawl. Use khai_baseline_delete to remove a baseline. When a crawl co
 an active baseline, regressions (title changes, missing pages, status code changes, timing degradation)
 appear automatically in test results.
 
+Parameter naming: MCP tools use snake_case parameters such as webhook_url, record_har, max_depth,
+and start_path. The underlying Express API uses camelCase fields such as webhookUrl, recordHar,
+maxDepth, and startPath.
+
 IMPORTANT: Khai's Express server (localhost:3001) must be running. Check with khai_list_sites first.
 """,
 )
@@ -122,7 +131,7 @@ def khai_start_test(
         site: Site name from khai_list_sites (e.g. "yoursite.com")
         account: Account type (e.g. "admin", "user")
         max_depth: How many links deep to crawl (default 3)
-        viewport: "desktop" or "mobile"
+        viewport: "desktop", "tablet", or "mobile"
         start_path: Optional path to start crawling from (e.g. "/dashboard")
         webhook_url: URL to POST results to when test completes (optional). Set KHAI_WEBHOOK_SECRET env var for HMAC-SHA256 signing.
 
