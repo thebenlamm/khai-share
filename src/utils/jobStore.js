@@ -1,5 +1,7 @@
 'use strict';
 
+const { deliverWebhook: _deliverWebhookDefault } = require('./webhook');
+
 class JobStore {
   constructor(options = {}) {
     this._map = new Map();
@@ -48,4 +50,69 @@ class JobStore {
   }
 }
 
-module.exports = { JobStore };
+/**
+ * Run an async job with full lifecycle management:
+ * create → execute workFn → set completed/error status + endTime → deliver webhook.
+ *
+ * Fire-and-forget: returns immediately so the route handler can respond to the client.
+ *
+ * @param {JobStore} store       - JobStore instance to track the job
+ * @param {string}   id          - Unique job ID
+ * @param {object}   initialData - Merged into job on create (e.g. { type, site, startTime })
+ * @param {Function} workFn      - async (job) => result — receives job object, returns result
+ * @param {object}   [options]
+ * @param {string}   [options.operationType]   - e.g. "test", "audit", "action" (for webhook headers)
+ * @param {string}   [options.operationId]     - Operation ID for webhook headers (defaults to id)
+ * @param {string}   [options.webhookUrl]      - If set, POST results to this URL on completion
+ * @param {Function} [options._deliverWebhook] - Injectable for testing; defaults to real deliverWebhook
+ */
+async function runAsyncJob(store, id, initialData, workFn, options = {}) {
+  const {
+    operationType = 'operation',
+    operationId = id,
+    webhookUrl = null,
+    _deliverWebhook = _deliverWebhookDefault,
+  } = options;
+
+  store.create(id, {
+    ...initialData,
+    status: 'running',
+    webhookUrl: webhookUrl || null,
+    webhook: null,
+  });
+
+  // Fire-and-forget IIFE — caller does NOT await this
+  (async () => {
+    const job = store.get(id);
+    if (!job) return; // evicted before work started
+
+    try {
+      const results = await workFn(job);
+      const current = store.get(id);
+      if (!current) return; // evicted during work
+      current.status = 'completed';
+      current.results = results;
+      current.endTime = new Date().toISOString();
+      if (current.webhookUrl) {
+        current.webhook = await _deliverWebhook(current.webhookUrl, results, {
+          operationType, operationId,
+        });
+      }
+    } catch (err) {
+      const current = store.get(id);
+      if (!current) return; // evicted during work
+      current.status = 'error';
+      current.error = err.message || String(err);
+      current.endTime = new Date().toISOString();
+      if (current.webhookUrl) {
+        current.webhook = await _deliverWebhook(current.webhookUrl, {
+          jobId: id,
+          status: 'error',
+          error: current.error,
+        }, { operationType, operationId });
+      }
+    }
+  })();
+}
+
+module.exports = { JobStore, runAsyncJob };
