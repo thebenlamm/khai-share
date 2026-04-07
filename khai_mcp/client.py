@@ -8,6 +8,27 @@ KHAI_BASE = "http://127.0.0.1:3001"
 TIMEOUT = 120.0  # Long-running browser operations
 
 
+def snake_to_camel(name: str) -> str:
+    """Convert snake_case to camelCase. Single words pass through unchanged."""
+    parts = name.split("_")
+    return parts[0] + "".join(p.capitalize() for p in parts[1:])
+
+
+def build_payload(**kwargs) -> dict:
+    """Build a camelCase request payload from snake_case keyword arguments.
+
+    - None values are omitted
+    - False values are omitted (but 0 and empty string are kept)
+    - Top-level keys are converted from snake_case to camelCase
+    - Nested structures (dicts, lists) are passed through as-is
+    """
+    return {
+        snake_to_camel(k): v
+        for k, v in kwargs.items()
+        if v is not None and v is not False
+    }
+
+
 def _client() -> httpx.Client:
     headers = {}
     api_key = os.environ.get("KHAI_API_KEY")
