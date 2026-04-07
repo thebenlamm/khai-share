@@ -64,7 +64,7 @@
 
 ### v1.4 Internal Quality (Phases 24-28)
 
-- [ ] **Phase 24: Quick Wins** - Zero-risk, independent fixes across safePath, error format, webhooks, and naming
+- [x] **Phase 24: Quick Wins** - Zero-risk, independent fixes across safePath, error format, webhooks, and naming (completed 2026-04-07)
 - [ ] **Phase 25: Login Extraction** - Extract shared login utility from 6 duplicated agent implementations
 - [ ] **Phase 26: Async Job Helper** - Extract runAsyncJob helper to eliminate inline IIFE pattern across routes
 - [ ] **Phase 27: Auditor Split** - Split auditor.js god module into orchestrator and check category modules
@@ -84,10 +84,10 @@
   3. Suites run endpoint accepts webhookUrl and delivers a webhook on completion
   4. JobStore variable names follow the same naming pattern across every route file
   5. MCP server.py builds URLs using httpx params= rather than f-string interpolation
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 24-01-PLAN.md -- safePath in actions.js, httpx params= in server.py, verify error fields
-- [ ] 24-02-PLAN.md -- webhook support on suites, JobStore naming consistency
+- [x] 24-01-PLAN.md -- safePath in actions.js, httpx params= in server.py, verify error fields
+- [x] 24-02-PLAN.md -- webhook support on suites, JobStore naming consistency
 
 ### Phase 25: Login Extraction
 **Goal**: A single shared login utility handles all auth variants, and every agent delegates to it instead of reimplementing inline
@@ -159,7 +159,7 @@ Plans:
 | 21. Regression Detection | v1.3 | 2/2 | Complete | 2026-03-10 |
 | 22. MCP Tools | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
-| 24. Quick Wins | v1.4 | 0/2 | Not started | - |
+| 24. Quick Wins | v1.4 | 2/2 | Complete   | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 0/? | Not started | - |
 | 26. Async Job Helper | v1.4 | 0/? | Not started | - |
 | 27. Auditor Split | v1.4 | 0/? | Not started | - |
