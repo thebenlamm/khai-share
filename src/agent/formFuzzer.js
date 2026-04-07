@@ -2,6 +2,7 @@ const { createBrowser } = require('../utils/browser');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
+const { performLogin } = require('../utils/login');
 
 /**
  * Standalone form discovery function for reuse across agents.
@@ -69,40 +70,8 @@ class FormFuzzer {
   }
 
   async login(accountConfig) {
-    const loginUrl = this.baseUrl + accountConfig.loginUrl;
-    console.log(`[FormFuzzer] Logging in at ${loginUrl}`);
-    await this.page.goto(loginUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-    await new Promise((r) => setTimeout(r, 2000));
-
-    const emailInput = await this._findSelector(accountConfig.usernameField);
-    if (!emailInput) throw new Error('Could not find email input for login');
-    const pwInput = (await this._findSelector(accountConfig.passwordField)) || 'input[type="password"]';
-
-    await this.page.type(emailInput, accountConfig.username, { delay: 30 });
-    await this.page.type(pwInput, accountConfig.password, { delay: 30 });
-
-    for (const sel of accountConfig.submitButton.split(',').map((s) => s.trim())) {
-      try {
-        const btn = await this.page.$(sel);
-        if (btn) {
-          await Promise.all([
-            btn.click(),
-            this.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 20000 }).catch(() => {}),
-          ]);
-          break;
-        }
-      } catch { continue; }
-    }
-    await new Promise((r) => setTimeout(r, 2000));
-    console.log(`[FormFuzzer] Logged in. URL: ${this.page.url()}`);
-  }
-
-  async _findSelector(commaList) {
-    for (const sel of commaList.split(',').map((s) => s.trim())) {
-      try { await this.page.waitForSelector(sel, { timeout: 3000 }); return sel; }
-      catch { continue; }
-    }
-    return null;
+    const result = await performLogin(this.page, this.baseUrl, accountConfig);
+    if (!result.success) throw new Error(result.error || 'Login failed');
   }
 
   // ===========================

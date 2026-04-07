@@ -9,6 +9,7 @@
 const { createBrowser } = require('../utils/browser');
 const path = require('path');
 const fs = require('fs');
+const { performLogin } = require('../utils/login');
 
 class FlowTester {
   constructor(config) {
@@ -40,89 +41,10 @@ class FlowTester {
   }
 
   async login(accountConfig) {
-    const loginUrl = this.baseUrl + accountConfig.loginUrl;
-    console.log(`[FlowTester] Logging in at ${loginUrl}`);
-
-    try {
-      await this.page.goto(loginUrl, { waitUntil: 'networkidle2', timeout: 30000 });
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Handle loginTrigger if present (e.g., "Admin Portal Login" button)
-      if (accountConfig.loginTrigger) {
-        try {
-          const triggerClicked = await this.page.evaluate((triggerText) => {
-            const textMatch = triggerText.match(/has-text\(['"](.+?)['"]\)/);
-            if (textMatch) {
-              const searchText = textMatch[1].toLowerCase();
-              const buttons = Array.from(document.querySelectorAll('button, a'));
-              const trigger = buttons.find(b => b.textContent.toLowerCase().includes(searchText));
-              if (trigger) {
-                trigger.click();
-                return true;
-              }
-            }
-            return false;
-          }, accountConfig.loginTrigger);
-
-          if (triggerClicked) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-          }
-        } catch (e) {
-          console.log('[FlowTester] Login trigger error:', e.message);
-        }
-      }
-
-      // Fill email
-      const emailSelectors = accountConfig.usernameField.split(',').map(s => s.trim());
-      for (const selector of emailSelectors) {
-        try {
-          await this.page.waitForSelector(selector, { timeout: 5000 });
-          await this.page.type(selector, accountConfig.username, { delay: 50 });
-          break;
-        } catch (e) { continue; }
-      }
-
-      // Fill password
-      const passwordSelectors = accountConfig.passwordField.split(',').map(s => s.trim());
-      for (const selector of passwordSelectors) {
-        try {
-          await this.page.waitForSelector(selector, { timeout: 3000 });
-          await this.page.type(selector, accountConfig.password, { delay: 50 });
-          break;
-        } catch (e) { continue; }
-      }
-
-      // Click submit
-      const submitSelectors = accountConfig.submitButton.split(',').map(s => s.trim());
-      for (const selector of submitSelectors) {
-        try {
-          const btn = await this.page.$(selector);
-          if (btn) {
-            await Promise.all([
-              btn.click(),
-              this.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }).catch(() => {})
-            ]);
-            break;
-          }
-        } catch (e) { continue; }
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      const currentUrl = this.page.url();
-      const loginPath = accountConfig.loginUrl || '/login';
-      if (currentUrl.includes(loginPath) && !currentUrl.includes('callback')) {
-        console.log('[FlowTester] Login may have failed - still on login page');
-        return false;
-      }
-
-      console.log(`[FlowTester] Login successful, URL: ${currentUrl}`);
-      return true;
-    } catch (error) {
-      console.log('[FlowTester] Login error:', error.message);
-      await this.takeScreenshot('login-error');
-      return false;
-    }
+    const result = await performLogin(this.page, this.baseUrl, accountConfig, {
+      screenshotFn: (name) => this.takeScreenshot(name),
+    });
+    return result.success;
   }
 
   async runFlow(flow) {

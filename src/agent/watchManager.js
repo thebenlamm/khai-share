@@ -11,6 +11,7 @@ const pixelmatch = _pixelmatch.default || _pixelmatch;
 const { createBrowser } = require('../utils/browser');
 const { loadCredentials } = require('../utils/config');
 const { deliverWebhook } = require('../utils/webhook');
+const { performLogin } = require('../utils/login');
 
 class WatchManager {
   constructor() {
@@ -291,33 +292,9 @@ class WatchManager {
       let loggedIn = true;
 
       if (!accountConfig.skipLogin) {
-        await page.goto(siteConfig.baseUrl + accountConfig.loginUrl, {
-          waitUntil: 'networkidle2',
-          timeout: 30000,
-        });
-        await page.waitForTimeout(3000);
-
-        try {
-          const usernameSelector = 'input[type="email"], input[name="username"], input[name="email"], input[name="user_login"]';
-          await page.$eval(usernameSelector, (el, val) => { el.value = val; }, accountConfig.username);
-          await page.$eval('input[type="password"]', (el, val) => { el.value = val; }, accountConfig.password);
-
-          await Promise.all([
-            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 }).catch(() => {}),
-            page.$eval('form', f => f.submit()).catch(() =>
-              page.$eval('[type="submit"], button[type="submit"]', b => b.click())
-            ),
-          ]);
-          await page.waitForTimeout(2000);
-
-          // Detect login failure: still on login URL path
-          const currentUrl = page.url();
-          if (currentUrl.includes(accountConfig.loginUrl)) {
-            loggedIn = false;
-          }
-        } catch (loginErr) {
+        const loginResult = await performLogin(page, siteConfig.baseUrl, accountConfig);
+        if (!loginResult.success) {
           loggedIn = false;
-          console.error('[WatchManager] Login error:', loginErr.message);
         }
       }
 
