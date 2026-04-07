@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Internal Quality
 status: unknown
-stopped_at: Completed 28-01-PLAN.md
-last_updated: "2026-04-07T02:22:47.344Z"
+stopped_at: Completed 28-02-PLAN.md
+last_updated: "2026-04-07T02:26:14.647Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -59,6 +59,8 @@ Plan: 2 of 2
 - [Phase 27]: AuditContext results param is optional — backward compatible; standalone ctx still creates its own results object
 - [Phase 28-mcp-parameter-transform]: build_payload drops False but keeps 0 and empty string — matches Python falsy-but-valid semantics for MCP tool parameters
 - [Phase 28-mcp-parameter-transform]: Only top-level keys transformed by build_payload; nested dicts/lists pass through as-is since Express API owns nested schemas
+- [Phase 28-mcp-parameter-transform]: khai_run_audit uses build_payload even with all-optional params — None values dropped, produces empty dict correctly
+- [Phase 28-mcp-parameter-transform]: record_har=False correctly dropped by build_payload; Express interprets absence of recordHar as opt-out
 
 ### Pending Todos
 
@@ -86,6 +88,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-07T02:22:47.342Z
-Stopped at: Completed 28-01-PLAN.md
+Last session: 2026-04-07T02:26:14.645Z
+Stopped at: Completed 28-02-PLAN.md
 Resume file: None
