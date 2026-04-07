@@ -16,7 +16,9 @@ class AuditContext {
     this.khaiPort = config.khaiPort || 3001;
     this.siteName = config.siteName || new URL(config.baseUrl).hostname;
     this.categories = config.categories || null; // null = run all
-    this.results = {
+    // Accept an external results object (from SiteAuditor) so check modules
+    // accumulate results directly into the auditor's results reference.
+    this.results = config.results || {
       categories: {},
       summary: { total: 0, passed: 0, failed: 0, warnings: 0, skipped: 0 },
     };
