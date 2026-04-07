@@ -27,8 +27,8 @@ Requirements for internal quality milestone. Each maps to roadmap phases.
 ### Async Job Helper
 
 - [x] **ASYNC-01**: runAsyncJob helper in jobStore.js encapsulates create/run/complete/error/webhook lifecycle
-- [ ] **ASYNC-02**: All route handlers use runAsyncJob instead of inline IIFE pattern
-- [ ] **ASYNC-03**: Consistent endTime, error format, and webhook delivery across all operations
+- [x] **ASYNC-02**: All route handlers use runAsyncJob instead of inline IIFE pattern
+- [x] **ASYNC-03**: Consistent endTime, error format, and webhook delivery across all operations
 
 ### Auditor Split
 
@@ -71,8 +71,8 @@ None -- this is a cleanup milestone.
 | LOGIN-05 | Phase 25 | Complete |
 | LOGIN-06 | Phase 25 | Complete |
 | ASYNC-01 | Phase 26 | Complete |
-| ASYNC-02 | Phase 26 | Pending |
-| ASYNC-03 | Phase 26 | Pending |
+| ASYNC-02 | Phase 26 | Complete |
+| ASYNC-03 | Phase 26 | Complete |
 | AUDIT-01 | Phase 27 | Pending |
 | AUDIT-02 | Phase 27 | Pending |
 | AUDIT-03 | Phase 27 | Pending |

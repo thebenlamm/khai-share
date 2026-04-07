@@ -66,7 +66,7 @@
 
 - [x] **Phase 24: Quick Wins** - Zero-risk, independent fixes across safePath, error format, webhooks, and naming (completed 2026-04-07)
 - [x] **Phase 25: Login Extraction** - Extract shared login utility from 6 duplicated agent implementations (completed 2026-04-07)
-- [ ] **Phase 26: Async Job Helper** - Extract runAsyncJob helper to eliminate inline IIFE pattern across routes
+- [x] **Phase 26: Async Job Helper** - Extract runAsyncJob helper to eliminate inline IIFE pattern across routes (completed 2026-04-07)
 - [ ] **Phase 27: Auditor Split** - Split auditor.js god module into orchestrator and check category modules
 - [ ] **Phase 28: MCP Parameter Transform** - Centralize snake_case to camelCase in Python client layer
 
@@ -112,10 +112,10 @@ Plans:
   2. No route file contains an inline IIFE that manually sets job state; all use runAsyncJob
   3. Completed jobs across all operation types have identical endTime and error field shape
   4. Webhook delivery on job completion is triggered by runAsyncJob, not by individual route handlers
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
-- [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
+- [x] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
 
 ### Phase 27: Auditor Split
 **Goal**: auditor.js is an orchestrator under 200 lines; audit logic lives in focused check modules that can be tested and extended independently
@@ -128,7 +128,7 @@ Plans:
   4. All existing audit categories produce identical output before and after the split
 **Plans:** 2 plans
 Plans:
-- [ ] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
+- [x] 26-01-PLAN.md -- TDD: Create runAsyncJob helper in jobStore.js with full lifecycle management
 - [ ] 26-02-PLAN.md -- Migrate all 10 inline IIFEs across 5 route files to use runAsyncJob
 
 ### Phase 28: MCP Parameter Transform
@@ -173,6 +173,6 @@ Plans:
 | 23. Integration Wiring Fix | v1.3 | 1/1 | Complete | 2026-03-10 |
 | 24. Quick Wins | v1.4 | 2/2 | Complete    | 2026-04-07 |
 | 25. Login Extraction | v1.4 | 2/2 | Complete    | 2026-04-07 |
-| 26. Async Job Helper | v1.4 | 1/2 | In Progress|  |
+| 26. Async Job Helper | v1.4 | 2/2 | Complete   | 2026-04-07 |
 | 27. Auditor Split | v1.4 | 0/? | Not started | - |
 | 28. MCP Parameter Transform | v1.4 | 0/? | Not started | - |
